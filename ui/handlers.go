@@ -22,6 +22,7 @@ type handlers []handler
 var keyHandlers = &handlers{
 	{mainViews, gocui.KeyTab, "Tab", "Next Panel", onNextPanel},
 	{mainViews, 0xFF, "Shift+Tab", "Previous Panel", nil},
+	{nil, gocui.KeyCtrlX, "Ctrl+x", "Clear editor content", nil},
 	{nil, gocui.KeyCtrlC, "Ctrl+c", "Quit", onQuit},
 }
 

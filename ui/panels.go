@@ -168,8 +168,8 @@ func (ui *UI) toggleHelp(g *gocui.Gui, content string) error {
 }
 
 // openModal create and open the modal window
-func (ui *UI) openModal(name string, help string) (*gocui.View, error) {
-	panelHeight := strings.Count(help, "\n")
+func (ui *UI) openModal(name string, content string) (*gocui.View, error) {
+	panelHeight := strings.Count(content, "\n")
 	v, err := ui.createModal(name, 40, panelHeight)
 	if err != nil {
 		return nil, err
@@ -211,8 +211,8 @@ func (ui *UI) closeModal(name string) error {
 // createModal creates the modal view
 func (ui *UI) createModal(name string, w, h int) (*gocui.View, error) {
 	width, height := ui.gui.Size()
-	x1, y1 := width/2 - w/2, height/2 - h/2
-	x2, y2 := width/2 + w/2, height/2 + h/2
+	x1, y1 := width/2 - w/2, height/2 - h/2-1
+	x2, y2 := width/2 + w/2, height/2 + h/2+1
 
 	return ui.createPanelView(name, x1, y1, x2, y2)
 }
