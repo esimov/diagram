@@ -6,9 +6,10 @@ import (
 )
 
 type UI struct {
-	gui         *gocui.Gui
-	currentView int
-	cursors     Cursors
+	gui          *gocui.Gui
+	currentView  int
+	currentModal string
+	cursors      Cursors
 }
 
 func NewUI() *UI {
@@ -76,7 +77,7 @@ func (ui *UI) initGui(g *gocui.Gui) error {
 	ui.gui.Cursor = true
 	ui.gui.Mouse = true
 
-	ui.currentView = 0
+	ui.currentView = ui.findViewByName(DIAGRAM_PANEL)
 
 	// Set Layout function
 	ui.gui.SetManager(ui)

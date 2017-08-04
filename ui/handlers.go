@@ -2,6 +2,9 @@ package ui
 
 import (
 	"github.com/jroimartin/gocui"
+	"bytes"
+	"text/tabwriter"
+	"fmt"
 )
 
 type Fn func(*gocui.Gui, *gocui.View) error
@@ -55,5 +58,23 @@ func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {
 			}
 		}
 	}
-	return nil
+
+	return g.SetKeybinding("", gocui.KeyCtrlH, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
+		return ui.toggleHelp(g, keyHandlers.Help())
+	})
+}
+
+func (handlers handlers) Help() string {
+	buf := &bytes.Buffer{}
+	w := tabwriter.NewWriter(buf, 0, 0, 3, ' ', tabwriter.DiscardEmptyColumns)
+	for _, handler := range handlers {
+		if handler.keyName == "" || handler.help == "" {
+			continue
+		}
+		fmt.Fprintf(w, "  %s\t: %s\n", handler.keyName, handler.help)
+	}
+
+	fmt.Fprintf(w, "  %s\t: %s\n", "Ctrl+h", "Toggle Help")
+	w.Flush()
+	return buf.String()
 }
