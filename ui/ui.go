@@ -3,13 +3,16 @@ package ui
 import (
 	"github.com/jroimartin/gocui"
 	"log"
+	"time"
 )
 
 type UI struct {
-	gui          *gocui.Gui
-	currentView  int
-	currentModal string
-	cursors      Cursors
+	gui          	*gocui.Gui
+	currentView  	int
+	currentModal 	string
+	consoleLog	string
+	cursors      	Cursors
+	modalTimer	*time.Timer
 }
 
 func NewUI() *UI {

@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"github.com/esimov/diagram/io"
+	"math"
+	"regexp"
 )
 
 type panelProperties struct {
@@ -27,8 +30,14 @@ const (
 	DIAGRAM_PANEL		= "diagram"
 	PROGRESS_PANEL		= "progress"
 	HELP_PANEL		= "help"
+	SAVE_MODAL		= "save_modal"
 )
 
+const (
+	ERROR_EMPTY = "The editor should not be empty!"
+)
+
+// Main views
 var panelViews = map[string]panelProperties{
 	LOGO_PANEL: {
 		title:    "Diagram",
@@ -38,7 +47,6 @@ var panelViews = map[string]panelProperties{
 		x2:       0.4,
 		y2:       0.25,
 		editable: true,
-		modal:    false,
 	},
 	SAVED_DIAGRAMS_PANEL: {
 		title:    "Saved Diagrams",
@@ -46,29 +54,26 @@ var panelViews = map[string]panelProperties{
 		x1:       0.0,
 		y1:       0.25,
 		x2:       0.4,
-		y2:       0.75,
+		y2:       0.90,
 		editable: true,
-		modal:    false,
 	},
 	ACTIONS_PANEL: {
-		title:    "Actions",
+		title:    "Console",
 		text:     "",
 		x1:       0.0,
-		y1:       0.75,
+		y1:       0.90,
 		x2:       0.4,
 		y2:       1.0,
 		editable: true,
-		modal:    false,
 	},
 	DIAGRAM_PANEL: {
 		title:    "Editor",
-		text:     "",
+		text:     string(io.ReadFile("sample.txt")),
 		x1:       0.4,
 		y1:       0.0,
 		x2:       1.0,
 		y2:       1.0,
 		editable: true,
-		modal:    false,
 	},
 	PROGRESS_PANEL: {
 		title:    "Progress",
@@ -78,13 +83,20 @@ var panelViews = map[string]panelProperties{
 		x2:       1,
 		y2:       0.8,
 		editable: false,
-		modal:    false,
 	},
+}
+
+// Modal views
+var modalViews = map[string]panelProperties{
 	HELP_PANEL: {
 		title:    "Key Shortcuts",
-		text:     keyHandlers.Help(),
+		text:	  "",
 		editable: false,
-		modal:    true,
+	},
+	SAVE_MODAL: {
+		title: 	  "Save diagram",
+		text:	  "TEST",
+		editable: true,
 	},
 }
 
@@ -95,26 +107,29 @@ var mainViews = []string{
 	DIAGRAM_PANEL,
 }
 
-// Layout sets up the panel views
+// Initialize the panel views and associate the key bindings to them.
 func (ui *UI) Layout(g *gocui.Gui) error {
 	initPanel := func(g *gocui.Gui, v *gocui.View) error {
-		cx, cy := v.Cursor()
-		line, err := v.Line(cy)
-		if err != nil {
-			ui.cursors.Restore(v)
+		// Disable panel views selection with mouse in case the modal is activated
+		if ui.currentModal == "" {
+			cx, cy := v.Cursor()
+			line, err := v.Line(cy)
+			if err != nil {
+				ui.cursors.Restore(v)
+				ui.setPanelView(v.Name())
+			}
+
+			if cx > len(line) {
+				v.SetCursor(ui.cursors.Get(v.Name()))
+				ui.cursors.Set(v.Name(), ui.getViewRowCount(v, cy), cy)
+			} else {
+				if v.Name() != DIAGRAM_PANEL {
+					v.SetCursor(0, 0)
+				}
+			}
+			ui.currentView = ui.findViewByName(v.Name())
 			ui.setPanelView(v.Name())
 		}
-
-		if cx > len(line) {
-			v.SetCursor(ui.cursors.Get(v.Name()))
-			ui.cursors.Set(v.Name(), ui.getViewRowCount(v, cy), cy)
-		} else {
-			if v.Name() != DIAGRAM_PANEL {
-				v.SetCursor(0, 0)
-			}
-		}
-		ui.currentView = ui.findViewByName(v.Name())
-		ui.setPanelView(v.Name())
 		return nil
 	}
 
@@ -126,7 +141,6 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 		if err := g.SetKeybinding(view, gocui.MouseRelease, gocui.ModNone, initPanel); err != nil {
 			return err
 		}
-
 		if _, err := ui.initPanelView(view); err != nil {
 			return err
 		}
@@ -147,6 +161,7 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 	return nil
 }
 
+// Scroll down event
 func (ui *UI) scrollDown(g *gocui.Gui, v *gocui.View) error {
 	maxY := strings.Count(v.Buffer(), "\n")
 	if maxY < 1 {
@@ -155,22 +170,34 @@ func (ui *UI) scrollDown(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-// toggleHelp function toggle the help window on pressing CTRL-H
+// Toggle the help view on key pressing.
 func (ui *UI) toggleHelp(g *gocui.Gui, content string) error {
+	panelHeight := strings.Count(content, "\n")
 	if ui.currentModal == HELP_PANEL {
+		ui.gui.DeleteKeybinding("", gocui.MouseLeft, gocui.ModNone)
+		ui.gui.DeleteKeybinding("", gocui.MouseRelease, gocui.ModNone)
+
+		// Stop modal timer from firing in case the modal was closed manually.
+		// This is needed to prevent the modal being closed before the predefined delay.
+		if ui.modalTimer != nil {
+			ui.modalTimer.Stop()
+		}
 		return ui.closeModal(ui.currentModal)
 	}
-	_, err := ui.openModal(HELP_PANEL, content)
+	v, err := ui.openModal(HELP_PANEL, 40, panelHeight, true)
 	if err != nil {
 		return err
 	}
+	ui.gui.Cursor = false
+	v.Editor = newEditor(ui, &staticViewEditor{})
+
+	fmt.Fprintf(v, content)
 	return nil
 }
 
-// openModal create and open the modal window
-func (ui *UI) openModal(name string, content string) (*gocui.View, error) {
-	panelHeight := strings.Count(content, "\n")
-	v, err := ui.createModal(name, 40, panelHeight)
+// Create and open the modal window. If "autoHide" parameter is true, the modal will be automatically closed after 5 seconds.
+func (ui *UI) openModal(name string, w, h int, autoHide bool) (*gocui.View, error) {
+	v, err := ui.createModal(name, w, h)
 	if err != nil {
 		return nil, err
 	}
@@ -179,20 +206,22 @@ func (ui *UI) openModal(name string, content string) (*gocui.View, error) {
 		return nil, err
 	}
 	ui.currentModal = name
-	ui.gui.Cursor = false
 
-	// Close the modal automatically after 5 seconds
-	time.AfterFunc(5*time.Second, func() {
-		ui.gui.Execute(func(*gocui.Gui) error {
-			if err := ui.closeModal(name); err != nil {
-				return err
-			}
-			return nil
+	if autoHide {
+		// Close the modal automatically after 5 seconds
+		ui.modalTimer = time.AfterFunc(5*time.Second, func() {
+			ui.gui.Execute(func(*gocui.Gui) error {
+				if err := ui.closeModal(name); err != nil {
+					return err
+				}
+				return nil
+			})
 		})
-	})
+	}
 	return v, nil
 }
-// closeModal close the modal window and restore the focus to the last accessed panel view
+
+// Close the modal window and restore the focus to the last accessed panel view.
 func (ui *UI) closeModal(name string) error {
 	if _, err := ui.gui.View(name); err != nil {
 		if err == gocui.ErrUnknownView {
@@ -208,24 +237,20 @@ func (ui *UI) closeModal(name string) error {
 	return ui.activatePanelView(ui.currentView)
 }
 
-// createModal creates the modal view
+// Initialize and create the modal view.
 func (ui *UI) createModal(name string, w, h int) (*gocui.View, error) {
 	width, height := ui.gui.Size()
-	x1, y1 := width/2 - w/2, height/2 - h/2-1
-	x2, y2 := width/2 + w/2, height/2 + h/2+1
+	x1, y1 := width/2 - w/2, int(math.Ceil(float64(height/2 - h/2-1)))
+	x2, y2 := width/2 + w/2, int(math.Ceil(float64(height/2 + h/2)))
 
-	return ui.createPanelView(name, x1, y1, x2, y2)
+	return ui.createModalView(name, x1, y1, x2, y2)
 }
 
-// initPanelView create the panel view
+// Initialize the panel view.
 func (ui *UI) initPanelView(name string) (*gocui.View, error) {
 	maxX, maxY := ui.gui.Size()
 
 	p := panelViews[name]
-	if p.modal {
-		// Don't init modals
-		return nil, nil
-	}
 
 	x1 := int(p.x1 * float64(maxX))
 	y1 := int(p.y1 * float64(maxY))
@@ -235,7 +260,7 @@ func (ui *UI) initPanelView(name string) (*gocui.View, error) {
 	return ui.createPanelView(name, x1, y1, x2, y2)
 }
 
-// createPanelView create the panel view
+// Creates the panel view.
 func (ui *UI) createPanelView(name string, x1, y1, x2, y2 int) (*gocui.View, error) {
 	v, err := ui.gui.SetView(name, x1, y1, x2, y2)
 	if err != gocui.ErrUnknownView {
@@ -259,7 +284,25 @@ func (ui *UI) createPanelView(name string, x1, y1, x2, y2 int) (*gocui.View, err
 	return v, nil
 }
 
-// activatePanelView set the focus to the view specified by id
+// Creates the modal view.
+func (ui *UI) createModalView(name string, x1, y1, x2, y2 int) (*gocui.View, error) {
+	v, err := ui.gui.SetView(name, x1, y1, x2, y2)
+	if err != gocui.ErrUnknownView {
+		return nil, err
+	}
+	p := modalViews[name]
+
+	v.Title = p.title
+	v.Editable = p.editable
+
+	if err := ui.writeContent(name, p.text); err != nil {
+		return nil, err
+	}
+
+	return v, nil
+}
+
+// Activate the view with the id in parameters.
 func (ui *UI) activatePanelView(id int) error {
 	if err := ui.setPanelView(mainViews[id]); err != nil {
 		return err
@@ -269,7 +312,7 @@ func (ui *UI) activatePanelView(id int) error {
 	return nil
 }
 
-// setPanelView activate the panel view
+// Activate the panel view.
 func (ui *UI) setPanelView(name string) error {
 	if err := ui.closeModal(ui.currentModal); err != nil {
 		return err
@@ -288,7 +331,7 @@ func (ui *UI) setPanelView(name string) error {
 	return nil
 }
 
-// writeContent writes string to view
+// Writes the content into the specific view and set the cursor to the buffer end.
 func (ui *UI) writeContent(name, text string) error {
 	v, err := ui.gui.View(name)
 	if err != nil {
@@ -302,6 +345,7 @@ func (ui *UI) writeContent(name, text string) error {
 	return nil
 }
 
+// Find the view defined by name. Will return the view slice index.
 func (ui *UI) findViewByName(name string) int {
 	var viewId int = -1
 	for idx, v := range mainViews {
@@ -313,19 +357,83 @@ func (ui *UI) findViewByName(name string) int {
 	return viewId
 }
 
-// ClearView clear the panel view
+// Save the diagram content into the file.
+func (ui *UI) saveDiagram(name string) error {
+	v, err := ui.gui.View(name)
+	if err != nil {
+		return err
+	}
+
+	if len(v.ViewBuffer()) == 0 {
+		ui.consoleLog = ERROR_EMPTY
+		if err := ui.log(ui.consoleLog, true); err != nil {
+			return err
+		}
+	}
+	return ui.showSaveModal(SAVE_MODAL)
+}
+
+// Show the save modal.
+func (ui *UI) showSaveModal(name string) error {
+	if err := ui.closeModal(ui.currentModal); err != nil {
+		return err
+	}
+
+	modal, err := ui.openModal(name, 40, 2, false)
+	if err != nil {
+		return err
+	}
+
+	ui.gui.Cursor = true
+	modal.Editor = newEditor(ui, &modalSaveEditor{30})
+
+	ui.gui.DeleteKeybinding("", gocui.MouseLeft, gocui.ModNone)
+	ui.gui.DeleteKeybinding("", gocui.MouseRelease, gocui.ModNone)
+
+	onCloseSavePanel := func(*gocui.Gui, *gocui.View) error {
+		if err := ui.closeModal(ui.currentModal); err != nil {
+			return err
+		}
+		diagram, _ := ui.gui.View(DIAGRAM_PANEL)
+
+		// Check if the file name contains only letters, numbers and underscores.
+		re := regexp.MustCompile("^[a-zA-Z0-9_]*$")
+		res := re.MatchString(strings.TrimSpace(modal.ViewBuffer()))
+
+		if res {
+			file := strings.TrimSpace(modal.ViewBuffer()) + ".txt"
+			_, err := io.SaveFile(file, "diagrams", diagram.ViewBuffer())
+			if err != nil {
+				return err
+			}
+			ui.log(fmt.Sprintf("The file has been saved as: %s", file), false)
+		} else {
+			ui.log("File name should contain only letters, numbers and underscores!", true)
+		}
+		return nil
+	}
+	keys := []gocui.Key{gocui.KeyCtrlS, gocui.KeyEnter}
+	for _, k := range keys {
+		if err := ui.gui.SetKeybinding(name, k, gocui.ModNone, onCloseSavePanel); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// ClearView clears the panel view.
 func (ui *UI) ClearView(name string) {
 	v, _ := ui.gui.View(name)
 	v.Clear()
 }
 
-// DeleteView delete the current view
+// DeleteView deletes the current view.
 func (ui *UI) DeleteView(name string) {
 	v, _ := ui.gui.View(name)
 	ui.gui.DeleteView(v.Name())
 }
 
-// NextView activate the next panel
+// NextView activate the next panel.
 func (ui *UI) NextView(wrap bool) error {
 	var index int
 	index = ui.currentView + 1
@@ -340,7 +448,7 @@ func (ui *UI) NextView(wrap bool) error {
 	return ui.activatePanelView(ui.currentView)
 }
 
-// PrevView activate the previous panel
+// PrevView activate the previous panel.
 func (ui *UI) PrevView(wrap bool) error {
 	var index int
 	index = ui.currentView - 1

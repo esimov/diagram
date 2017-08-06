@@ -82,7 +82,7 @@ func (e *editor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier)
 // Editor for static (non-editable) views
 type staticViewEditor editor
 
-func (editor *staticViewEditor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+func (e *staticViewEditor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 	_, y := v.Cursor()
 	maxY := strings.Count(v.Buffer(), "\n")
 	switch {
@@ -97,6 +97,37 @@ func (editor *staticViewEditor) Edit(v *gocui.View, key gocui.Key, ch rune, mod 
 	case key == gocui.KeyArrowRight:
 		v.MoveCursor(1, 0, false)
 	}
+}
+
+// Save modal editor init struct
+type modalSaveEditor struct {
+	maxWidth int
+}
+
+// Save modal editor
+func (e *modalSaveEditor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+	x, _ := v.Cursor()
+	switch {
+	case key == gocui.KeyBackspace || key == gocui.KeyBackspace2:
+		v.EditDelete(true)
+	case key == gocui.KeyDelete:
+		v.EditDelete(false)
+	case key == gocui.KeyArrowLeft:
+		v.MoveCursor(-1, 0, false)
+	case key == gocui.KeyArrowRight:
+		if x < len(v.Buffer())-1 {
+			v.MoveCursor(1, 0, false)
+		}
+	case key == gocui.KeyArrowDown:
+		return
+	case key == gocui.KeyEnter:
+		return
+	default:
+		if x > e.maxWidth {
+			return
+		}
+	}
+	gocui.DefaultEditor.Edit(v, key, ch, mod)
 }
 
 // getViewRow returns the row content defined by "y"

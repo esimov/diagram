@@ -23,6 +23,7 @@ var keyHandlers = &handlers{
 	{mainViews, gocui.KeyTab, "Tab", "Next Panel", onNextPanel},
 	{mainViews, 0xFF, "Shift+Tab", "Previous Panel", nil},
 	{nil, gocui.KeyCtrlX, "Ctrl+x", "Clear editor content", nil},
+	{nil, gocui.KeyCtrlS, "Ctrl+s", "Save diagram", onSaveDiagram},
 	{nil, gocui.KeyCtrlC, "Ctrl+c", "Quit", onQuit},
 }
 
@@ -44,6 +45,12 @@ func onQuit(ui *UI, wrap bool) Fn {
 	}
 }
 
+func onSaveDiagram(ui *UI, wrap bool) Fn {
+	return func(*gocui.Gui, *gocui.View) error {
+		return ui.saveDiagram(DIAGRAM_PANEL)
+	}
+}
+
 func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {
 	for _, h := range handlers {
 		if len(h.views) == 0 {
@@ -61,11 +68,11 @@ func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {
 	}
 
 	return g.SetKeybinding("", gocui.KeyCtrlH, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
-		return ui.toggleHelp(g, keyHandlers.Help())
+		return ui.toggleHelp(g, handlers.HelpContent())
 	})
 }
 
-func (handlers handlers) Help() string {
+func (handlers handlers) HelpContent() string {
 	buf := &bytes.Buffer{}
 	w := tabwriter.NewWriter(buf, 0, 0, 3, ' ', tabwriter.DiscardEmptyColumns)
 	for _, handler := range handlers {
