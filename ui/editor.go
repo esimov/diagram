@@ -11,6 +11,8 @@ type editor struct {
 	backTabEscape bool
 }
 
+var cache []byte
+
 // Create a new GUI editor
 func newEditor(ui *UI, handler gocui.Editor) *editor {
 	if handler == nil {
@@ -54,26 +56,34 @@ func (e *editor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier)
 				return
 			}
 		}
-
 	case gocui.KeyHome:
+		_, cy := v.Cursor()
+		v.SetCursor(0, cy)
+	case gocui.KeyEnd:
+		_, cy := v.Cursor()
+		maxX := e.ui.getViewRowCount(v, cy)
+		v.SetCursor(maxX, cy)
+	case gocui.KeyPgup:
 		vx, vy := v.Origin()
 		if err := v.SetCursor(0, 0); err != nil && vy > 0 {
 			if err := v.SetOrigin(vx, 0); err != nil {
 				return
 			}
 		}
-		return
-
-	case gocui.KeyEnd:
+	case gocui.KeyPgdn:
 		maxX := e.ui.getViewLastRowCount(v)
-		maxY := strings.Count(strings.TrimSpace(v.ViewBuffer()), "\n")
+		maxY := strings.Count(v.ViewBuffer(), "\n")-1
 		v.SetCursor(maxX, maxY)
-		return
-
 	case gocui.KeyCtrlX:
 		if v.Name() == DIAGRAM_PANEL {
+			cache = []byte(v.ViewBuffer())
 			e.ui.ClearView(v.Name())
 			v.SetCursor(0, 0)
+		}
+	case gocui.KeyCtrlZ:
+		if len(cache) > 0 {
+			v.Write(cache)
+			cache = []byte{}
 		}
 	}
 	e.editor.Edit(v, key, ch, mod)
@@ -137,7 +147,7 @@ func (ui *UI) getViewRow(v *gocui.View, y int) []string {
 	buffer := v.ViewBuffer()
 	for _, char := range []byte(buffer) {
 		if string(char) == "\n" {
-			rows = append(rows, strings.TrimSpace(row))
+			rows = append(rows, row)
 			row = ""
 		} else {
 			row = row + string(char)
@@ -157,7 +167,7 @@ func (ui *UI) getViewLastRow(v *gocui.View) []string {
 
 	for _, char := range []byte(buffer) {
 		if string(char) == "\n" {
-			rows = append(rows, strings.TrimSpace(row))
+			rows = append(rows, row)
 			row = ""
 		} else {
 			row = row + string(char)
@@ -220,7 +230,7 @@ func (ui *UI) getPartialViewBuffer(v *gocui.View, n int) string {
 
 	for _, char := range []byte(buffer) {
 		if string(char) == "\n" {
-			rows = append(rows, strings.TrimSpace(row))
+			rows = append(rows, row)
 			row = ""
 			if idx > n {
 				break

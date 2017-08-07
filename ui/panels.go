@@ -208,8 +208,8 @@ func (ui *UI) openModal(name string, w, h int, autoHide bool) (*gocui.View, erro
 	ui.currentModal = name
 
 	if autoHide {
-		// Close the modal automatically after 5 seconds
-		ui.modalTimer = time.AfterFunc(5*time.Second, func() {
+		// Close the modal automatically after 10 seconds
+		ui.modalTimer = time.AfterFunc(10*time.Second, func() {
 			ui.gui.Execute(func(*gocui.Gui) error {
 				if err := ui.closeModal(name); err != nil {
 					return err
@@ -241,7 +241,7 @@ func (ui *UI) closeModal(name string) error {
 func (ui *UI) createModal(name string, w, h int) (*gocui.View, error) {
 	width, height := ui.gui.Size()
 	x1, y1 := width/2 - w/2, int(math.Ceil(float64(height/2 - h/2-1)))
-	x2, y2 := width/2 + w/2, int(math.Ceil(float64(height/2 + h/2)))
+	x2, y2 := width/2 + w/2, int(math.Ceil(float64(height/2 + h/2+1)))
 
 	return ui.createModalView(name, x1, y1, x2, y2)
 }
@@ -390,7 +390,14 @@ func (ui *UI) showSaveModal(name string) error {
 	ui.gui.DeleteKeybinding("", gocui.MouseLeft, gocui.ModNone)
 	ui.gui.DeleteKeybinding("", gocui.MouseRelease, gocui.ModNone)
 
-	onCloseSavePanel := func(*gocui.Gui, *gocui.View) error {
+	onClose := func(*gocui.Gui, *gocui.View) error {
+		if err := ui.closeModal(ui.currentModal); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	onSave := func(*gocui.Gui, *gocui.View) error {
 		if err := ui.closeModal(ui.currentModal); err != nil {
 			return err
 		}
@@ -412,11 +419,15 @@ func (ui *UI) showSaveModal(name string) error {
 		}
 		return nil
 	}
+
 	keys := []gocui.Key{gocui.KeyCtrlS, gocui.KeyEnter}
 	for _, k := range keys {
-		if err := ui.gui.SetKeybinding(name, k, gocui.ModNone, onCloseSavePanel); err != nil {
+		if err := ui.gui.SetKeybinding(name, k, gocui.ModNone, onSave); err != nil {
 			return err
 		}
+	}
+	if err := ui.gui.SetKeybinding(name, gocui.KeyCtrlX, gocui.ModNone, onClose); err != nil {
+		return err
 	}
 	return nil
 }
