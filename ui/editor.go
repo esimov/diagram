@@ -95,16 +95,16 @@ type staticViewEditor editor
 func (e *staticViewEditor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 	_, y := v.Cursor()
 	maxY := strings.Count(v.Buffer(), "\n")
-	switch {
-	case key == gocui.KeyArrowDown:
+	switch key {
+	case gocui.KeyArrowDown:
 		if y < maxY {
 			v.MoveCursor(0, 1, true)
 		}
-	case key == gocui.KeyArrowUp:
+	case gocui.KeyArrowUp:
 		v.MoveCursor(0, -1, false)
-	case key == gocui.KeyArrowLeft:
+	case gocui.KeyArrowLeft:
 		v.MoveCursor(-1, 0, false)
-	case key == gocui.KeyArrowRight:
+	case gocui.KeyArrowRight:
 		v.MoveCursor(1, 0, false)
 	}
 }

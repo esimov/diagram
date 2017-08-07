@@ -95,7 +95,7 @@ var modalViews = map[string]panelProperties{
 	},
 	SAVE_MODAL: {
 		title: 	  "Save diagram",
-		text:	  "TEST",
+		text:	  ".txt",
 		editable: true,
 	},
 }
@@ -386,6 +386,7 @@ func (ui *UI) showSaveModal(name string) error {
 
 	ui.gui.Cursor = true
 	modal.Editor = newEditor(ui, &modalSaveEditor{30})
+	modal.SetCursor(0, 0)
 
 	ui.gui.DeleteKeybinding("", gocui.MouseLeft, gocui.ModNone)
 	ui.gui.DeleteKeybinding("", gocui.MouseRelease, gocui.ModNone)
@@ -402,13 +403,17 @@ func (ui *UI) showSaveModal(name string) error {
 			return err
 		}
 		diagram, _ := ui.gui.View(DIAGRAM_PANEL)
+		v := modalViews[name]
 
 		// Check if the file name contains only letters, numbers and underscores.
+		buffer := strings.TrimSpace(strings.Replace(modal.ViewBuffer(), v.text, "", -1))
 		re := regexp.MustCompile("^[a-zA-Z0-9_]*$")
-		res := re.MatchString(strings.TrimSpace(modal.ViewBuffer()))
+		res := re.MatchString(buffer)
 
-		if res {
-			file := strings.TrimSpace(modal.ViewBuffer()) + ".txt"
+		if len(strings.TrimSpace(modal.Buffer())) <= len(v.text)  {
+			ui.log("File name should not be empty!", true)
+		} else if res {
+			file := buffer + v.text
 			_, err := io.SaveFile(file, "/diagrams", diagram.ViewBuffer())
 			if err != nil {
 				return err
