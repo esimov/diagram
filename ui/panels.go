@@ -402,7 +402,7 @@ func (ui *UI) showSaveModal(name string) error {
 
 		if res {
 			file := strings.TrimSpace(modal.ViewBuffer()) + ".txt"
-			_, err := io.SaveFile(file, "diagrams", diagram.ViewBuffer())
+			_, err := io.SaveFile(file, "/diagrams", diagram.ViewBuffer())
 			if err != nil {
 				return err
 			}
