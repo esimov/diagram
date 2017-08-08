@@ -20,10 +20,10 @@ type panelProperties struct {
 	y2       float64
 	editable bool
 	editor	 *UI
-	modal    bool
 }
 
 const (
+	// Panel constants
 	LOGO_PANEL 		= "logo"
 	SAVED_DIAGRAMS_PANEL 	= "saved_diagrams"
 	ACTIONS_PANEL		= "actions"
@@ -31,9 +31,8 @@ const (
 	PROGRESS_PANEL		= "progress"
 	HELP_PANEL		= "help"
 	SAVE_MODAL		= "save_modal"
-)
 
-const (
+	// Log messages
 	ERROR_EMPTY = "The editor should not be empty!"
 )
 
@@ -100,12 +99,16 @@ var modalViews = map[string]panelProperties{
 	},
 }
 
-var mainViews = []string{
-	LOGO_PANEL,
-	SAVED_DIAGRAMS_PANEL,
-	ACTIONS_PANEL,
-	DIAGRAM_PANEL,
-}
+var (
+	// Panel Views
+	mainViews = []string{
+		LOGO_PANEL,
+		SAVED_DIAGRAMS_PANEL,
+		ACTIONS_PANEL,
+		DIAGRAM_PANEL,
+	}
+	modalElements = []string{"save_modal", "save", "cancel"}
+)
 
 // Initialize the panel views and associate the key bindings to them.
 func (ui *UI) Layout(g *gocui.Gui) error {
@@ -222,18 +225,19 @@ func (ui *UI) openModal(name string, w, h int, autoHide bool) (*gocui.View, erro
 }
 
 // Close the modal window and restore the focus to the last accessed panel view.
-func (ui *UI) closeModal(name string) error {
-	if _, err := ui.gui.View(name); err != nil {
-		if err == gocui.ErrUnknownView {
-			return nil
+func (ui *UI) closeModal(modals ...string) error {
+	for _, name := range modals {
+		if _, err := ui.gui.View(name); err != nil {
+			if err == gocui.ErrUnknownView {
+				return nil
+			}
+			return err
 		}
-		return err
+		ui.gui.DeleteView(name)
+		ui.gui.DeleteKeybindings(name)
+		ui.gui.Cursor = true
+		ui.currentModal = ""
 	}
-	ui.gui.DeleteView(name)
-	ui.gui.DeleteKeybindings(name)
-	ui.gui.Cursor = true
-	ui.currentModal = ""
-
 	return ui.activatePanelView(ui.currentView)
 }
 
@@ -375,11 +379,13 @@ func (ui *UI) saveDiagram(name string) error {
 
 // Show the save modal.
 func (ui *UI) showSaveModal(name string) error {
+	var saveBtn, cancelBtn *gocui.View
+
 	if err := ui.closeModal(ui.currentModal); err != nil {
 		return err
 	}
 
-	modal, err := ui.openModal(name, 40, 2, false)
+	modal, err := ui.openModal(name, 40, 4, false)
 	if err != nil {
 		return err
 	}
@@ -391,24 +397,30 @@ func (ui *UI) showSaveModal(name string) error {
 	ui.gui.DeleteKeybinding("", gocui.MouseLeft, gocui.ModNone)
 	ui.gui.DeleteKeybinding("", gocui.MouseRelease, gocui.ModNone)
 
+	// Close event handler
 	onClose := func(*gocui.Gui, *gocui.View) error {
-		if err := ui.closeModal(ui.currentModal); err != nil {
+		ui.nextItem = 0 // reset modal elements counter to 0
+		if err := ui.closeModal(ui.currentModal, saveBtn.Name(), cancelBtn.Name()); err != nil {
 			return err
 		}
 		return nil
 	}
 
+	// Save event handler
 	onSave := func(*gocui.Gui, *gocui.View) error {
-		if err := ui.closeModal(ui.currentModal); err != nil {
-			return err
-		}
 		diagram, _ := ui.gui.View(DIAGRAM_PANEL)
 		v := modalViews[name]
+
+		ui.nextItem = 0 // reset modal elements counter to 0
 
 		// Check if the file name contains only letters, numbers and underscores.
 		buffer := strings.TrimSpace(strings.Replace(modal.ViewBuffer(), v.text, "", -1))
 		re := regexp.MustCompile("^[a-zA-Z0-9_]*$")
 		res := re.MatchString(buffer)
+
+		if len(diagram.ViewBuffer()) == 0 {
+			ui.log("The diagram is empty!", true)
+		}
 
 		if len(strings.TrimSpace(modal.Buffer())) <= len(v.text)  {
 			ui.log("File name should not be empty!", true)
@@ -422,7 +434,53 @@ func (ui *UI) showSaveModal(name string) error {
 		} else {
 			ui.log("File name should contain only letters, numbers and underscores!", true)
 		}
+
+		if err := ui.closeModal(ui.currentModal, saveBtn.Name(), cancelBtn.Name()); err != nil {
+			return err
+		}
 		return nil
+	}
+
+	// Tab event handler
+	onNext := func(*gocui.Gui, *gocui.View) error {
+		var pv *gocui.View
+
+		if err := ui.nextElement(modalElements); err != nil {
+			return err
+		}
+		if (ui.nextItem - 1) > 0 {
+			pv, _ = ui.gui.View(modalElements[ui.nextItem - 1])
+		} else {
+			pv, _ =  ui.gui.View(modalElements[len(modalElements)-1])
+		}
+		pv.Highlight = false
+		if ui.nextItem == 0 {
+			ui.gui.Cursor = true
+		}
+		return nil
+	}
+
+	// Get modal with and height. We will calculate the next modal button position relative to the current button.
+	sw, sh := ui.gui.Size()
+	mw, _ := modal.Size()
+
+	saveBtn, err = ui.createButtonWidget("save", sw/2 - mw/2 , sh/2, "Save", nil)
+	if err != nil {
+		return err
+	}
+
+	if saveBtn != nil {
+		saveBtnSize, _ := saveBtn.Size()
+		cancelBtn, err = ui.createButtonWidget("cancel", (sw / 2 - mw / 2) + saveBtnSize + 4, sh / 2, "Cancel", nil)
+		if err != nil {
+			return err
+		}
+		if err := ui.gui.SetKeybinding(saveBtn.Name(), gocui.KeyEnter, gocui.ModNone, onSave); err != nil {
+			return err
+		}
+		if err := ui.gui.SetKeybinding(cancelBtn.Name(), gocui.KeyEnter, gocui.ModNone, onClose); err != nil {
+			return err
+		}
 	}
 
 	keys := []gocui.Key{gocui.KeyCtrlS, gocui.KeyEnter}
@@ -431,26 +489,20 @@ func (ui *UI) showSaveModal(name string) error {
 			return err
 		}
 	}
-	if err := ui.gui.SetKeybinding(name, gocui.KeyCtrlX, gocui.ModNone, onClose); err != nil {
-		return err
+	// Associate the close modal key binding to each modal element.
+	for _, view := range modalElements {
+		if err := ui.gui.SetKeybinding(view, gocui.KeyCtrlX, gocui.ModNone, onClose); err != nil {
+			return err
+		}
+		if err := ui.gui.SetKeybinding(view, gocui.KeyTab, gocui.ModNone, onNext); err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
-// ClearView clears the panel view.
-func (ui *UI) ClearView(name string) {
-	v, _ := ui.gui.View(name)
-	v.Clear()
-}
-
-// DeleteView deletes the current view.
-func (ui *UI) DeleteView(name string) {
-	v, _ := ui.gui.View(name)
-	ui.gui.DeleteView(v.Name())
-}
-
-// NextView activate the next panel.
-func (ui *UI) NextView(wrap bool) error {
+// nextView activate the next panel.
+func (ui *UI) nextView(wrap bool) error {
 	var index int
 	index = ui.currentView + 1
 	if index > len(mainViews) - 1 {
@@ -464,8 +516,8 @@ func (ui *UI) NextView(wrap bool) error {
 	return ui.activatePanelView(ui.currentView)
 }
 
-// PrevView activate the previous panel.
-func (ui *UI) PrevView(wrap bool) error {
+// prevView activate the previous panel.
+func (ui *UI) prevView(wrap bool) error {
 	var index int
 	index = ui.currentView - 1
 	if index < 0 {
@@ -477,4 +529,16 @@ func (ui *UI) PrevView(wrap bool) error {
 	}
 	ui.currentView = index % len(mainViews)
 	return ui.activatePanelView(ui.currentView)
+}
+
+// ClearView clears the panel view.
+func (ui *UI) ClearView(name string) {
+	v, _ := ui.gui.View(name)
+	v.Clear()
+}
+
+// DeleteView deletes the current view.
+func (ui *UI) DeleteView(name string) {
+	v, _ := ui.gui.View(name)
+	ui.gui.DeleteView(v.Name())
 }

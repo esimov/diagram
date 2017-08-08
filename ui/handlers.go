@@ -30,13 +30,13 @@ var keyHandlers = &handlers{
 
 func onNextPanel(ui *UI, wrap bool) Fn {
 	return func(*gocui.Gui, *gocui.View) error {
-		return ui.NextView(wrap)
+		return ui.nextView(wrap)
 	}
 }
 
 func onPrevPanel(ui *UI, wrap bool) Fn {
 	return func(*gocui.Gui, *gocui.View) error {
-		return ui.PrevView(wrap)
+		return ui.prevView(wrap)
 	}
 }
 

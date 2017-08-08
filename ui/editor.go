@@ -30,7 +30,7 @@ func (e *editor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier)
 
 	if e.backTabEscape {
 		if ch == 'Z' {
-			e.ui.PrevView(true)
+			e.ui.prevView(true)
 			e.backTabEscape = false
 			return
 		}
