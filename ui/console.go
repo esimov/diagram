@@ -18,6 +18,7 @@ func decorate(s string, color string) string {
 	return s + "\x1b[0m"
 }
 
+// Insert log message
 func (ui *UI) log(message string, isError bool) error {
 	if isError {
 		message = decorate(message, "red")
@@ -25,6 +26,14 @@ func (ui *UI) log(message string, isError bool) error {
 		message = decorate(message, "green")
 	}
 	if err := ui.writeContent(ACTIONS_PANEL, message); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Clear log message
+func (ui *UI) clearLog() error {
+	if err := ui.writeContent(ACTIONS_PANEL, ""); err != nil {
 		return err
 	}
 	return nil

@@ -420,6 +420,7 @@ func (ui *UI) showSaveModal(name string) error {
 
 		if len(diagram.ViewBuffer()) == 0 {
 			ui.log("The diagram is empty!", true)
+			return nil
 		}
 
 		if len(strings.TrimSpace(modal.Buffer())) <= len(v.text)  {
@@ -498,6 +499,15 @@ func (ui *UI) showSaveModal(name string) error {
 			return err
 		}
 	}
+
+	// Hide log message after 4 seconds
+	time.AfterFunc(4*time.Second, func() {
+		ui.gui.Execute(func(*gocui.Gui) error {
+			ui.clearLog()
+			return nil
+		})
+	})
+
 	return nil
 }
 
