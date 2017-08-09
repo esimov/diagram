@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 )
 
+// List the saved diagrams
 func ListDiagrams(dir string) ([]string, error) {
 	var diagrams []string
 

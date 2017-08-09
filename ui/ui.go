@@ -4,6 +4,7 @@ import (
 	"github.com/jroimartin/gocui"
 	"log"
 	"time"
+	"sync"
 )
 
 type UI struct {
@@ -15,6 +16,7 @@ type UI struct {
 	cursors      	Cursors
 	modalTimer	*time.Timer
 	logTimer	*time.Timer
+	mutex 		*sync.Mutex
 }
 
 func NewUI() *UI {

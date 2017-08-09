@@ -9,6 +9,8 @@ import (
 	"github.com/esimov/diagram/io"
 	"math"
 	"regexp"
+	"path/filepath"
+	"log"
 )
 
 type panelProperties struct {
@@ -34,7 +36,8 @@ const (
 	SAVE_MODAL		= "save_modal"
 
 	// Log messages
-	ERROR_EMPTY = "The editor should not be empty!"
+	ERROR_EMPTY 	= "The editor should not be empty!"
+	DIAGRAMS_DIR	= "/diagrams"
 )
 
 // Main views
@@ -131,13 +134,15 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 			if cx > len(line) {
 				v.SetCursor(ui.cursors.Get(v.Name()))
 				ui.cursors.Set(v.Name(), ui.getViewRowCount(v, cy), cy)
-			} else {
-				if v.Name() != DIAGRAM_PANEL {
-					v.SetCursor(0, 0)
-				}
 			}
 			ui.currentView = ui.findViewByName(v.Name())
 			ui.setPanelView(v.Name())
+		}
+
+		// Refresh the diagram panel with the new diagram content
+		cv := ui.gui.CurrentView()
+		if cv.Name() == SAVED_DIAGRAMS_PANEL {
+			ui.modifyView(DIAGRAM_PANEL)
 		}
 		return nil
 	}
@@ -300,20 +305,8 @@ func (ui *UI) createPanelView(name string, x1, y1, x2, y2 int) (*gocui.View, err
 		v.SelFgColor = gocui.ColorBlack
 		v.Editor = newEditor(ui, &staticViewEditor{})
 
-		diagrams, _ := io.ListDiagrams("/diagrams")
-		for idx, diagram := range diagrams {
-			v, err := ui.gui.View(name)
-			if err != nil {
-				return nil, err
-			}
-			if idx < len(diagrams)-1 {
-				fmt.Fprintf(v, diagram + "\n")
-			} else {
-				fmt.Fprintf(v, diagram)
-			}
-			v.SetCursor(len(diagram), 0)
-			ui.cursors.Set(name, len(diagram), 0)
-		}
+		// Update diagrams directory list
+		ui.updateDiagrams(name)
 	default:
 		v.Editor = newEditor(ui, &staticViewEditor{})
 	}
@@ -468,7 +461,7 @@ func (ui *UI) showSaveModal(name string) error {
 			ui.log("File name should not be empty!", true)
 		} else if res {
 			file := buffer + v.text
-			_, err := io.SaveFile(file, "/diagrams", diagram.ViewBuffer())
+			_, err := io.SaveFile(file, DIAGRAMS_DIR, diagram.ViewBuffer())
 			if err != nil {
 				return err
 			}
@@ -480,6 +473,10 @@ func (ui *UI) showSaveModal(name string) error {
 		if err := ui.closeOpenedModals(modalElements); err != nil {
 			return err
 		}
+
+		// Update diagrams directory list
+		ui.updateDiagrams(SAVED_DIAGRAMS_PANEL)
+
 		return nil
 	}
 
@@ -549,6 +546,63 @@ func (ui *UI) showSaveModal(name string) error {
 		})
 	})
 
+	return nil
+}
+
+// updateView update the view content
+func (ui *UI) updateView(v *gocui.View, buffer string) error {
+	if v != nil {
+		v.Clear()
+		if err := ui.writeContent(v.Name(), buffer); err != nil {
+			return  err
+		}
+	}
+	return nil
+}
+
+// changeView will change the editor content with the content of the opened file.
+func (ui *UI) modifyView(name string) error {
+	v, err := ui.gui.View(name)
+	if err != nil {
+		return err
+	}
+	if v != nil {
+		cv, err := ui.gui.View(SAVED_DIAGRAMS_PANEL)
+		if err != nil {
+			return err
+		}
+		_, cy := cv.Cursor()
+		cwd, err := filepath.Abs(filepath.Dir(""))
+		if err != nil {
+			log.Fatal(err)
+		}
+		file := ui.getViewRow(cv, cy)[0]
+		buffer := string(io.ReadFile(cwd + "/" + DIAGRAMS_DIR + "/" + file))
+
+		if err := ui.updateView(v, buffer); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (ui *UI) updateDiagrams(name string) error {
+	v, err := ui.gui.View(name)
+	if err != nil {
+		return err
+	}
+	v.Clear()
+	diagrams, _ := io.ListDiagrams(DIAGRAMS_DIR)
+
+	for idx, diagram := range diagrams {
+		if idx < len(diagrams)-1 {
+			fmt.Fprintf(v, diagram + "\n")
+		} else {
+			fmt.Fprintf(v, diagram)
+		}
+		v.SetCursor(len(diagram), 0)
+		ui.cursors.Set(name, len(diagram), 0)
+	}
 	return nil
 }
 

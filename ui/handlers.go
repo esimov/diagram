@@ -72,6 +72,32 @@ func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {
 			}
 		}
 	}
+	onDown := func(g *gocui.Gui, v *gocui.View) error {
+		cx, cy := v.Cursor()
+
+		if cy < ui.getViewTotalRows(v)-1 {
+			v.SetCursor(cx, cy+1)
+		}
+		ui.modifyView(DIAGRAM_PANEL)
+		return nil
+	}
+	onUp := func(g *gocui.Gui, v *gocui.View) error {
+		cx, cy := v.Cursor()
+
+		if cy > 0 {
+			v.SetCursor(cx, cy-1)
+		}
+		ui.modifyView(DIAGRAM_PANEL)
+		return nil
+	}
+
+	if err := g.SetKeybinding(SAVED_DIAGRAMS_PANEL, gocui.KeyArrowDown, gocui.ModNone, onDown); err != nil {
+		return err
+	}
+
+	if err := g.SetKeybinding(SAVED_DIAGRAMS_PANEL, gocui.KeyArrowUp, gocui.ModNone, onUp); err != nil {
+		return err
+	}
 
 	return g.SetKeybinding("", gocui.KeyCtrlH, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
 		return ui.toggleHelp(g, handlers.HelpContent())
