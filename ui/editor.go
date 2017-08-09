@@ -120,14 +120,18 @@ func (e *modalSaveEditor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.
 	switch {
 	case key == gocui.KeyBackspace || key == gocui.KeyBackspace2:
 		v.EditDelete(true)
+		return
 	case key == gocui.KeyDelete:
 		v.EditDelete(false)
+		return
 	case key == gocui.KeyArrowLeft:
 		v.MoveCursor(-1, 0, false)
+		return
 	case key == gocui.KeyArrowRight:
 		if x < len(v.Buffer())-1 {
 			v.MoveCursor(1, 0, false)
 		}
+		return
 	case key == gocui.KeyArrowDown:
 		return
 	case key == gocui.KeyEnter:

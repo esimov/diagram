@@ -499,7 +499,7 @@ func (ui *UI) showSaveModal(name string) error {
 		return nil
 	}
 
-	// Get modal with and height. We will calculate the next modal button position relative to the current button.
+	// Get modal with and height
 	sw, sh := ui.gui.Size()
 	mw, _ := modal.Size()
 
@@ -510,6 +510,7 @@ func (ui *UI) showSaveModal(name string) error {
 
 	if saveBtn != nil {
 		saveBtnSize, _ := saveBtn.Size()
+		//Calculate the current modal button position relative to the previous button.
 		cancelBtn, err = ui.createButtonWidget("cancel", (sw / 2 - mw / 2) + saveBtnSize + 4, sh / 2, "Cancel", nil)
 		if err != nil {
 			return err
