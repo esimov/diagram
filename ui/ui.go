@@ -14,6 +14,7 @@ type UI struct {
 	consoleLog	string
 	cursors      	Cursors
 	modalTimer	*time.Timer
+	logTimer	*time.Timer
 }
 
 func NewUI() *UI {

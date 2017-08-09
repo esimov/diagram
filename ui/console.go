@@ -1,9 +1,5 @@
 package ui
 
-func (ui *UI) writeConsole() {
-
-}
-
 // decorate changes the color of a string
 func decorate(s string, color string) string {
 	switch color {
@@ -14,7 +10,6 @@ func decorate(s string, color string) string {
 	default:
 		return s
 	}
-
 	return s + "\x1b[0m"
 }
 

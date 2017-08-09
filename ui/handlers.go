@@ -24,6 +24,10 @@ var keyHandlers = &handlers{
 	{mainViews, 0xFF, "Shift+Tab", "Previous Panel", nil},
 	{nil, gocui.KeyCtrlX, "Ctrl+x", "Clear editor content", nil},
 	{nil, gocui.KeyCtrlZ, "Ctrl+z", "Restore diagram", nil},
+	{nil, gocui.KeyPgup, "PgUp", "Jump to the top", nil},
+	{nil, gocui.KeyPgdn, "PgDown", "Jump to the bottom", nil},
+	{nil, gocui.KeyHome, "Home", "Jump to the start", nil},
+	{nil, gocui.KeyEnd, "End", "Jump to the end", nil},
 	{nil, gocui.KeyCtrlS, "Ctrl+s", "Save diagram", onSaveDiagram},
 	{nil, gocui.KeyCtrlC, "Ctrl+c", "Quit", onQuit},
 }
@@ -87,5 +91,6 @@ func (handlers handlers) HelpContent() string {
 
 	fmt.Fprintf(w, "  %s\t: %s\n", "Ctrl+h", "Toggle Help")
 	w.Flush()
+
 	return buf.String()
 }

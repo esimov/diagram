@@ -175,6 +175,9 @@ func (ui *UI) scrollDown(g *gocui.Gui, v *gocui.View) error {
 
 // Toggle the help view on key pressing.
 func (ui *UI) toggleHelp(g *gocui.Gui, content string) error {
+	if err := ui.closeOpenedModals(modalElements); err != nil {
+		return err
+	}
 	panelHeight := strings.Count(content, "\n")
 	if ui.currentModal == HELP_PANEL {
 		ui.gui.DeleteKeybinding("", gocui.MouseLeft, gocui.ModNone)
@@ -368,6 +371,11 @@ func (ui *UI) saveDiagram(name string) error {
 		return err
 	}
 
+	// Reset log timer firing in case of new incoming message.
+	if ui.logTimer != nil {
+		ui.logTimer.Stop()
+	}
+
 	if len(v.ViewBuffer()) == 0 {
 		ui.consoleLog = ERROR_EMPTY
 		if err := ui.log(ui.consoleLog, true); err != nil {
@@ -384,7 +392,6 @@ func (ui *UI) showSaveModal(name string) error {
 	if err := ui.closeModal(ui.currentModal); err != nil {
 		return err
 	}
-
 	modal, err := ui.openModal(name, 40, 4, false)
 	if err != nil {
 		return err
@@ -400,7 +407,7 @@ func (ui *UI) showSaveModal(name string) error {
 	// Close event handler
 	onClose := func(*gocui.Gui, *gocui.View) error {
 		ui.nextItem = 0 // reset modal elements counter to 0
-		if err := ui.closeModal(ui.currentModal, saveBtn.Name(), cancelBtn.Name()); err != nil {
+		if err := ui.closeOpenedModals(modalElements); err != nil {
 			return err
 		}
 		return nil
@@ -436,7 +443,7 @@ func (ui *UI) showSaveModal(name string) error {
 			ui.log("File name should contain only letters, numbers and underscores!", true)
 		}
 
-		if err := ui.closeModal(ui.currentModal, saveBtn.Name(), cancelBtn.Name()); err != nil {
+		if err := ui.closeOpenedModals(modalElements); err != nil {
 			return err
 		}
 		return nil
@@ -501,13 +508,23 @@ func (ui *UI) showSaveModal(name string) error {
 	}
 
 	// Hide log message after 4 seconds
-	time.AfterFunc(4*time.Second, func() {
+	ui.logTimer = time.AfterFunc(4*time.Second, func() {
 		ui.gui.Execute(func(*gocui.Gui) error {
 			ui.clearLog()
 			return nil
 		})
 	})
 
+	return nil
+}
+
+// closeOpenedModals will close all the opened modal elements.
+func (ui *UI) closeOpenedModals(views []string) error {
+	for _, v := range views {
+		if view, _ := ui.gui.View(v); view != nil {
+			ui.closeModal(view.Name())
+		}
+	}
 	return nil
 }
 
