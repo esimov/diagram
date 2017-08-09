@@ -19,6 +19,7 @@ type panelProperties struct {
 	x2       float64
 	y2       float64
 	editable bool
+	cursor 	 bool
 	editor	 *UI
 }
 
@@ -26,7 +27,7 @@ const (
 	// Panel constants
 	LOGO_PANEL 		= "logo"
 	SAVED_DIAGRAMS_PANEL 	= "saved_diagrams"
-	ACTIONS_PANEL		= "actions"
+	LOG_PANEL 		= "log"
 	DIAGRAM_PANEL		= "diagram"
 	PROGRESS_PANEL		= "progress"
 	HELP_PANEL		= "help"
@@ -46,6 +47,7 @@ var panelViews = map[string]panelProperties{
 		x2:       0.4,
 		y2:       0.25,
 		editable: true,
+		cursor:	  false,
 	},
 	SAVED_DIAGRAMS_PANEL: {
 		title:    "Saved Diagrams",
@@ -55,8 +57,9 @@ var panelViews = map[string]panelProperties{
 		x2:       0.4,
 		y2:       0.90,
 		editable: true,
+		cursor:	  false,
 	},
-	ACTIONS_PANEL: {
+	LOG_PANEL: {
 		title:    "Console",
 		text:     "",
 		x1:       0.0,
@@ -64,6 +67,7 @@ var panelViews = map[string]panelProperties{
 		x2:       0.4,
 		y2:       1.0,
 		editable: true,
+		cursor:	  false,
 	},
 	DIAGRAM_PANEL: {
 		title:    "Editor",
@@ -73,6 +77,7 @@ var panelViews = map[string]panelProperties{
 		x2:       1.0,
 		y2:       1.0,
 		editable: true,
+		cursor:	  true,
 	},
 	PROGRESS_PANEL: {
 		title:    "Progress",
@@ -82,6 +87,7 @@ var panelViews = map[string]panelProperties{
 		x2:       1,
 		y2:       0.8,
 		editable: false,
+		cursor:	  false,
 	},
 }
 
@@ -104,7 +110,7 @@ var (
 	mainViews = []string{
 		LOGO_PANEL,
 		SAVED_DIAGRAMS_PANEL,
-		ACTIONS_PANEL,
+		LOG_PANEL,
 		DIAGRAM_PANEL,
 	}
 	modalElements = []string{"save_modal", "save", "cancel"}
@@ -278,15 +284,38 @@ func (ui *UI) createPanelView(name string, x1, y1, x2, y2 int) (*gocui.View, err
 	v.Title = p.title
 	v.Editable = p.editable
 
-	switch name {
-	case DIAGRAM_PANEL:
-		v.Autoscroll = true
-		v.Editor = newEditor(ui, nil)
-	default:
-		v.Editor = newEditor(ui, &staticViewEditor{})
-	}
 	if err := ui.writeContent(name, p.text); err != nil {
 		return nil, err
+	}
+
+	switch name {
+	case DIAGRAM_PANEL:
+		v.Highlight = false
+		v.Autoscroll = true
+		v.Editor = newEditor(ui, nil)
+
+	case SAVED_DIAGRAMS_PANEL:
+		v.Highlight = true
+		v.SelBgColor = gocui.ColorGreen
+		v.SelFgColor = gocui.ColorBlack
+		v.Editor = newEditor(ui, &staticViewEditor{})
+
+		diagrams, _ := io.ListDiagrams("/diagrams")
+		for idx, diagram := range diagrams {
+			v, err := ui.gui.View(name)
+			if err != nil {
+				return nil, err
+			}
+			if idx < len(diagrams)-1 {
+				fmt.Fprintf(v, diagram + "\n")
+			} else {
+				fmt.Fprintf(v, diagram)
+			}
+			v.SetCursor(len(diagram), 0)
+			ui.cursors.Set(name, len(diagram), 0)
+		}
+	default:
+		v.Editor = newEditor(ui, &staticViewEditor{})
 	}
 	return v, nil
 }
@@ -297,12 +326,12 @@ func (ui *UI) createModalView(name string, x1, y1, x2, y2 int) (*gocui.View, err
 	if err != gocui.ErrUnknownView {
 		return nil, err
 	}
-	p := modalViews[name]
+	m := modalViews[name]
 
-	v.Title = p.title
-	v.Editable = p.editable
+	v.Title = m.title
+	v.Editable = m.editable
 
-	if err := ui.writeContent(name, p.text); err != nil {
+	if err := ui.writeContent(name, m.text); err != nil {
 		return nil, err
 	}
 
@@ -314,6 +343,8 @@ func (ui *UI) activatePanelView(id int) error {
 	if err := ui.setPanelView(mainViews[id]); err != nil {
 		return err
 	}
+	v := panelViews[mainViews[id]]
+	ui.gui.Cursor = v.cursor
 	ui.currentView = id
 
 	return nil
@@ -395,6 +426,9 @@ func (ui *UI) showSaveModal(name string) error {
 	modal, err := ui.openModal(name, 40, 4, false)
 	if err != nil {
 		return err
+	}
+	if ui.modalTimer != nil {
+		ui.modalTimer.Stop()
 	}
 
 	ui.gui.Cursor = true
@@ -569,3 +603,4 @@ func (ui *UI) DeleteView(name string) {
 	v, _ := ui.gui.View(name)
 	ui.gui.DeleteView(v.Name())
 }
+

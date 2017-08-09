@@ -20,7 +20,7 @@ func (ui *UI) log(message string, isError bool) error {
 	} else {
 		message = decorate(message, "green")
 	}
-	if err := ui.writeContent(ACTIONS_PANEL, message); err != nil {
+	if err := ui.writeContent(LOG_PANEL, message); err != nil {
 		return err
 	}
 	return nil
@@ -28,7 +28,7 @@ func (ui *UI) log(message string, isError bool) error {
 
 // Clear log message
 func (ui *UI) clearLog() error {
-	if err := ui.writeContent(ACTIONS_PANEL, ""); err != nil {
+	if err := ui.writeContent(LOG_PANEL, ""); err != nil {
 		return err
 	}
 	return nil
