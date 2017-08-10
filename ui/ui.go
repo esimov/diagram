@@ -23,7 +23,7 @@ func NewUI() *UI {
 	var err error
 
 	ui := new(UI)
-	ui.gui, err = gocui.NewGui(gocui.OutputNormal)
+	ui.gui, err = gocui.NewGui(gocui.Output256)
 	if err != nil {
 		log.Panicln(err)
 	}
