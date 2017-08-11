@@ -137,6 +137,8 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 			}
 			ui.currentView = ui.findViewByName(v.Name())
 			ui.setPanelView(v.Name())
+			view := panelViews[v.Name()]
+			ui.gui.Cursor = view.cursor
 		}
 
 		// Refresh the diagram panel with the new diagram content
@@ -298,7 +300,6 @@ func (ui *UI) createPanelView(name string, x1, y1, x2, y2 int) (*gocui.View, err
 		v.Highlight = false
 		v.Autoscroll = true
 		v.Editor = newEditor(ui, nil)
-
 	case SAVED_DIAGRAMS_PANEL:
 		v.Highlight = true
 		v.SelBgColor = gocui.ColorGreen
