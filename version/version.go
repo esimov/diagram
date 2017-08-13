@@ -24,7 +24,7 @@ const Version = "v.1.0.1"
 func DrawLogo() string {
 	var logo string
 
-	logo += "\n"
+	logo += "\n\n"
 	logo += color.StringRandom("  ██████╗ ██╗ █████╗  ██████╗ ██████╗  █████╗ ███╗   ███╗\n")
 	logo += color.StringRandom("  ██╔══██╗██║██╔══██╗██╔════╝ ██╔══██╗██╔══██╗████╗ ████║\n")
 	logo += color.StringRandom("  ██║  ██║██║███████║██║  ███╗██████╔╝███████║██╔████╔██║\n")

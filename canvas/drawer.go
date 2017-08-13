@@ -1,10 +1,9 @@
 package canvas
 
 import (
-	"strings"
-	"github.com/esimov/diagram/io"
-	"reflect"
 	"github.com/fogleman/gg"
+	"strings"
+	"reflect"
 )
 
 // Auxiliary Point struct used during parsing.
@@ -289,7 +288,6 @@ func (d *Diagram) ParseASCIIArt(str string)[]*Figures {
 					getRange := func(start, end int)[]string {
 						return data[y][start:end]
 					}
-					//fmt.Println(getRange(start, end))
 					text := strings.Join(getRange(start, end), "")
 
 					// Check if it can be concatenated with a previously found text annotation.
@@ -300,7 +298,7 @@ func (d *Diagram) ParseASCIIArt(str string)[]*Figures {
 					} else {
 						color := "#000"
 						if string(text[0]) == "\\" && string(text[len(text) - 1]) == "\\" {
-							text = text[1: len(text) - 1]
+							text = text[0: len(text) - 1]
 							color = "#666"
 						}
 						newtext := NewText(x, y, text, color)
@@ -318,12 +316,11 @@ func (d *Diagram) ParseASCIIArt(str string)[]*Figures {
 	return figures
 }
 
-// Draw a diagram from the ascii art.
-func DrawDiagram(text string) {
+// Generate diagram into the output file
+func DrawDiagram(content string, output string) error {
 	var width, height int
 
 	diagram := &Diagram{}
-	content := string(io.ReadFile(text))
 	figures := diagram.ParseASCIIArt(content)
 
 	for _, fig := range figures {
@@ -334,13 +331,17 @@ func DrawDiagram(text string) {
 	}
 
 	ctx := gg.NewContext(width, height)
-	canvas := NewCanvas(ctx, "//home/esimov/Projects/Go/src/github.com/oakmound/oak/render/default_assets/font/luxisr.ttf", 2)
+	canvas := NewCanvas(ctx, "./font/gloriahallelujah.ttf", 2)
 	canvas.DrawRectangle(0, 0, float64(width), float64(height))
 	canvas.SetRGBA(1, 1, 1, 1)
 	canvas.Fill()
+
 	for _, fig := range figures {
 		fig.Line.Draw(canvas)
 		fig.Text.Draw(canvas)
 	}
-	canvas.SavePNG("out.png")
+	if err := canvas.SavePNG(output); err != nil {
+		return err
+	}
+	return nil
 }

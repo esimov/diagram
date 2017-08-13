@@ -22,13 +22,14 @@ type handlers []handler
 var keyHandlers = &handlers{
 	{mainViews, gocui.KeyTab, "Tab", "Next Panel", onNextPanel},
 	{mainViews, 0xFF, "Shift+Tab", "Previous Panel", nil},
-	{nil, gocui.KeyCtrlX, "Ctrl+x", "Clear editor content", nil},
-	{nil, gocui.KeyCtrlZ, "Ctrl+z", "Restore diagram", nil},
 	{nil, gocui.KeyPgup, "PgUp", "Jump to the top", nil},
 	{nil, gocui.KeyPgdn, "PgDown", "Jump to the bottom", nil},
 	{nil, gocui.KeyHome, "Home", "Jump to the start", nil},
 	{nil, gocui.KeyEnd, "End", "Jump to the end", nil},
+	{nil, gocui.KeyCtrlX, "Ctrl+x", "Clear editor content", nil},
+	{nil, gocui.KeyCtrlZ, "Ctrl+z", "Restore editor content", nil},
 	{nil, gocui.KeyCtrlS, "Ctrl+s", "Save diagram", onSaveDiagram},
+	{nil, gocui.KeyCtrlD, "Ctrl+d", "Draw diagram", onDrawDiagram},
 	{nil, gocui.KeyCtrlC, "Ctrl+c", "Quit", onQuit},
 }
 
@@ -55,6 +56,13 @@ func onSaveDiagram(ui *UI, wrap bool) Fn {
 		return ui.saveDiagram(DIAGRAM_PANEL)
 	}
 }
+
+func onDrawDiagram(ui *UI, wrap bool) Fn {
+	return func(*gocui.Gui, *gocui.View) error {
+		return ui.drawDiagram(DIAGRAM_PANEL)
+	}
+}
+
 
 // Apply key bindings to panel views
 func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {

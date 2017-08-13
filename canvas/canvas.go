@@ -17,11 +17,11 @@ type Drawer interface {
 	Draw(*Canvas)
 }
 
-const CELL_SIZE float64 = 15
+const CELL_SIZE float64 = 20
 
 // Canvas constructor
 func NewCanvas(ctx *gg.Context, font string, lineWidth float64)*Canvas {
-	if err := ctx.LoadFontFace(font, 10); err != nil {
+	if err := ctx.LoadFontFace(font, 20); err != nil {
 		panic(err)
 	}
 	ctx.SetLineWidth(lineWidth)
@@ -125,7 +125,7 @@ func (ctx *Canvas) fillText(text string, x0, y0 float64) {
 // Draw text annotation at (x0, y0) with the given color.
 func (text *Text) Draw(ctx *Canvas) {
 	ctx.SetHexColor(text.color)
-	ctx.DrawString(text.text, X(float64(text.x0)), Y(float64(text.y0)))
+	ctx.fillText(text.text, X(float64(text.x0)), Y(float64(text.y0)+0.5))
 }
 
 // Draw line at (x0, y0) with the given color.

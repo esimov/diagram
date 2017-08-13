@@ -3,10 +3,11 @@ package ui
 import (
 	"github.com/jroimartin/gocui"
 	"github.com/esimov/diagram/version"
+	"github.com/esimov/diagram/io"
+	"github.com/esimov/diagram/canvas"
 	"fmt"
 	"strings"
 	"time"
-	"github.com/esimov/diagram/io"
 	"math"
 	"regexp"
 	"path/filepath"
@@ -117,6 +118,7 @@ var (
 		DIAGRAM_PANEL,
 	}
 	modalElements = []string{"save_modal", "save", "cancel"}
+	currentFile string
 )
 
 // Initialize the panel views and associate the key bindings to them.
@@ -410,6 +412,37 @@ func (ui *UI) saveDiagram(name string) error {
 	return ui.showSaveModal(SAVE_MODAL)
 }
 
+// Convert ASCII art into hand drawing diagrams.
+func (ui *UI) drawDiagram(name string) error {
+	var output string
+
+	v, err := ui.gui.View(name)
+	if err != nil {
+		return err
+	}
+
+	if len(v.ViewBuffer()) == 0 {
+		ui.consoleLog = ERROR_EMPTY
+		if err := ui.log(ui.consoleLog, true); err != nil {
+			return err
+		}
+	}
+	if currentFile == "" {
+		output = "output.png"
+	} else {
+		output = strings.TrimSuffix(currentFile, ".txt")
+		output = output + ".png"
+	}
+	// Generate the hand-draw diagram
+	err = canvas.DrawDiagram(v.Buffer(), output)
+	if err == nil {
+		ui.log(fmt.Sprintf("Successfully generated the ascii diagram into %s!", output), false)
+	} else {
+		ui.log("Error on generating the ascii diagram!", true)
+	}
+	return nil
+}
+
 // Show the save modal.
 func (ui *UI) showSaveModal(name string) error {
 	var saveBtn, cancelBtn *gocui.View
@@ -562,7 +595,7 @@ func (ui *UI) updateView(v *gocui.View, buffer string) error {
 	return nil
 }
 
-// changeView will change the editor content with the content of the opened file.
+// modifyView will change the editor content with the content of the opened file.
 func (ui *UI) modifyView(name string) error {
 	v, err := ui.gui.View(name)
 	if err != nil {
@@ -578,8 +611,8 @@ func (ui *UI) modifyView(name string) error {
 		if err != nil {
 			log.Fatal(err)
 		}
-		file := ui.getViewRow(cv, cy)[0]
-		buffer := string(io.ReadFile(cwd + "/" + DIAGRAMS_DIR + "/" + file))
+		currentFile = ui.getViewRow(cv, cy)[0]
+		buffer := string(io.ReadFile(cwd + "/" + DIAGRAMS_DIR + "/" + currentFile))
 
 		if err := ui.updateView(v, buffer); err != nil {
 			return err
@@ -588,6 +621,7 @@ func (ui *UI) modifyView(name string) error {
 	return nil
 }
 
+// updateDiagrams updates the diagram panel content.
 func (ui *UI) updateDiagrams(name string) error {
 	v, err := ui.gui.View(name)
 	if err != nil {
