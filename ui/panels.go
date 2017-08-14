@@ -28,14 +28,14 @@ type panelProperties struct {
 
 const (
 	// Panel constants
-	LOGO_PANEL 				= "logo"
+	LOGO_PANEL 		= "logo"
 	SAVED_DIAGRAMS_PANEL 	= "saved_diagrams"
-	LOG_PANEL 				= "log"
-	DIAGRAM_PANEL			= "diagram"
-	PROGRESS_PANEL			= "progress"
-	HELP_PANEL				= "help"
-	SAVE_MODAL				= "save_modal"
-	PROGRESS_MODAL			= "progress_modal"
+	LOG_PANEL 		= "log"
+	DIAGRAM_PANEL 		= "diagram"
+	PROGRESS_PANEL 		= "progress"
+	HELP_PANEL 		= "help"
+	SAVE_MODAL 		= "save_modal"
+	PROGRESS_MODAL 		= "progress_modal"
 
 	// Log messages
 	ERROR_EMPTY 	= "The editor should not be empty!"
@@ -443,7 +443,7 @@ func (ui *UI) drawDiagram(name string) error {
 	ui.showProgressModal(PROGRESS_MODAL)
 
 	// Generate the hand-draw diagram
-	err = canvas.DrawDiagram(v.Buffer(), output)
+	err = canvas.DrawDiagram(v.Buffer(), "./output/" + output)
 	if err == nil {
 		ui.log(fmt.Sprintf("Successfully converted the ascii diagram into %s!", output), false)
 	} else {
