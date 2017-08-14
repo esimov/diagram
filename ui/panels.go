@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"path/filepath"
 	"log"
+	"os"
 )
 
 type panelProperties struct {
@@ -442,12 +443,23 @@ func (ui *UI) drawDiagram(name string) error {
 	// Show progress
 	ui.showProgressModal(PROGRESS_MODAL)
 
-	// Generate the hand-draw diagram
-	err = canvas.DrawDiagram(v.Buffer(), "./output/" + output)
+	cwd, err := filepath.Abs(filepath.Dir(""))
+	if err != nil {
+		log.Fatal(err)
+	}
+	filePath := cwd + "/output/"
+
+	// Create output directory in case it does not exists.
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		os.Mkdir(filePath, os.ModePerm)
+	}
+
+	// Generate the hand-drawn diagram.
+	err = canvas.DrawDiagram(v.Buffer(), filePath + output)
 	if err == nil {
 		ui.log(fmt.Sprintf("Successfully converted the ascii diagram into %s!", output), false)
 	} else {
-		ui.log("Error on converting and saving the ascii diagram!", true)
+		ui.log("Error on saving the ascii diagram! Please check if the output folder exists.", true)
 	}
 
 	// Close progress modal after 1 second
