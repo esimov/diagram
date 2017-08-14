@@ -28,13 +28,14 @@ type panelProperties struct {
 
 const (
 	// Panel constants
-	LOGO_PANEL 		= "logo"
+	LOGO_PANEL 				= "logo"
 	SAVED_DIAGRAMS_PANEL 	= "saved_diagrams"
-	LOG_PANEL 		= "log"
-	DIAGRAM_PANEL		= "diagram"
-	PROGRESS_PANEL		= "progress"
-	HELP_PANEL		= "help"
-	SAVE_MODAL		= "save_modal"
+	LOG_PANEL 				= "log"
+	DIAGRAM_PANEL			= "diagram"
+	PROGRESS_PANEL			= "progress"
+	HELP_PANEL				= "help"
+	SAVE_MODAL				= "save_modal"
+	PROGRESS_MODAL			= "progress_modal"
 
 	// Log messages
 	ERROR_EMPTY 	= "The editor should not be empty!"
@@ -106,6 +107,11 @@ var modalViews = map[string]panelProperties{
 		title: 	  "Save diagram",
 		text:	  ".txt",
 		editable: true,
+	},
+	PROGRESS_MODAL: {
+		title:	  "Progress",
+		text:	  "\tGenerating...",
+		editable: false,
 	},
 }
 
@@ -309,7 +315,7 @@ func (ui *UI) createPanelView(name string, x1, y1, x2, y2 int) (*gocui.View, err
 		v.Editor = newEditor(ui, &staticViewEditor{})
 
 		// Update diagrams directory list
-		ui.updateDiagrams(name)
+		ui.updateDiagramList(name)
 	default:
 		v.Editor = newEditor(ui, &staticViewEditor{})
 	}
@@ -391,7 +397,7 @@ func (ui *UI) findViewByName(name string) int {
 	return viewId
 }
 
-// Save the diagram content into the file.
+// Save the diagram content.
 func (ui *UI) saveDiagram(name string) error {
 	v, err := ui.gui.View(name)
 	if err != nil {
@@ -412,7 +418,7 @@ func (ui *UI) saveDiagram(name string) error {
 	return ui.showSaveModal(SAVE_MODAL)
 }
 
-// Convert ASCII art into hand drawing diagrams.
+// ASCII -> to PNG converter.
 func (ui *UI) drawDiagram(name string) error {
 	var output string
 
@@ -433,13 +439,27 @@ func (ui *UI) drawDiagram(name string) error {
 		output = strings.TrimSuffix(currentFile, ".txt")
 		output = output + ".png"
 	}
+	// Show progress
+	ui.showProgressModal(PROGRESS_MODAL)
+
 	// Generate the hand-draw diagram
 	err = canvas.DrawDiagram(v.Buffer(), output)
 	if err == nil {
-		ui.log(fmt.Sprintf("Successfully generated the ascii diagram into %s!", output), false)
+		ui.log(fmt.Sprintf("Successfully converted the ascii diagram into %s!", output), false)
 	} else {
-		ui.log("Error on generating the ascii diagram!", true)
+		ui.log("Error on converting and saving the ascii diagram!", true)
 	}
+
+	// Close progress modal after 1 second
+	ui.modalTimer = time.AfterFunc(1*time.Second, func() {
+		ui.gui.Execute(func(*gocui.Gui) error {
+			ui.nextItem = 0 // reset modal elements counter to 0
+			if err := ui.closeModal(PROGRESS_MODAL); err != nil {
+				return err
+			}
+			return nil
+		})
+	})
 	return nil
 }
 
@@ -509,7 +529,7 @@ func (ui *UI) showSaveModal(name string) error {
 		}
 
 		// Update diagrams directory list
-		ui.updateDiagrams(SAVED_DIAGRAMS_PANEL)
+		ui.updateDiagramList(SAVED_DIAGRAMS_PANEL)
 
 		return nil
 	}
@@ -584,6 +604,25 @@ func (ui *UI) showSaveModal(name string) error {
 	return nil
 }
 
+// Show progress modal.
+func (ui *UI) showProgressModal(name string) error {
+	if err := ui.closeModal(ui.currentModal); err != nil {
+		return err
+	}
+	_, err := ui.openModal(name, 40, 2, false)
+	if err != nil {
+		return err
+	}
+	if ui.modalTimer != nil {
+		ui.modalTimer.Stop()
+	}
+
+	ui.gui.DeleteKeybinding("", gocui.MouseLeft, gocui.ModNone)
+	ui.gui.DeleteKeybinding("", gocui.MouseRelease, gocui.ModNone)
+
+	return nil
+}
+
 // updateView update the view content
 func (ui *UI) updateView(v *gocui.View, buffer string) error {
 	if v != nil {
@@ -621,8 +660,8 @@ func (ui *UI) modifyView(name string) error {
 	return nil
 }
 
-// updateDiagrams updates the diagram panel content.
-func (ui *UI) updateDiagrams(name string) error {
+// updateDiagramList updates the diagram panel content.
+func (ui *UI) updateDiagramList(name string) error {
 	v, err := ui.gui.View(name)
 	if err != nil {
 		return err
@@ -693,4 +732,3 @@ func (ui *UI) DeleteView(name string) {
 	v, _ := ui.gui.View(name)
 	ui.gui.DeleteView(v.Name())
 }
-
