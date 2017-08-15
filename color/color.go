@@ -29,7 +29,7 @@ func StringFormatBoth(fg, bg int, str string, args []string) string {
 
 // StringRandom returns a random colored string
 func StringRandom(str string) string {
-	return String(Random(22, 231), str)
+	return String(Random(180, 231), str)
 }
 
 // Random color number

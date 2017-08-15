@@ -142,7 +142,7 @@ func (d *Diagram) ParseASCIIArt(str string)[]*Figures {
 	eraseChar := func(x, y, dx, dy int) {
 		c := at(y, x)
 		switch {
-		case c == "|" || c == "-" || c == "*" || c == ">" || c == "<" || c == "^" || c == "v" || c == "~" || c == "~" :
+		case c == "|" || c == "-" || c == "*" || c == ">" || c == "<" || c == "^" || c == "v" || c == "~" || c == "!" :
 			data[y][x] = " "
 			return
 		case c == "+":
@@ -331,13 +331,16 @@ func DrawDiagram(content string, output string) error {
 	}
 
 	ctx := gg.NewContext(width, height)
-	canvas := NewCanvas(ctx, "./font/gloriahallelujah.ttf", 2)
+	canvas := NewCanvas(ctx, "./font/gloriahallelujah.ttf", 3)
 	canvas.DrawRectangle(0, 0, float64(width), float64(height))
 	canvas.SetRGBA(1, 1, 1, 1)
 	canvas.Fill()
 
 	for _, fig := range figures {
-		fig.Line.Draw(canvas)
+		// Do not draw empty lines
+		if fig.Line.x1 != 0 {
+			fig.Line.Draw(canvas)
+		}
 		fig.Text.Draw(canvas)
 	}
 	if err := canvas.SavePNG(output); err != nil {
