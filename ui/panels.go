@@ -110,7 +110,7 @@ var modalViews = map[string]panelProperties{
 		editable: true,
 	},
 	PROGRESS_MODAL: {
-		title:	  "Progress",
+		title:	  "",
 		text:	  "\tGenerating...",
 		editable: false,
 	},
@@ -621,7 +621,7 @@ func (ui *UI) showProgressModal(name string) error {
 	if err := ui.closeModal(ui.currentModal); err != nil {
 		return err
 	}
-	_, err := ui.openModal(name, 40, 2, false)
+	_, err := ui.openModal(name, 40, 1, false)
 	if err != nil {
 		return err
 	}
