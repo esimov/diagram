@@ -1,3 +1,5 @@
+// Ported from https://github.com/mraleph/moe-js/blob/master/talks/jsconfeu2012/tools/shaky/web/shaky.dart
+
 package canvas
 
 import (
