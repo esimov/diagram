@@ -39,7 +39,7 @@ Key                                     | Description
 
 ## Issues
 
-The app was tested under **Ubuntu** and **MacOS**, but on Mac there are some issues in terms of activating a certain panel by mouse click.
+The app was tested under **Ubuntu** and **MacOS**, but running under MacBook Pro the panels are not selectables with clicks.
 
 ### Acknowledgements
 The ascii -> png conversion was ported from [shaky.dart](https://github.com/mraleph/moe-js/blob/master/talks/jsconfeu2012/tools/shaky/web/shaky.dart).
