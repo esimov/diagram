@@ -46,4 +46,4 @@ The ascii -> png conversion was ported from [shaky.dart](https://github.com/mral
 
 ## License
 
-This project is under the MIT License. See the [LICENSE](https://github.com/esimov/diagram/LICENSE) file for the full license text.
+This project is under the MIT License. See the [LICENSE](https://github.com/esimov/diagram/blob/master/LICENSE) file for the full license text.
