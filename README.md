@@ -15,7 +15,7 @@ $ go install
 # Start the application
 $ diagram
 ```
-A shell script is included to watch the output folder changes and automatically open the generated png files, however `inotifywait` is required for Linux distribution. To install it under Linux please run:
+A shell script is included to watch the output folder changes and automatically open the generated png files, however `inotifywait` is required for Linux distribution. To install on Ubuntu please run:
 
 ```bash
 sudo apt install inotify-tools
