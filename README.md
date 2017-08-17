@@ -15,11 +15,13 @@ $ go install
 # Start the application
 $ diagram
 ```
-A shell script is included to watch the output folder changes and automatically open the generated png files, however `inotifywait` is required for Linux distribution. To install under Linux please run:
+A shell script is included to watch the output folder changes and automatically open the generated png files, however `inotifywait` is required for Linux distribution. To install it under Linux please run:
 
 ```bash
 sudo apt install inotify-tools
 ```
+
+Then you can use the provided shell script by typing `$ ./watch`.
 
 ### Key bindings
 Key                                     | Description
@@ -36,6 +38,11 @@ Key                                     | Description
 <kbd>Home</kbd>                         | Jump to the start line
 <kbd>End</kbd>                          | Jump to the end line
 <kbd>Ctrl+c</kbd>                       | Quit
+
+### Example
+| Input | Output |
+|:--:|:--:|
+| <img src="https://user-images.githubusercontent.com/883386/29396424-9200a978-8320-11e7-9c60-17d2be989136.png" height="300"> | <img src="https://user-images.githubusercontent.com/883386/29396385-529a23a4-8320-11e7-9d70-bf9b33d769cc.png" height="300"> |
 
 ## Issues
 
