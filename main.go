@@ -12,8 +12,8 @@ import (
 )
 
 var (
-	source		= flag.String("source", "", "Source")
-	destination = flag.String("destination", "", "Destination")
+	source		= flag.String("in", "", "Source")
+	destination = flag.String("out", "", "Destination")
 )
 
 func main() {
