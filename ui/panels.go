@@ -238,7 +238,7 @@ func (ui *UI) openModal(name string, w, h int, autoHide bool) (*gocui.View, erro
 	if autoHide {
 		// Close the modal automatically after 10 seconds
 		ui.modalTimer = time.AfterFunc(10*time.Second, func() {
-			ui.gui.Execute(func(*gocui.Gui) error {
+			ui.gui.Update(func(*gocui.Gui) error {
 				if err := ui.closeModal(name); err != nil {
 					return err
 				}
@@ -464,7 +464,7 @@ func (ui *UI) drawDiagram(name string) error {
 
 	// Close progress modal after 1 second
 	ui.modalTimer = time.AfterFunc(1*time.Second, func() {
-		ui.gui.Execute(func(*gocui.Gui) error {
+		ui.gui.Update(func(*gocui.Gui) error {
 			ui.nextItem = 0 // reset modal elements counter to 0
 			if err := ui.closeModal(PROGRESS_MODAL); err != nil {
 				return err
@@ -607,7 +607,7 @@ func (ui *UI) showSaveModal(name string) error {
 
 	// Hide log message after 4 seconds
 	ui.logTimer = time.AfterFunc(4*time.Second, func() {
-		ui.gui.Execute(func(*gocui.Gui) error {
+		ui.gui.Update(func(*gocui.Gui) error {
 			ui.clearLog()
 			return nil
 		})
