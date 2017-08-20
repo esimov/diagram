@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// Stringf returnrs a color escape string with format options
+// Stringf returns a color escape string with format options
 func Stringf(c int, format string, args ...interface{}) string {
 	return fmt.Sprintf("\x1b[38;5;%dm%s\x1b[0m", c, fmt.Sprintf(format, args...))
 }

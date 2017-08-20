@@ -2,25 +2,16 @@ package version
 
 import "github.com/esimov/diagram/color"
 
-// Diagram CLI logo
-const Logo = `
-  ██████╗ ██╗ █████╗  ██████╗ ██████╗  █████╗ ███╗   ███╗
-  ██╔══██╗██║██╔══██╗██╔════╝ ██╔══██╗██╔══██╗████╗ ████║
-  ██║  ██║██║███████║██║  ███╗██████╔╝███████║██╔████╔██║
-  ██║  ██║██║██╔══██║██║   ██║██╔══██╗██╔══██║██║╚██╔╝██║
-  ██████╔╝██║██║  ██║╚██████╔╝██║  ██║██║  ██║██║ ╚═╝ ██║
-  ╚═════╝ ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝`
-
 // Name of application
 const Name = "diagram"
 
 // Description of application
-const Description = "Transform ASCII texts to hand drawing diagrams"
+const Description = "Transform ASCII arts into hand drawn diagrams"
 
 // Version number
 const Version = "v.1.0.1"
 
-//ColorLogo with color
+//Colorize logo
 func DrawLogo() string {
 	var logo string
 
