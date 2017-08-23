@@ -23,6 +23,9 @@ sudo apt install inotify-tools
 
 Then you can use the provided shell script by typing `$ ./watch`.
 
+**Update:**
+*The included shell script to watch and automatically open the generated images is not needed anymore, because an image viewer is bundled into the application.*
+
 ### Command Line support
 
 The application supports the generation of hand drawn diagrams directly via command line. Typing `$ diagram --help` will show the supported commands for generating the diagrams without to enter the CLI tool:
