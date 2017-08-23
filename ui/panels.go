@@ -5,6 +5,7 @@ import (
 	"github.com/esimov/diagram/version"
 	"github.com/esimov/diagram/io"
 	"github.com/esimov/diagram/canvas"
+	"github.com/fogleman/imview"
 	"fmt"
 	"strings"
 	"time"
@@ -469,6 +470,11 @@ func (ui *UI) drawDiagram(name string) error {
 			if err := ui.closeModal(PROGRESS_MODAL); err != nil {
 				return err
 			}
+			defer func() {
+				image, _ := imview.LoadImage(filePath + output)
+				view := imview.ImageToRGBA(image)
+				imview.Show(view)
+			}()
 			return nil
 		})
 	})
