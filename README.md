@@ -51,8 +51,8 @@ Key                                     | Description
 <kbd>Ctrl+z</kbd>                       | Restore the editor content
 <kbd>PageUp</kbd>                       | Jump to the top
 <kbd>PageDown</kbd>                     | Jump to the bottom
-<kbd>Home</kbd>                         | Jump to the start line
-<kbd>End</kbd>                          | Jump to the end line
+<kbd>Home</kbd>                         | Jump to the line start
+<kbd>End</kbd>                          | Jump to the line end
 <kbd>Ctrl+c</kbd>                       | Quit
 
 ### Example
