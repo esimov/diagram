@@ -1,5 +1,9 @@
 language: go
 
+os:
+  - linux
+  - osx
+
 # In theory, older versions would probably work just fine
 go:
   - 1.9
@@ -13,9 +17,6 @@ branches:
 
 before_install:
   - sudo apt-get install -y inotify-tools
-
-script:
-  - go get -u -t ./...
 
 # I haven't tested on windows
 env:
