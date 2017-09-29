@@ -1,0 +1,23 @@
+language: go
+
+# In theory, older versions would probably work just fine
+go:
+  - 1.9
+  - 1.8
+  - 1.7
+  - tip
+
+branches:
+  only:
+    - "master"
+
+before_install:
+  - sudo apt-get install -y inotify-tools
+
+script:
+  - go get -u -t ./...
+
+# I haven't tested on windows
+env:
+  - GOOS=linux
+  - GOOS=darwin
