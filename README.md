@@ -24,7 +24,7 @@ sudo apt install inotify-tools
 Then you can use the provided shell script by typing `$ ./watch`.
 
 **Update:**
-*The included shell script to watch and automatically open the generated images is not needed anymore, because an image viewer is bundled into the application.*
+*The included shell script is not needed anymore, because an internal image viewer is bundled into the application.*
 
 ### Command Line support
 
@@ -65,7 +65,7 @@ Key                                     | Description
 The app was tested on **Ubuntu** and **MacOS**, but on Mac the panels are not selectables with clicks.
 
 ### Acknowledgements
-The ascii -> png conversion was ported from [shaky.dart](https://github.com/mraleph/moe-js/blob/master/talks/jsconfeu2012/tools/shaky/web/shaky.dart).
+The ascii to png conversion was ported from [shaky.dart](https://github.com/mraleph/moe-js/blob/master/talks/jsconfeu2012/tools/shaky/web/shaky.dart).
 
 ## License
 
