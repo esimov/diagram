@@ -1,10 +1,13 @@
 package ui
 
 import (
-	"github.com/jroimartin/gocui"
 	"bytes"
 	"text/tabwriter"
 	"fmt"
+	"path/filepath"
+	"log"
+	"github.com/jroimartin/gocui"
+	"github.com/esimov/diagram/io"
 )
 
 type Fn func(*gocui.Gui, *gocui.View) error
@@ -98,12 +101,38 @@ func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {
 		ui.modifyView(DIAGRAM_PANEL)
 		return nil
 	}
+	onDelete := func(g *gocui.Gui, v *gocui.View) error {
+		cx, cy := v.Cursor()
+		cv, err := ui.gui.View(SAVED_DIAGRAMS_PANEL)
+		if err != nil {
+			return err
+		}
+		cwd, err := filepath.Abs(filepath.Dir(""))
+		if err != nil {
+			log.Fatal(err)
+		}
+		currentFile = ui.getViewRow(cv, cy)[0]
+		fn := cwd + "/" + DIAGRAMS_DIR + "/" + currentFile
+
+		io.DeleteDiagram(fn)
+		ui.updateDiagramList(SAVED_DIAGRAMS_PANEL)
+
+		if cy > 0 {
+			v.SetCursor(cx, cy-1)
+		}
+		ui.modifyView(DIAGRAM_PANEL)
+		return nil
+	}
 
 	if err := g.SetKeybinding(SAVED_DIAGRAMS_PANEL, gocui.KeyArrowDown, gocui.ModNone, onDown); err != nil {
 		return err
 	}
 
 	if err := g.SetKeybinding(SAVED_DIAGRAMS_PANEL, gocui.KeyArrowUp, gocui.ModNone, onUp); err != nil {
+		return err
+	}
+
+	if err := g.SetKeybinding(SAVED_DIAGRAMS_PANEL, gocui.KeyDelete, gocui.ModNone, onDelete); err != nil {
 		return err
 	}
 

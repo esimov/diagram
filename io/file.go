@@ -51,6 +51,15 @@ func SaveFile(fileName string, dir string, data string) (*os.File, error) {
 	return file, nil
 }
 
+// Delete diagram file
+func DeleteDiagram(fileName string) error {
+	err := os.Remove(fileName)
+	if isError(err) {
+		return err
+	}
+	return nil
+}
+
 // Check for errors
 func isError(err error) bool {
 	if err != nil {
