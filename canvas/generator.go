@@ -291,29 +291,32 @@ func (d *Diagram) ParseASCIIArt(str string) []*Figures {
 						return data[y][start:end]
 					}
 					text := strings.Join(getRange(start, end), "")
-
-					// Check if it can be concatenated with a previously found text annotation.
-					prev := figures[len(figures)-1]
-					if prev.Text.x0+len(prev.text)+1 == start {
-						// If they touch concatenate them
-						prev.text = prev.text + " " + text
-					} else {
-						color := "#000"
-						if string(text[0]) == "\\" && string(text[len(text)-1]) == "\\" {
-							text = text[0 : len(text)-1]
-							color = "#666"
+					if len(figures) > 0 {
+						// Check if it can be concatenated with a previously found text annotation.
+						prev := figures[len(figures)-1]
+						if prev.Text.x0+len(prev.text)+1 == start {
+							// If they touch concatenate them
+							prev.text = prev.text + " " + text
+						} else {
+							color := "#000"
+							if string(text[0]) == "\\" && string(text[len(text)-1]) == "\\" {
+								text = text[0 : len(text)-1]
+								color = "#666"
+							}
+							newtext := NewText(x, y, text, color)
+							figures = append(figures, &Figures{Line{}, *newtext})
 						}
-						newtext := NewText(x, y, text, color)
+						x = end
+					} else {
+						newtext := NewText(x, y, text, "#000")
 						figures = append(figures, &Figures{Line{}, *newtext})
 					}
-					x = end
 				}
 			}
 		}
 	}
 
-	for extractLine() {
-	}
+	for extractLine() {}
 	extractText()
 
 	return figures
