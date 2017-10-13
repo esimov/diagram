@@ -2,11 +2,6 @@ package ui
 
 import (
 	"fmt"
-	"github.com/esimov/diagram/canvas"
-	"github.com/esimov/diagram/io"
-	"github.com/esimov/diagram/version"
-	"github.com/fogleman/imview"
-	"github.com/jroimartin/gocui"
 	"log"
 	"math"
 	"os"
@@ -14,6 +9,12 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/esimov/diagram/canvas"
+	"github.com/esimov/diagram/io"
+	"github.com/esimov/diagram/version"
+	"github.com/fogleman/imview"
+	"github.com/jroimartin/gocui"
 )
 
 type panelProperties struct {
@@ -456,7 +457,7 @@ func (ui *UI) drawDiagram(name string) error {
 	}
 
 	// Generate the hand-drawn diagram.
-	err = canvas.DrawDiagram(v.Buffer(), filePath+output)
+	err = canvas.DrawDiagram(v.Buffer(), filePath+output, ui.fontpath)
 	if err == nil {
 		ui.log(fmt.Sprintf("Successfully converted the ascii diagram into %s!", output), false)
 	} else {

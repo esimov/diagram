@@ -1,7 +1,7 @@
 package ui
 
-func InitApp() {
-	ui := NewUI()
+func InitApp(fontpath string) {
+	ui := NewUI(fontpath)
 	defer ui.Close()
 
 	ui.Init()

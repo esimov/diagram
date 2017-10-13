@@ -3,9 +3,10 @@
 package canvas
 
 import (
-	"github.com/fogleman/gg"
 	"reflect"
 	"strings"
+
+	"github.com/fogleman/gg"
 )
 
 // Auxiliary Point struct used during parsing.
@@ -319,7 +320,7 @@ func (d *Diagram) ParseASCIIArt(str string) []*Figures {
 }
 
 // Generate diagram into the output file
-func DrawDiagram(content string, output string) error {
+func DrawDiagram(content string, output string, fontpath string) error {
 	var width, height int
 
 	diagram := &Diagram{}
@@ -333,7 +334,7 @@ func DrawDiagram(content string, output string) error {
 	}
 
 	ctx := gg.NewContext(width, height)
-	canvas := NewCanvas(ctx, "./font/gloriahallelujah.ttf", 3)
+	canvas := NewCanvas(ctx, fontpath, 3)
 	canvas.DrawRectangle(0, 0, float64(width), float64(height))
 	canvas.SetRGBA(1, 1, 1, 1)
 	canvas.Fill()
