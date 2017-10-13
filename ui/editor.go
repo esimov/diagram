@@ -50,7 +50,7 @@ func (e *editor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier)
 		// Get the total number of rows in the current view
 		maxY := strings.Count(v.Buffer(), "\n")
 		// Check if the cursor is on the last row of the current view
-		if cy == maxY - 1 {
+		if cy == maxY-1 {
 			// Prevent line wrapping on last row
 			if cx >= e.ui.getViewRowCount(v, cy) {
 				return
@@ -72,7 +72,7 @@ func (e *editor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier)
 		}
 	case gocui.KeyPgdn:
 		maxX := e.ui.getViewLastRowCount(v)
-		maxY := strings.Count(v.ViewBuffer(), "\n")-1
+		maxY := strings.Count(v.ViewBuffer(), "\n") - 1
 		v.SetCursor(maxX, maxY)
 	case gocui.KeyCtrlX:
 		if v.Name() == DIAGRAM_PANEL {
@@ -180,10 +180,10 @@ func (ui *UI) getViewLastRow(v *gocui.View) []string {
 
 	if len(rows) > 0 {
 		// Traverse up the string slice and remove all the trailing spaces from the end of the text.
-		fn := func(rows []string) int{
+		fn := func(rows []string) int {
 			var idx int = 1
 			for {
-				current := string(rows[len(rows) - idx:][0])
+				current := string(rows[len(rows)-idx:][0])
 				if current == "" {
 					idx++
 				} else {

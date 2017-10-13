@@ -2,22 +2,22 @@ package ui
 
 import (
 	"bytes"
-	"text/tabwriter"
 	"fmt"
-	"path/filepath"
-	"log"
-	"github.com/jroimartin/gocui"
 	"github.com/esimov/diagram/io"
+	"github.com/jroimartin/gocui"
+	"log"
+	"path/filepath"
+	"text/tabwriter"
 )
 
 type Fn func(*gocui.Gui, *gocui.View) error
 
 type handler struct {
-	views	[]string
-	key	interface{}
-	keyName	string
-	help	string
-	action 	func(*UI, bool) Fn
+	views   []string
+	key     interface{}
+	keyName string
+	help    string
+	action  func(*UI, bool) Fn
 }
 
 type handlers []handler
@@ -65,7 +65,6 @@ func onDrawDiagram(ui *UI, wrap bool) Fn {
 		return ui.drawDiagram(DIAGRAM_PANEL)
 	}
 }
-
 
 // Apply key bindings to panel views
 func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {

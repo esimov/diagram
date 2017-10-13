@@ -1,9 +1,9 @@
 package io
 
 import (
-	"path/filepath"
-	"log"
 	"io/ioutil"
+	"log"
+	"path/filepath"
 )
 
 // List the saved diagrams

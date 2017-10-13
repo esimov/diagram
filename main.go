@@ -1,20 +1,20 @@
 package main
 
 import (
+	"flag"
+	"github.com/esimov/diagram/canvas"
 	"github.com/esimov/diagram/io"
 	"github.com/esimov/diagram/ui"
-	"github.com/esimov/diagram/canvas"
-	"math/rand"
-	"time"
-	"flag"
-	"log"
-	"os"
 	"github.com/fogleman/imview"
+	"log"
+	"math/rand"
+	"os"
+	"time"
 )
 
 var (
-	source		= flag.String("in", "", "Source")
-	destination 	= flag.String("out", "", "Destination")
+	source      = flag.String("in", "", "Source")
+	destination = flag.String("out", "", "Destination")
 )
 
 func main() {

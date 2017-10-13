@@ -1,11 +1,11 @@
 package io
 
 import (
-	"io/ioutil"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
-	"log"
 )
 
 // Read file

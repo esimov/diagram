@@ -4,8 +4,8 @@ package canvas
 
 import (
 	"github.com/fogleman/gg"
-	"strings"
 	"reflect"
+	"strings"
 )
 
 // Auxiliary Point struct used during parsing.
@@ -14,33 +14,33 @@ type Point struct {
 }
 
 // Create a new Point struct
-func NewPoint(x, y int)*Point {
+func NewPoint(x, y int) *Point {
 	return &Point{x, y}
 }
 
 // Line struct defines the line x & y coordinates, the starting and ending type and the color.
 type Line struct {
-	x0, y0 	int
-	start 	string
-	x1, y1 	int
-	end 	string
-	color 	string
+	x0, y0 int
+	start  string
+	x1, y1 int
+	end    string
+	color  string
 }
 
 // Line from (x0, y0) to (x1, y1) with the given color at the start and end.
-func NewLine(x0, y0 int, start string, x1, y1 int, end string, color string)*Line {
+func NewLine(x0, y0 int, start string, x1, y1 int, end string, color string) *Line {
 	return &Line{x0, y0, start, x1, y1, end, color}
 }
 
 // Text struct that contains the x & y coordinates and color.
 type Text struct {
-	x0, y0 	int
-	text 	string
-	color 	string
+	x0, y0 int
+	text   string
+	color  string
 }
 
 // Text annotation at (x0, y0) with the given color.
-func NewText(x0, y0 int, text, color string)*Text {
+func NewText(x0, y0 int, text, color string) *Text {
 	return &Text{x0, y0, text, color}
 }
 
@@ -51,10 +51,10 @@ type Figures struct {
 }
 
 // Empty struct
-type Diagram struct {}
+type Diagram struct{}
 
 // Parses given ASCII art string into a list of figures.
-func (d *Diagram) ParseASCIIArt(str string)[]*Figures {
+func (d *Diagram) ParseASCIIArt(str string) []*Figures {
 	var figures []*Figures
 
 	lines := strings.Split(str, "\n")
@@ -97,7 +97,7 @@ func (d *Diagram) ParseASCIIArt(str string)[]*Figures {
 	isPartOfLine := func(x, y int) bool {
 		c := at(y, x)
 		switch {
-		case c == "|" || c == "-" || c == "+" || c == "~" || c == "!" :
+		case c == "|" || c == "-" || c == "+" || c == "~" || c == "!":
 			return true
 		}
 		return false
@@ -106,7 +106,7 @@ func (d *Diagram) ParseASCIIArt(str string)[]*Figures {
 	toColor := func(x, y int) string {
 		c := at(y, x)
 		switch {
-		case c =="~" || c == "!":
+		case c == "~" || c == "!":
 			return "#666"
 		}
 		return ""
@@ -116,14 +116,14 @@ func (d *Diagram) ParseASCIIArt(str string)[]*Figures {
 	isLineEnding := func(x, y int) bool {
 		c := at(y, x)
 		switch {
-		case c == "*" || c == "<" || c == ">" || c == "^" || c == "v" :
+		case c == "*" || c == "<" || c == ">" || c == "^" || c == "v":
 			return true
 		}
 		return false
 	}
 
 	// Finds a character that belongs to unextracted line.
-	findLineChar := func()*Point {
+	findLineChar := func() *Point {
 		for y := 0; y < height; y++ {
 			for x := 0; x < width; x++ {
 				if data[y][x] == "|" || data[y][x] == "-" {
@@ -136,15 +136,15 @@ func (d *Diagram) ParseASCIIArt(str string)[]*Figures {
 
 	// Converts line's character to the direction of line's growth.
 	dir := map[string]*Point{
-		"-" : NewPoint(1, 0),
-		"|" : NewPoint(0, 1),
+		"-": NewPoint(1, 0),
+		"|": NewPoint(0, 1),
 	}
 
 	// Erases character that belongs to the extracted line.
 	eraseChar := func(x, y, dx, dy int) {
 		c := at(y, x)
 		switch {
-		case c == "|" || c == "-" || c == "*" || c == ">" || c == "<" || c == "^" || c == "v" || c == "~" || c == "!" :
+		case c == "|" || c == "-" || c == "*" || c == ">" || c == "<" || c == "^" || c == "v" || c == "~" || c == "!":
 			data[y][x] = " "
 			return
 		case c == "+":
@@ -152,7 +152,7 @@ func (d *Diagram) ParseASCIIArt(str string)[]*Figures {
 			dy = 1 - dy
 			data[y][x] = " "
 
-			c1 := at(y - dy, x - dx)
+			c1 := at(y-dy, x-dx)
 			switch {
 			case c1 == "|" || c1 == "!" || c1 == "+":
 				data[y][x] = "|"
@@ -162,7 +162,7 @@ func (d *Diagram) ParseASCIIArt(str string)[]*Figures {
 				return
 			}
 
-			c2 := at(y + dy, x + dx)
+			c2 := at(y+dy, x+dx)
 			switch {
 			case c2 == "|" || c2 == "!" || c2 == "+":
 				data[y][x] = "|"
@@ -189,8 +189,8 @@ func (d *Diagram) ParseASCIIArt(str string)[]*Figures {
 			dy = 0
 		}
 		if dx != 0 || dy != 0 {
-			x0, y0 := line.x0 + dx, line.y0 + dy
-			x1, y1 := line.x1 - dx, line.y1 - dy
+			x0, y0 := line.x0+dx, line.y0+dy
+			x1, y1 := line.x1-dx, line.y1-dy
 
 			for x0 <= x1 && y0 <= y1 {
 				eraseChar(x0, y0, dx, dy)
@@ -217,14 +217,14 @@ func (d *Diagram) ParseASCIIArt(str string)[]*Figures {
 		// Find line's start by advancing in the opposite direction.
 		x0 := ch.x
 		y0 := ch.y
-		for isPartOfLine(x0 - d.x, y0 - d.y) {
+		for isPartOfLine(x0-d.x, y0-d.y) {
 			x0 -= d.x
 			y0 -= d.y
 			if color == "" {
 				color = toColor(x0, y0)
 			}
 		}
-		if isLineEnding(x0 - d.x, y0 - d.y) {
+		if isLineEnding(x0-d.x, y0-d.y) {
 			// Line has a decorated start. Extract is as well.
 			x0 -= d.x
 			y0 -= d.y
@@ -237,14 +237,14 @@ func (d *Diagram) ParseASCIIArt(str string)[]*Figures {
 		// Find line's end by advancing forward in the given direction.
 		x1 := ch.x
 		y1 := ch.y
-		for isPartOfLine(x1 + d.x, y1 + d.y) {
+		for isPartOfLine(x1+d.x, y1+d.y) {
 			x1 += d.x
 			y1 += d.y
 			if color == "" {
 				color = toColor(x1, y1)
 			}
 		}
-		if isLineEnding(x1 + d.x, y1 + d.y) {
+		if isLineEnding(x1+d.x, y1+d.y) {
 			// Line has a decorated end. Extract it.
 			x1 += d.x
 			y1 += d.y
@@ -254,7 +254,6 @@ func (d *Diagram) ParseASCIIArt(str string)[]*Figures {
 				end = "arrow"
 			}
 		}
-
 
 		// Create line object and erase line from the ascii art matrix.
 		line := NewLine(x0, y0, start, x1, y1, end, color)
@@ -287,20 +286,20 @@ func (d *Diagram) ParseASCIIArt(str string)[]*Figures {
 					for end < width && data[y][end] != " " {
 						end++
 					}
-					getRange := func(start, end int)[]string {
+					getRange := func(start, end int) []string {
 						return data[y][start:end]
 					}
 					text := strings.Join(getRange(start, end), "")
 
 					// Check if it can be concatenated with a previously found text annotation.
 					prev := figures[len(figures)-1]
-					if prev.Text.x0 + len(prev.text) + 1 == start {
+					if prev.Text.x0+len(prev.text)+1 == start {
 						// If they touch concatenate them
 						prev.text = prev.text + " " + text
 					} else {
 						color := "#000"
-						if string(text[0]) == "\\" && string(text[len(text) - 1]) == "\\" {
-							text = text[0: len(text) - 1]
+						if string(text[0]) == "\\" && string(text[len(text)-1]) == "\\" {
+							text = text[0 : len(text)-1]
 							color = "#666"
 						}
 						newtext := NewText(x, y, text, color)
@@ -312,7 +311,8 @@ func (d *Diagram) ParseASCIIArt(str string)[]*Figures {
 		}
 	}
 
-	for extractLine() {}
+	for extractLine() {
+	}
 	extractText()
 
 	return figures
@@ -327,8 +327,8 @@ func DrawDiagram(content string, output string) error {
 
 	for _, fig := range figures {
 		if reflect.TypeOf(fig.Line).String() == "canvas.Line" {
-			width = max(width, int(X(float64(fig.Line.x1) + 1)))
-			height = max(height, int(Y(float64(fig.Line.y1) + 1)))
+			width = max(width, int(X(float64(fig.Line.x1)+1)))
+			height = max(height, int(Y(float64(fig.Line.y1)+1)))
 		}
 	}
 

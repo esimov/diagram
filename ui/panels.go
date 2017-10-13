@@ -1,19 +1,19 @@
 package ui
 
 import (
-	"github.com/jroimartin/gocui"
-	"github.com/esimov/diagram/version"
-	"github.com/esimov/diagram/io"
-	"github.com/esimov/diagram/canvas"
-	"github.com/fogleman/imview"
 	"fmt"
+	"github.com/esimov/diagram/canvas"
+	"github.com/esimov/diagram/io"
+	"github.com/esimov/diagram/version"
+	"github.com/fogleman/imview"
+	"github.com/jroimartin/gocui"
+	"log"
+	"math"
+	"os"
+	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
-	"math"
-	"regexp"
-	"path/filepath"
-	"log"
-	"os"
 )
 
 type panelProperties struct {
@@ -24,24 +24,24 @@ type panelProperties struct {
 	x2       float64
 	y2       float64
 	editable bool
-	cursor 	 bool
-	editor	 *UI
+	cursor   bool
+	editor   *UI
 }
 
 const (
 	// Panel constants
-	LOGO_PANEL 		= "logo"
-	SAVED_DIAGRAMS_PANEL 	= "saved_diagrams"
-	LOG_PANEL 		= "log"
-	DIAGRAM_PANEL 		= "diagram"
-	PROGRESS_PANEL 		= "progress"
-	HELP_PANEL 		= "help"
-	SAVE_MODAL 		= "save_modal"
-	PROGRESS_MODAL 		= "progress_modal"
+	LOGO_PANEL           = "logo"
+	SAVED_DIAGRAMS_PANEL = "saved_diagrams"
+	LOG_PANEL            = "log"
+	DIAGRAM_PANEL        = "diagram"
+	PROGRESS_PANEL       = "progress"
+	HELP_PANEL           = "help"
+	SAVE_MODAL           = "save_modal"
+	PROGRESS_MODAL       = "progress_modal"
 
 	// Log messages
-	ERROR_EMPTY 	= "The editor should not be empty!"
-	DIAGRAMS_DIR	= "/diagrams"
+	ERROR_EMPTY  = "The editor should not be empty!"
+	DIAGRAMS_DIR = "/diagrams"
 )
 
 // Main views
@@ -54,7 +54,7 @@ var panelViews = map[string]panelProperties{
 		x2:       0.4,
 		y2:       0.25,
 		editable: true,
-		cursor:	  false,
+		cursor:   false,
 	},
 	SAVED_DIAGRAMS_PANEL: {
 		title:    "Saved Diagrams",
@@ -64,7 +64,7 @@ var panelViews = map[string]panelProperties{
 		x2:       0.4,
 		y2:       0.90,
 		editable: true,
-		cursor:	  false,
+		cursor:   false,
 	},
 	LOG_PANEL: {
 		title:    "Console",
@@ -74,7 +74,7 @@ var panelViews = map[string]panelProperties{
 		x2:       0.4,
 		y2:       1.0,
 		editable: true,
-		cursor:	  false,
+		cursor:   false,
 	},
 	DIAGRAM_PANEL: {
 		title:    "Editor",
@@ -84,7 +84,7 @@ var panelViews = map[string]panelProperties{
 		x2:       1.0,
 		y2:       1.0,
 		editable: true,
-		cursor:	  true,
+		cursor:   true,
 	},
 	PROGRESS_PANEL: {
 		title:    "Progress",
@@ -94,7 +94,7 @@ var panelViews = map[string]panelProperties{
 		x2:       1,
 		y2:       0.8,
 		editable: false,
-		cursor:	  false,
+		cursor:   false,
 	},
 }
 
@@ -102,17 +102,17 @@ var panelViews = map[string]panelProperties{
 var modalViews = map[string]panelProperties{
 	HELP_PANEL: {
 		title:    "Key Shortcuts",
-		text:	  "",
+		text:     "",
 		editable: false,
 	},
 	SAVE_MODAL: {
-		title: 	  "Save diagram",
-		text:	  ".txt",
+		title:    "Save diagram",
+		text:     ".txt",
 		editable: true,
 	},
 	PROGRESS_MODAL: {
-		title:	  "",
-		text:	  "\tGenerating...",
+		title:    "",
+		text:     "\tGenerating...",
 		editable: false,
 	},
 }
@@ -126,7 +126,7 @@ var (
 		DIAGRAM_PANEL,
 	}
 	modalElements = []string{"save_modal", "save", "cancel"}
-	currentFile string
+	currentFile   string
 )
 
 // Initialize the panel views and associate the key bindings to them.
@@ -270,8 +270,8 @@ func (ui *UI) closeModal(modals ...string) error {
 // Initialize and create the modal view.
 func (ui *UI) createModal(name string, w, h int) (*gocui.View, error) {
 	width, height := ui.gui.Size()
-	x1, y1 := width/2 - w/2, int(math.Ceil(float64(height/2 - h/2-1)))
-	x2, y2 := width/2 + w/2, int(math.Ceil(float64(height/2 + h/2+1)))
+	x1, y1 := width/2-w/2, int(math.Ceil(float64(height/2-h/2-1)))
+	x2, y2 := width/2+w/2, int(math.Ceil(float64(height/2+h/2+1)))
 
 	return ui.createModalView(name, x1, y1, x2, y2)
 }
@@ -284,8 +284,8 @@ func (ui *UI) initPanelView(name string) (*gocui.View, error) {
 
 	x1 := int(p.x1 * float64(maxX))
 	y1 := int(p.y1 * float64(maxY))
-	x2 := int(p.x2 * float64(maxX)) - 1
-	y2 := int(p.y2 * float64(maxY)) - 1
+	x2 := int(p.x2*float64(maxX)) - 1
+	y2 := int(p.y2*float64(maxY)) - 1
 
 	return ui.createPanelView(name, x1, y1, x2, y2)
 }
@@ -456,7 +456,7 @@ func (ui *UI) drawDiagram(name string) error {
 	}
 
 	// Generate the hand-drawn diagram.
-	err = canvas.DrawDiagram(v.Buffer(), filePath + output)
+	err = canvas.DrawDiagram(v.Buffer(), filePath+output)
 	if err == nil {
 		ui.log(fmt.Sprintf("Successfully converted the ascii diagram into %s!", output), false)
 	} else {
@@ -529,7 +529,7 @@ func (ui *UI) showSaveModal(name string) error {
 			return nil
 		}
 
-		if len(strings.TrimSpace(modal.Buffer())) <= len(v.text)  {
+		if len(strings.TrimSpace(modal.Buffer())) <= len(v.text) {
 			ui.log("File name should not be empty!", true)
 		} else if res {
 			file := buffer + v.text
@@ -560,9 +560,9 @@ func (ui *UI) showSaveModal(name string) error {
 			return err
 		}
 		if (ui.nextItem - 1) > 0 {
-			pv, _ = ui.gui.View(modalElements[ui.nextItem - 1])
+			pv, _ = ui.gui.View(modalElements[ui.nextItem-1])
 		} else {
-			pv, _ =  ui.gui.View(modalElements[len(modalElements)-1])
+			pv, _ = ui.gui.View(modalElements[len(modalElements)-1])
 		}
 		pv.Highlight = false
 		if ui.nextItem == 0 {
@@ -575,7 +575,7 @@ func (ui *UI) showSaveModal(name string) error {
 	sw, sh := ui.gui.Size()
 	mw, _ := modal.Size()
 
-	saveBtn, err = ui.createButtonWidget("save", sw/2 - mw/2 , sh/2, "Save", nil)
+	saveBtn, err = ui.createButtonWidget("save", sw/2-mw/2, sh/2, "Save", nil)
 	if err != nil {
 		return err
 	}
@@ -583,7 +583,7 @@ func (ui *UI) showSaveModal(name string) error {
 	if saveBtn != nil {
 		saveBtnSize, _ := saveBtn.Size()
 		//Calculate the current modal button position relative to the previous button.
-		cancelBtn, err = ui.createButtonWidget("cancel", (sw / 2 - mw / 2) + saveBtnSize + 4, sh / 2, "Cancel", nil)
+		cancelBtn, err = ui.createButtonWidget("cancel", (sw/2-mw/2)+saveBtnSize+4, sh/2, "Cancel", nil)
 		if err != nil {
 			return err
 		}
@@ -646,7 +646,7 @@ func (ui *UI) updateView(v *gocui.View, buffer string) error {
 	if v != nil {
 		v.Clear()
 		if err := ui.writeContent(v.Name(), buffer); err != nil {
-			return  err
+			return err
 		}
 	}
 	return nil
@@ -689,7 +689,7 @@ func (ui *UI) updateDiagramList(name string) error {
 
 	for idx, diagram := range diagrams {
 		if idx < len(diagrams)-1 {
-			fmt.Fprintf(v, diagram + "\n")
+			fmt.Fprintf(v, diagram+"\n")
 		} else {
 			fmt.Fprintf(v, diagram)
 		}
@@ -713,7 +713,7 @@ func (ui *UI) closeOpenedModals(views []string) error {
 func (ui *UI) nextView(wrap bool) error {
 	var index int
 	index = ui.currentView + 1
-	if index > len(mainViews) - 1 {
+	if index > len(mainViews)-1 {
 		if wrap {
 			index = 0
 		} else {
