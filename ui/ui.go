@@ -1,25 +1,27 @@
 package ui
 
 import (
-	"github.com/jroimartin/gocui"
 	"log"
-	"time"
 	"sync"
+	"time"
+
+	"github.com/jroimartin/gocui"
 )
 
 type UI struct {
-	gui          	*gocui.Gui
-	currentView  	int
-	nextItem	int
-	currentModal 	string
-	consoleLog	string
-	cursors      	Cursors
-	modalTimer	*time.Timer
-	logTimer	*time.Timer
-	mutex 		*sync.Mutex
+	gui          *gocui.Gui
+	currentView  int
+	nextItem     int
+	currentModal string
+	consoleLog   string
+	cursors      Cursors
+	modalTimer   *time.Timer
+	logTimer     *time.Timer
+	mutex        *sync.Mutex
+	fontpath     string
 }
 
-func NewUI() *UI {
+func NewUI(fontpath string) *UI {
 	var err error
 
 	ui := new(UI)
@@ -29,6 +31,7 @@ func NewUI() *UI {
 	}
 
 	ui.cursors = NewCursors()
+	ui.fontpath = fontpath
 	return ui
 }
 
