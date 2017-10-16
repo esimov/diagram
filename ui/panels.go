@@ -154,7 +154,7 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 
 		// Refresh the diagram panel with the new diagram content
 		cv := ui.gui.CurrentView()
-		if cv.Name() == SAVED_DIAGRAMS_PANEL {
+		if cv.Name() == SAVED_DIAGRAMS_PANEL && len(cv.ViewBuffer()) > 0 {
 			ui.modifyView(DIAGRAM_PANEL)
 		}
 		return nil
