@@ -19,6 +19,7 @@ var (
 	source      = flag.String("in", "", "Source")
 	destination = flag.String("out", "", "Destination")
 	fontpath    = flag.String("font", defaultFontFile, "path to font file")
+	preview     = flag.Bool("preview", true, "Show the preview window")
 )
 
 func main() {
@@ -32,7 +33,7 @@ func main() {
 		err := canvas.DrawDiagram(input, *destination, *fontpath)
 		if err != nil {
 			log.Fatal("Error on converting the ascii art to hand drawn diagrams!")
-		} else {
+		} else if *preview {
 			image, _ := imview.LoadImage(*destination)
 			view := imview.ImageToRGBA(image)
 			imview.Show(view)
