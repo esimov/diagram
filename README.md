@@ -32,11 +32,36 @@ The application supports the generation of hand drawn diagrams directly via comm
 
 ```bash
 Usage of diagram:
+  -font string
+    	path to font file (default "${GOPATH}/src/github.com/esimov/diagram/font/gloriahallelujah.ttf")
   -in string
     	Source
   -out string
     	Destination
+  -preview
+    	Show the preview window (default true)
 ```
+
+#### CLI Examples
+
+Read input from `sample.txt` and write image to `sample.png` showing a preview window with the hand drawn diagram
+
+```bash
+diagram -in sample.txt -out sample.png
+```
+
+Read input from `sample.txt` and write image to `sample.png`, and exit immediately without showing a preview window
+
+```bash
+diagram -in sample.txt -out sample.png -preview=false
+```
+
+Generate diagram as above but use a font at a different location
+
+```bash
+diagram -in sample.txt -out sample.png -preview=false -font /path/to/my/font/MyHandwriting.ttf
+```
+
 
 
 ### Key bindings
