@@ -21,7 +21,7 @@ A shell script is included to watch the output folder changes and automatically 
 sudo apt install inotify-tools
 ```
 
-Then you can use the provided shell script by typing `$ ./watch`.
+After this you can use the provided shell script by running `$ ./watch`.
 
 **Update:**
 *The included shell script is not needed anymore, because an internal image viewer is bundled into the application.*
