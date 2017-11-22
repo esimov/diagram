@@ -44,19 +44,19 @@ Usage of diagram:
 
 #### CLI Examples
 
-Read input from `sample.txt` and write image to `sample.png` showing a preview window with the hand drawn diagram
+Read input from `sample.txt` and write image to `sample.png` showing a preview window with the hand drawn diagram:
 
 ```bash
 diagram -in sample.txt -out sample.png
 ```
 
-Read input from `sample.txt` and write image to `sample.png`, and exit immediately without showing a preview window
+Read input from `sample.txt` and write image to `sample.png`, and exit immediately without showing a preview window:
 
 ```bash
 diagram -in sample.txt -out sample.png -preview=false
 ```
 
-Generate diagram as above but use a font at a different location
+Generate diagram as above but use a font at a different location:
 
 ```bash
 diagram -in sample.txt -out sample.png -preview=false -font /path/to/my/font/MyHandwriting.ttf
