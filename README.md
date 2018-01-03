@@ -78,6 +78,7 @@ Key                                     | Description
 <kbd>PageDown</kbd>                     | Jump to the bottom
 <kbd>Home</kbd>                         | Jump to the line start
 <kbd>End</kbd>                          | Jump to the line end
+<kbd>Delete/Backspace</kbd>            | Delete diagram
 <kbd>Ctrl+c</kbd>                       | Quit
 
 ### Example
