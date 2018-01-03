@@ -6,7 +6,6 @@ import (
 	"log"
 	"math/rand"
 	"time"
-
 	"github.com/esimov/diagram/canvas"
 	"github.com/esimov/diagram/io"
 	"github.com/esimov/diagram/ui"

@@ -3,11 +3,12 @@ package ui
 import (
 	"bytes"
 	"fmt"
-	"github.com/esimov/diagram/io"
-	"github.com/jroimartin/gocui"
 	"log"
+	"runtime"
 	"path/filepath"
 	"text/tabwriter"
+	"github.com/esimov/diagram/io"
+	"github.com/jroimartin/gocui"
 )
 
 type Fn func(*gocui.Gui, *gocui.View) error
@@ -29,11 +30,19 @@ var keyHandlers = &handlers{
 	{nil, gocui.KeyPgdn, "PgDown", "Jump to the bottom", nil},
 	{nil, gocui.KeyHome, "Home", "Jump to the start", nil},
 	{nil, gocui.KeyEnd, "End", "Jump to the end", nil},
+	*getDeleteHandler(),
 	{nil, gocui.KeyCtrlX, "Ctrl+x", "Clear editor content", nil},
 	{nil, gocui.KeyCtrlZ, "Ctrl+z", "Restore editor content", nil},
 	{nil, gocui.KeyCtrlS, "Ctrl+s", "Save diagram", onSaveDiagram},
 	{nil, gocui.KeyCtrlD, "Ctrl+d", "Draw diagram", onDrawDiagram},
 	{nil, gocui.KeyCtrlC, "Ctrl+c", "Quit", onQuit},
+}
+
+func getDeleteHandler() *handler {
+	if runtime.GOOS == "Darwin" {
+		return &handler{nil, gocui.KeyBackspace2, "Backspace", "Delete diagram", nil}
+	}
+	return &handler{nil, gocui.KeyDelete, "Delete", "Delete diagram", nil}
 }
 
 func onNextPanel(ui *UI, wrap bool) Fn {
@@ -131,8 +140,14 @@ func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {
 		return err
 	}
 
-	if err := g.SetKeybinding(SAVED_DIAGRAMS_PANEL, gocui.KeyDelete, gocui.ModNone, onDelete); err != nil {
-		return err
+	if runtime.GOOS == "darwin" {
+		if err := g.SetKeybinding(SAVED_DIAGRAMS_PANEL, gocui.KeyBackspace2, gocui.ModNone, onDelete); err != nil {
+			return err
+		}
+	} else {
+		if err := g.SetKeybinding(SAVED_DIAGRAMS_PANEL, gocui.KeyDelete, gocui.ModNone, onDelete); err != nil {
+			return err
+		}
 	}
 
 	return g.SetKeybinding("", gocui.KeyCtrlH, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {

@@ -1,8 +1,8 @@
 package ui
 
 import (
-	"github.com/jroimartin/gocui"
 	"strings"
+	"github.com/jroimartin/gocui"
 )
 
 type editor struct {
