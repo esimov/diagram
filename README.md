@@ -21,7 +21,7 @@ A shell script is included to watch the output folder changes and automatically 
 sudo apt install inotify-tools
 ```
 
-Then you can use the provided shell script by typing `$ ./watch`.
+After this you can use the provided shell script by running `$ ./watch`.
 
 **Update:**
 *The included shell script is not needed anymore, because an internal image viewer is bundled into the application.*
@@ -44,19 +44,19 @@ Usage of diagram:
 
 #### CLI Examples
 
-Read input from `sample.txt` and write image to `sample.png` showing a preview window with the hand drawn diagram
+Read input from `sample.txt` and write image to `sample.png` showing a preview window with the hand drawn diagram:
 
 ```bash
 diagram -in sample.txt -out sample.png
 ```
 
-Read input from `sample.txt` and write image to `sample.png`, and exit immediately without showing a preview window
+Read input from `sample.txt` and write image to `sample.png`, and exit immediately without showing a preview window:
 
 ```bash
 diagram -in sample.txt -out sample.png -preview=false
 ```
 
-Generate diagram as above but use a font at a different location
+Generate diagram as above but use a font at a different location:
 
 ```bash
 diagram -in sample.txt -out sample.png -preview=false -font /path/to/my/font/MyHandwriting.ttf
