@@ -1,5 +1,5 @@
-## Diagram
-
+![tesyt](https://user-images.githubusercontent.com/883386/36894052-e8475948-1e12-11e8-8bd3-b0850bd34661.jpg)
+-
 Diagram is a CLI tool to generate hand drawn diagrams from ASCII arts. 
 
 It's a full featured CLI application which converts the ASCII text into hand drawn diagrams. The CLI part is based on [gocui](https://github.com/jroimartin/gocui) and the ascii to png conversion is done using the [gg](https://github.com/fogleman/gg) library.
