@@ -15,13 +15,12 @@ $ go install
 # Start the application
 $ diagram
 ```
-A shell script is included to watch the output folder changes and automatically open the generated png files, however `inotifywait` is required for Linux distribution. To install on Ubuntu please run:
+A shell script is included to watch the output folder and automatically open the generated image files, however `inotifywait` is required for the Linux distribution. Use the following command to install it on Ubuntu:
 
 ```bash
 sudo apt install inotify-tools
 ```
-
-After this you can use the provided shell script by running `$ ./watch`.
+Then you can use the provided shell script to activate it by running the following command `$ ./watch`.
 
 **Update:**
 *The included shell script is not needed anymore, because an internal image viewer is bundled into the application.*
@@ -86,7 +85,7 @@ Key                                     | Description
 |:--:|:--:|
 | <img src="https://user-images.githubusercontent.com/883386/29396424-9200a978-8320-11e7-9c60-17d2be989136.png" height="300"> | <img src="https://user-images.githubusercontent.com/883386/29396385-529a23a4-8320-11e7-9d70-bf9b33d769cc.png" height="300"> |
 
-## Issues
+## Known issues
 
 The app was tested on **Ubuntu** and **MacOS**, but on Mac the panels are not selectables with clicks.
 
