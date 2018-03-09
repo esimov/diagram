@@ -1,9 +1,10 @@
 package canvas
 
 import (
-	"github.com/fogleman/gg"
 	"math"
 	"math/rand"
+
+	"github.com/fogleman/gg"
 )
 
 type Canvas struct {
