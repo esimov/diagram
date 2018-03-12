@@ -1,3 +1,7 @@
+// Diagram is a CLI tool to generate hand drawn diagrams from ASCII arts.
+// 
+// It's a full featured CLI application which converts the ASCII text into hand drawn diagrams.
+
 package main
 
 import (
@@ -6,6 +10,7 @@ import (
 	"log"
 	"math/rand"
 	"time"
+
 	"github.com/esimov/diagram/canvas"
 	"github.com/esimov/diagram/io"
 	"github.com/esimov/diagram/ui"
@@ -17,7 +22,7 @@ var defaultFontFile = build.Default.GOPATH + "/src/github.com/esimov/diagram" + 
 var (
 	source      = flag.String("in", "", "Source")
 	destination = flag.String("out", "", "Destination")
-	fontpath    = flag.String("font", defaultFontFile, "path to font file")
+	fontPath    = flag.String("font", defaultFontFile, "Path to the font file")
 	preview     = flag.Bool("preview", true, "Show the preview window")
 )
 
@@ -29,7 +34,7 @@ func main() {
 	if (*source != "") && (*destination != "") {
 		input := string(io.ReadFile(*source))
 
-		err := canvas.DrawDiagram(input, *destination, *fontpath)
+		err := canvas.DrawDiagram(input, *destination, *fontPath)
 		if err != nil {
 			log.Fatal("Error on converting the ascii art to hand drawn diagrams!")
 		} else if *preview {
@@ -38,6 +43,6 @@ func main() {
 			imview.Show(view)
 		}
 	} else {
-		ui.InitApp(*fontpath)
+		ui.InitApp(*fontPath)
 	}
 }
