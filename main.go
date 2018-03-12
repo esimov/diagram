@@ -1,7 +1,6 @@
 // Diagram is a CLI tool to generate hand drawn diagrams from ASCII arts.
-// 
+//
 // It's a full featured CLI application which converts the ASCII text into hand drawn diagrams.
-
 package main
 
 import (
