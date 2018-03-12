@@ -2,6 +2,7 @@ package ui
 
 import (
 	"strings"
+
 	"github.com/jroimartin/gocui"
 )
 
@@ -13,7 +14,7 @@ type editor struct {
 
 var cache []byte
 
-// Create a new GUI editor
+// newEditor creates a new GUI editor
 func newEditor(ui *UI, handler gocui.Editor) *editor {
 	if handler == nil {
 		handler = gocui.DefaultEditor
@@ -21,7 +22,7 @@ func newEditor(ui *UI, handler gocui.Editor) *editor {
 	return &editor{ui, handler, true}
 }
 
-// The main editor for the editable views
+// Editor for editable views
 func (e *editor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 	if ch == '[' && mod == gocui.ModAlt {
 		e.backTabEscape = true
@@ -92,6 +93,7 @@ func (e *editor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier)
 // Editor for static (non-editable) views
 type staticViewEditor editor
 
+// Static view editor
 func (e *staticViewEditor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 	_, y := v.Cursor()
 	maxY := strings.Count(v.Buffer(), "\n")
@@ -109,7 +111,6 @@ func (e *staticViewEditor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui
 	}
 }
 
-// Save modal editor init struct
 type modalSaveEditor struct {
 	maxWidth int
 }
@@ -181,7 +182,7 @@ func (ui *UI) getViewLastRow(v *gocui.View) []string {
 	if len(rows) > 0 {
 		// Traverse up the string slice and remove all the trailing spaces from the end of the text.
 		fn := func(rows []string) int {
-			var idx int = 1
+			var idx = 1
 			for {
 				current := string(rows[len(rows)-idx:][0])
 				if current == "" {

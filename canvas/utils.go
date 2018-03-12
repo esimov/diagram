@@ -2,7 +2,7 @@ package canvas
 
 import "math/rand"
 
-// Returns the smallest number between two numbers.
+// min returns the smallest number between two numbers.
 func min(x, y int) int {
 	if x < y {
 		return x
@@ -10,7 +10,7 @@ func min(x, y int) int {
 	return y
 }
 
-// Returns the biggest number between two numbers.
+// max returns the biggest number between two numbers.
 func max(x, y int) int {
 	if x > y {
 		return x
@@ -18,7 +18,7 @@ func max(x, y int) int {
 	return y
 }
 
-// Generate a random number.
+// random generate a random number.
 func random() float64 {
 	return rand.Float64()
 }

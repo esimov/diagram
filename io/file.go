@@ -8,25 +8,25 @@ import (
 	"path/filepath"
 )
 
-// Read file
+// ReadFile file
 func ReadFile(input string) []byte {
 	b, err := ioutil.ReadFile(input)
-	if isError(err) {
-		fmt.Errorf("Cannot read input file: ", err.Error())
+	if err != nil {
+		log.Fatalf("Cannot read input file: %v", err.Error())
 		return nil
 	}
 	return b
 }
 
-// Create saved diagrams output directory in case it not exists, and save the diagrams into this directory
-func SaveFile(fileName string, dir string, data string) (*os.File, error) {
+// SaveFile saves the diagram into the output directory.
+func SaveFile(fileName string, output string, data string) (*os.File, error) {
 	var file *os.File
 
 	cwd, err := filepath.Abs(filepath.Dir(""))
 	if err != nil {
 		log.Fatal(err)
 	}
-	filePath := cwd + dir
+	filePath := cwd + output
 	// Check if output directory does not exits. In this case create it.
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		os.Mkdir(filePath, os.ModePerm)
@@ -51,7 +51,7 @@ func SaveFile(fileName string, dir string, data string) (*os.File, error) {
 	return file, nil
 }
 
-// Delete diagram file
+// DeleteDiagram delete a diagram.
 func DeleteDiagram(fileName string) error {
 	err := os.Remove(fileName)
 	if isError(err) {
@@ -60,10 +60,10 @@ func DeleteDiagram(fileName string) error {
 	return nil
 }
 
-// Check for errors
+// isError generic function to check for errors.
 func isError(err error) bool {
 	if err != nil {
-		fmt.Errorf("Could not save file: ", err.Error())
+		fmt.Errorf("Could not save file: %v", err.Error())
 	}
 	return (err != nil)
 }

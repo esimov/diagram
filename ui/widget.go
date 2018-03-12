@@ -12,10 +12,12 @@ type buttonWidget struct {
 	handler func(*gocui.Gui, *gocui.View) error
 }
 
+// NewButtonWidget returns a new button widget.
 func NewButtonWidget(name string, x, y int, label string, handler func(g *gocui.Gui, v *gocui.View) error) *buttonWidget {
 	return &buttonWidget{name, x, y, len(label) + 1, label, handler}
 }
 
+// createButtonWidget creates a button widget.
 func (ui *UI) createButtonWidget(name string, x, y int, label string, handler func(g *gocui.Gui, v *gocui.View) error) (*gocui.View, error) {
 	button := NewButtonWidget(name, x, y, label, handler)
 	v, err := ui.gui.SetView(button.name, button.x, button.y, button.x+button.w, button.y+2)

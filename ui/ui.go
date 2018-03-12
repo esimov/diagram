@@ -8,6 +8,7 @@ import (
 	"github.com/jroimartin/gocui"
 )
 
+// UI defines the basic UI components.
 type UI struct {
 	gui          *gocui.Gui
 	currentView  int
@@ -18,10 +19,11 @@ type UI struct {
 	modalTimer   *time.Timer
 	logTimer     *time.Timer
 	mutex        *sync.Mutex
-	fontpath     string
+	fontPath     string
 }
 
-func NewUI(fontpath string) *UI {
+// NewUI returns a new UI component.
+func NewUI(fontPath string) *UI {
 	var err error
 
 	ui := new(UI)
@@ -31,10 +33,11 @@ func NewUI(fontpath string) *UI {
 	}
 
 	ui.cursors = NewCursors()
-	ui.fontpath = fontpath
+	ui.fontPath = fontPath
 	return ui
 }
 
+// Init initialize the UI component.
 func (ui *UI) Init() {
 	if err := ui.initGui(ui.gui); err != nil {
 		log.Panicln(err)
@@ -45,14 +48,17 @@ func (ui *UI) Init() {
 // Used to restore mouse position when click is detected.
 type Cursors map[string]struct{ x, y int }
 
+// NewCursors ge
 func NewCursors() Cursors {
 	return make(Cursors)
 }
 
+// Restore restores mouse previous position.
 func (c Cursors) Restore(view *gocui.View) error {
 	return view.SetCursor(c.Get(view.Name()))
 }
 
+// Get returns the mouse current position.
 func (c Cursors) Get(view string) (int, int) {
 	if v, ok := c[view]; ok {
 		return v.x, v.y
@@ -60,23 +66,24 @@ func (c Cursors) Get(view string) (int, int) {
 	return 0, 0
 }
 
+// Set defines the mouse position.
 func (c Cursors) Set(view string, x, y int) {
 	c[view] = struct{ x, y int }{x, y}
 }
 
-// Loop starts the GUI loop
+// Loop starts the GUI loop.
 func (ui *UI) Loop() {
 	if err := ui.gui.MainLoop(); err != nil && err != gocui.ErrQuit {
 		log.Panicln(err)
 	}
 }
 
-// Close closes the app
+// Close closes the app.
 func (ui *UI) Close() {
 	ui.gui.Close()
 }
 
-// initGui initializes the GUI
+// initGui initializes the GUI.
 func (ui *UI) initGui(g *gocui.Gui) error {
 	// Default Panel settings
 	ui.gui.Highlight = true
@@ -93,8 +100,5 @@ func (ui *UI) initGui(g *gocui.Gui) error {
 	// Set Layout function
 	ui.gui.SetManager(ui)
 
-	if err := keyHandlers.ApplyKeyBindings(ui, g); err != nil {
-		return err
-	}
-	return nil
+	return keyHandlers.ApplyKeyBindings(ui, g)
 }

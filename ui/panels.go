@@ -130,7 +130,7 @@ var (
 	currentFile   string
 )
 
-// Initialize the panel views and associate the key bindings to them.
+// Layout initialize the panel views and associates the key bindings to them.
 func (ui *UI) Layout(g *gocui.Gui) error {
 	initPanel := func(g *gocui.Gui, v *gocui.View) error {
 		// Disable panel views selection with mouse in case the modal is activated
@@ -173,7 +173,7 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 		}
 	}
 
-	// Activate the first panel on first run.
+	// Activate the first panel on first run
 	if v := ui.gui.CurrentView(); v == nil {
 		_, err := ui.gui.SetCurrentView(DIAGRAM_PANEL)
 		if err != gocui.ErrUnknownView {
@@ -184,11 +184,10 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 	if err := g.SetKeybinding(DIAGRAM_PANEL, gocui.MouseWheelDown, gocui.ModNone, ui.scrollDown); err != nil {
 		return err
 	}
-
 	return nil
 }
 
-// Scroll down event
+// scrollDown moves the cursor to the next buffer line.
 func (ui *UI) scrollDown(g *gocui.Gui, v *gocui.View) error {
 	maxY := strings.Count(v.Buffer(), "\n")
 	if maxY < 1 {
@@ -197,7 +196,7 @@ func (ui *UI) scrollDown(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-// Toggle the help view on key pressing.
+// toggleHelp toggle the help view on key pressing.
 func (ui *UI) toggleHelp(g *gocui.Gui, content string) error {
 	if err := ui.closeOpenedModals(modalElements); err != nil {
 		return err
@@ -225,7 +224,7 @@ func (ui *UI) toggleHelp(g *gocui.Gui, content string) error {
 	return nil
 }
 
-// Create and open the modal window. If "autoHide" parameter is true, the modal will be automatically closed after 5 seconds.
+// openModal creates and opens the modal window. If "autoHide" parameter is true, the modal will be automatically closed after 5 seconds.
 func (ui *UI) openModal(name string, w, h int, autoHide bool) (*gocui.View, error) {
 	v, err := ui.createModal(name, w, h)
 	if err != nil {
@@ -251,7 +250,7 @@ func (ui *UI) openModal(name string, w, h int, autoHide bool) (*gocui.View, erro
 	return v, nil
 }
 
-// Close the modal window and restore the focus to the last accessed panel view.
+// closeModal closes the modal window and restores the focus to the last accessed panel view.
 func (ui *UI) closeModal(modals ...string) error {
 	for _, name := range modals {
 		if _, err := ui.gui.View(name); err != nil {
@@ -268,7 +267,7 @@ func (ui *UI) closeModal(modals ...string) error {
 	return ui.activatePanelView(ui.currentView)
 }
 
-// Initialize and create the modal view.
+// createModal initializes and creates the modal view.
 func (ui *UI) createModal(name string, w, h int) (*gocui.View, error) {
 	width, height := ui.gui.Size()
 	x1, y1 := width/2-w/2, int(math.Ceil(float64(height/2-h/2-1)))
@@ -277,7 +276,7 @@ func (ui *UI) createModal(name string, w, h int) (*gocui.View, error) {
 	return ui.createModalView(name, x1, y1, x2, y2)
 }
 
-// Initialize the panel view.
+// initPanelView initializes the panel view.
 func (ui *UI) initPanelView(name string) (*gocui.View, error) {
 	maxX, maxY := ui.gui.Size()
 
@@ -291,7 +290,7 @@ func (ui *UI) initPanelView(name string) (*gocui.View, error) {
 	return ui.createPanelView(name, x1, y1, x2, y2)
 }
 
-// Creates the panel view.
+// createPanelView creates the panel view.
 func (ui *UI) createPanelView(name string, x1, y1, x2, y2 int) (*gocui.View, error) {
 	v, err := ui.gui.SetView(name, x1, y1, x2, y2)
 	if err != gocui.ErrUnknownView {
@@ -325,7 +324,7 @@ func (ui *UI) createPanelView(name string, x1, y1, x2, y2 int) (*gocui.View, err
 	return v, nil
 }
 
-// Creates the modal view.
+// createModalView creates the modal view.
 func (ui *UI) createModalView(name string, x1, y1, x2, y2 int) (*gocui.View, error) {
 	v, err := ui.gui.SetView(name, x1, y1, x2, y2)
 	if err != gocui.ErrUnknownView {
@@ -343,7 +342,7 @@ func (ui *UI) createModalView(name string, x1, y1, x2, y2 int) (*gocui.View, err
 	return v, nil
 }
 
-// Activate the view with the id in parameters.
+// activatePanelView activates the view defined by id.
 func (ui *UI) activatePanelView(id int) error {
 	if err := ui.setPanelView(mainViews[id]); err != nil {
 		return err
@@ -355,7 +354,7 @@ func (ui *UI) activatePanelView(id int) error {
 	return nil
 }
 
-// Activate the panel view.
+// setPanelView activates the panel view.
 func (ui *UI) setPanelView(name string) error {
 	if err := ui.closeModal(ui.currentModal); err != nil {
 		return err
@@ -374,7 +373,7 @@ func (ui *UI) setPanelView(name string) error {
 	return nil
 }
 
-// Writes the content into the specific view and set the cursor to the buffer end.
+// writeContent writes the content into the specific view and set the cursor to the buffer end.
 func (ui *UI) writeContent(name, text string) error {
 	v, err := ui.gui.View(name)
 	if err != nil {
@@ -388,9 +387,9 @@ func (ui *UI) writeContent(name, text string) error {
 	return nil
 }
 
-// Find the view defined by name. Will return the view slice index.
+// findViewByName find the view defined by name and returns the view index.
 func (ui *UI) findViewByName(name string) int {
-	var viewId int = -1
+	var viewId = -1
 	for idx, v := range mainViews {
 		if v == name {
 			viewId = idx
@@ -400,7 +399,7 @@ func (ui *UI) findViewByName(name string) int {
 	return viewId
 }
 
-// Save the diagram content.
+// saveDiagram saves the diagram content.
 func (ui *UI) saveDiagram(name string) error {
 	v, err := ui.gui.View(name)
 	if err != nil {
@@ -421,7 +420,7 @@ func (ui *UI) saveDiagram(name string) error {
 	return ui.showSaveModal(SAVE_MODAL)
 }
 
-// ASCII -> to PNG converter.
+// drawDiagram converts the ASCII to the hand-drawn diagram.
 func (ui *UI) drawDiagram(name string) error {
 	var output string
 
@@ -457,7 +456,7 @@ func (ui *UI) drawDiagram(name string) error {
 	}
 
 	// Generate the hand-drawn diagram.
-	err = canvas.DrawDiagram(v.Buffer(), filePath+output, ui.fontpath)
+	err = canvas.DrawDiagram(v.Buffer(), filePath+output, ui.fontPath)
 	if err == nil {
 		ui.log(fmt.Sprintf("Successfully converted the ascii diagram into %s!", output), false)
 	} else {
@@ -482,7 +481,7 @@ func (ui *UI) drawDiagram(name string) error {
 	return nil
 }
 
-// Show the save modal.
+// showSaveModal show the save modal.
 func (ui *UI) showSaveModal(name string) error {
 	var saveBtn, cancelBtn *gocui.View
 
@@ -623,7 +622,7 @@ func (ui *UI) showSaveModal(name string) error {
 	return nil
 }
 
-// Show progress modal.
+// showProgressModal shows the progress modal.
 func (ui *UI) showProgressModal(name string) error {
 	if err := ui.closeModal(ui.currentModal); err != nil {
 		return err
@@ -642,7 +641,7 @@ func (ui *UI) showProgressModal(name string) error {
 	return nil
 }
 
-// updateView update the view content
+// updateView update the view content.
 func (ui *UI) updateView(v *gocui.View, buffer string) error {
 	if v != nil {
 		v.Clear()
@@ -700,7 +699,7 @@ func (ui *UI) updateDiagramList(name string) error {
 	return nil
 }
 
-// closeOpenedModals will close all the opened modal elements.
+// closeOpenedModals closes all the opened modal elements.
 func (ui *UI) closeOpenedModals(views []string) error {
 	for _, v := range views {
 		if view, _ := ui.gui.View(v); view != nil {

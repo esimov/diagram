@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-// List the saved diagrams
+// ListDiagrams list the saved diagrams.
 func ListDiagrams(dir string) ([]string, error) {
 	var diagrams []string
 

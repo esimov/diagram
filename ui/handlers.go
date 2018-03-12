@@ -4,13 +4,15 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"runtime"
 	"path/filepath"
+	"runtime"
 	"text/tabwriter"
+
 	"github.com/esimov/diagram/io"
 	"github.com/jroimartin/gocui"
 )
 
+// Fn generic function acting as a closure function for handlers.
 type Fn func(*gocui.Gui, *gocui.View) error
 
 type handler struct {
@@ -38,6 +40,7 @@ var keyHandlers = &handlers{
 	{nil, gocui.KeyCtrlC, "Ctrl+c", "Quit", onQuit},
 }
 
+// getDeleteHandler defines and returns a delete view handler
 func getDeleteHandler() *handler {
 	if runtime.GOOS == "Darwin" {
 		return &handler{nil, gocui.KeyBackspace2, "Backspace", "Delete diagram", nil}
@@ -45,37 +48,42 @@ func getDeleteHandler() *handler {
 	return &handler{nil, gocui.KeyDelete, "Delete", "Delete diagram", nil}
 }
 
+// onNextPanel retrieves the next panel.
 func onNextPanel(ui *UI, wrap bool) Fn {
 	return func(*gocui.Gui, *gocui.View) error {
 		return ui.nextView(wrap)
 	}
 }
 
+// onPrevPanel retrieves the previous panel.
 func onPrevPanel(ui *UI, wrap bool) Fn {
 	return func(*gocui.Gui, *gocui.View) error {
 		return ui.prevView(wrap)
 	}
 }
 
+// onQuit is an event listener which get triggered when a quit action is performed.
 func onQuit(ui *UI, wrap bool) Fn {
 	return func(*gocui.Gui, *gocui.View) error {
 		return gocui.ErrQuit
 	}
 }
 
+// onSaveDiagram is an event listener which get triggered when a save action is performed.
 func onSaveDiagram(ui *UI, wrap bool) Fn {
 	return func(*gocui.Gui, *gocui.View) error {
 		return ui.saveDiagram(DIAGRAM_PANEL)
 	}
 }
 
+// onDrawDiagram is an event listener which get triggered when a draw action is performed.
 func onDrawDiagram(ui *UI, wrap bool) Fn {
 	return func(*gocui.Gui, *gocui.View) error {
 		return ui.drawDiagram(DIAGRAM_PANEL)
 	}
 }
 
-// Apply key bindings to panel views
+// ApplyKeyBindings applies key bindings to panel views.
 func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {
 	for _, h := range handlers {
 		if len(h.views) == 0 {
@@ -155,7 +163,7 @@ func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {
 	})
 }
 
-// Populate the help panel
+// HelpContent populates the help panel.
 func (handlers handlers) HelpContent() string {
 	buf := &bytes.Buffer{}
 	w := tabwriter.NewWriter(buf, 0, 0, 3, ' ', tabwriter.DiscardEmptyColumns)

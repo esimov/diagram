@@ -1,11 +1,10 @@
 package ui
 
-func InitApp(fontpath string) {
-	ui := NewUI(fontpath)
+// InitApp initialize the CLI application.
+func InitApp(fontPath string) {
+	ui := NewUI(fontPath)
 	defer ui.Close()
 
 	ui.Init()
-
-	// Main Loop
 	ui.Loop()
 }

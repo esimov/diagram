@@ -13,23 +13,17 @@ func decorate(s string, color string) string {
 	return s + "\x1b[0m"
 }
 
-// Insert log message
+// log writes the log message
 func (ui *UI) log(message string, isError bool) error {
 	if isError {
 		message = decorate(message, "red")
 	} else {
 		message = decorate(message, "green")
 	}
-	if err := ui.writeContent(LOG_PANEL, message); err != nil {
-		return err
-	}
-	return nil
+	return ui.writeContent(LOG_PANEL, message)
 }
 
-// Clear log message
+// clearLog clears the log message.
 func (ui *UI) clearLog() error {
-	if err := ui.writeContent(LOG_PANEL, ""); err != nil {
-		return err
-	}
-	return nil
+	return ui.writeContent(LOG_PANEL, "")
 }

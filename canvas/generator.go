@@ -9,12 +9,12 @@ import (
 	"github.com/fogleman/gg"
 )
 
-// Auxiliary Point struct used during parsing.
+// Point is an auxiliary struct used during parsing.
 type Point struct {
 	x, y int
 }
 
-// Create a new Point struct
+// NewPoint creates a new Point struct.
 func NewPoint(x, y int) *Point {
 	return &Point{x, y}
 }
@@ -28,33 +28,33 @@ type Line struct {
 	color  string
 }
 
-// Line from (x0, y0) to (x1, y1) with the given color at the start and end.
+// NewLine draws a new line from (x0, y0) to (x1, y1) with the given color at the start and end symbol.
 func NewLine(x0, y0 int, start string, x1, y1 int, end string, color string) *Line {
 	return &Line{x0, y0, start, x1, y1, end, color}
 }
 
-// Text struct that contains the x & y coordinates and color.
+// Text struct contains the x & y coordinates and the color.
 type Text struct {
 	x0, y0 int
 	text   string
 	color  string
 }
 
-// Text annotation at (x0, y0) with the given color.
+// NewText returns a new text annotation at (x0, y0) with the given color.
 func NewText(x0, y0 int, text, color string) *Text {
 	return &Text{x0, y0, text, color}
 }
 
-// Compounded struct with Line & Text
+// Figures defines a compounded struct with Line & Text
 type Figures struct {
 	Line
 	Text
 }
 
-// Empty struct
+// Diagram empty struct
 type Diagram struct{}
 
-// Parses given ASCII art string into a list of figures.
+// ParseASCIIArt parses a given ASCII string into a list of figures.
 func (d *Diagram) ParseASCIIArt(str string) []*Figures {
 	var figures []*Figures
 
@@ -86,7 +86,7 @@ func (d *Diagram) ParseASCIIArt(str string) []*Figures {
 		}
 	}
 
-	// Get a character from the slice or 0 if we are out of bounds.
+	// Get a character from the slice or zero out if we are out of bounds.
 	at := func(y, x int) string {
 		if 0 <= y && y < height && 0 <= x && x < width {
 			return data[y][x]
@@ -113,7 +113,7 @@ func (d *Diagram) ParseASCIIArt(str string) []*Figures {
 		return ""
 	}
 
-	// Returns true if characters is line ending decoration.
+	// Returns true if the character is a line ending decoration.
 	isLineEnding := func(x, y int) bool {
 		c := at(y, x)
 		switch {
@@ -123,7 +123,7 @@ func (d *Diagram) ParseASCIIArt(str string) []*Figures {
 		return false
 	}
 
-	// Finds a character that belongs to unextracted line.
+	// Finds a character that belongs to an unextracted line.
 	findLineChar := func() *Point {
 		for y := 0; y < height; y++ {
 			for x := 0; x < width; x++ {
@@ -263,9 +263,8 @@ func (d *Diagram) ParseASCIIArt(str string) []*Figures {
 		erase(line)
 
 		// Adjust line start and end to accomodate for arrow endings.
-		// Those should not intersect with their targets but should touch them
-		// instead. Should be done after erasure to ensure that erase deletes
-		// arrowheads.
+		// Those should not intersect with their targets but should touch them instead.
+		// Should be done after erasure to ensure that erase deletes arrowheads.
 		if start == "arrow" {
 			line.x0 -= d.x
 			line.y0 -= d.y
@@ -277,8 +276,7 @@ func (d *Diagram) ParseASCIIArt(str string) []*Figures {
 		}
 		return true
 	}
-	// Extract all non space characters that were left after line extraction
-	// as text objects.
+	// Extract all non space characters that were left after line extraction as text objects.
 	extractText := func() {
 		for y := 0; y < height; y++ {
 			for x := 0; x < width; x++ {
@@ -316,13 +314,14 @@ func (d *Diagram) ParseASCIIArt(str string) []*Figures {
 		}
 	}
 
-	for extractLine() {}
+	for extractLine() {
+	}
 	extractText()
 
 	return figures
 }
 
-// Generate diagram into the output file
+// DrawDiagram generates the diagram and saves into the output file.
 func DrawDiagram(content string, output string, fontpath string) error {
 	var width, height int
 
@@ -349,8 +348,5 @@ func DrawDiagram(content string, output string, fontpath string) error {
 		}
 		fig.Text.Draw(canvas)
 	}
-	if err := canvas.SavePNG(output); err != nil {
-		return err
-	}
-	return nil
+	return canvas.SavePNG(output)
 }
