@@ -1,6 +1,14 @@
 // Diagram is a CLI tool to generate hand drawn diagrams from ASCII arts.
 //
 // It's a full featured CLI application which converts the ASCII text into hand drawn diagrams.
+// The tool permits to generate hand-drawn diagrams without to enter into the CLI app.
+//
+// Example:
+//	var defaultFontFile = build.Default.GOPATH + "/src/github.com/esimov/diagram" + "/font/gloriahallelujah.ttf"
+//
+// 	func main() {
+//		ui.InitApp(defaultFontFile)
+//	}
 package main
 
 import (
@@ -29,7 +37,7 @@ func main() {
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	flag.Parse()
-	// If filenames specified on the commandline generate diagram directly with command line tool.
+	// In case the option parameters are used, the hand-drawn diagrams are generated without to enter into the CLI app.
 	if (*source != "") && (*destination != "") {
 		input := string(io.ReadFile(*source))
 
