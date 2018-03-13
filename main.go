@@ -1,14 +1,6 @@
-// Diagram is a CLI tool to generate hand drawn diagrams from ASCII arts.
+// Package Diagram is a Go package to generate hand drawn diagrams from ASCII arts.
 //
 // It's a full featured CLI application which converts the ASCII text into hand drawn diagrams.
-// The tool permits to generate hand-drawn diagrams without to enter into the CLI app.
-//
-// Example:
-//	var defaultFontFile = build.Default.GOPATH + "/src/github.com/esimov/diagram" + "/font/gloriahallelujah.ttf"
-//
-// 	func main() {
-//		ui.InitApp(defaultFontFile)
-//	}
 package main
 
 import (

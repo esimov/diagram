@@ -48,17 +48,17 @@ func (ui *UI) Init() {
 // Used to restore mouse position when click is detected.
 type Cursors map[string]struct{ x, y int }
 
-// NewCursors ge
+// NewCursors instantiate Cursors map which contains the cursor current position.
 func NewCursors() Cursors {
 	return make(Cursors)
 }
 
-// Restore restores mouse previous position.
+// Restore restores cursor previous position.
 func (c Cursors) Restore(view *gocui.View) error {
 	return view.SetCursor(c.Get(view.Name()))
 }
 
-// Get returns the mouse current position.
+// Get returns the cursor current position.
 func (c Cursors) Get(view string) (int, int) {
 	if v, ok := c[view]; ok {
 		return v.x, v.y

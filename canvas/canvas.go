@@ -1,3 +1,7 @@
+// Package canvas is responsible to convert the ascii symbols to hand drawn diagrams.
+// It implements the basic canvas drawing operations like moveTo, lineTo, fillText.
+
+// The Draw method signature declared in the Drawer interface, implements the method separately on Line and Text struct.
 package canvas
 
 import (
@@ -20,10 +24,10 @@ type Drawer interface {
 	Draw(*Canvas)
 }
 
-// CellSize defines the symbol cell size.
+// CellSize defines symbol's cell size.
 const CellSize float64 = 20
 
-// NewCanvas is a constructor method, which returns a new Canvas element.
+// NewCanvas is a constructor method, which instantiates a new Canvas element.
 func NewCanvas(ctx *gg.Context, font string, lineWidth float64) *Canvas {
 	if err := ctx.LoadFontFace(font, 20); err != nil {
 		panic(err)
@@ -132,7 +136,7 @@ func (text *Text) Draw(ctx *Canvas) {
 	ctx.fillText(text.text, X(float64(text.x0)), Y(float64(text.y0)+0.5))
 }
 
-// Draw draws the line at (x0, y0) with the given color.
+// Draw draws a line from (x0, y0) to (x1, y1) with the given color.
 func (line *Line) Draw(ctx *Canvas) {
 	ctx.SetHexColor(line.color)
 	ctx.SetLineWidth(ctx.lineWidth)
@@ -156,12 +160,12 @@ func (line *Line) Draw(ctx *Canvas) {
 	_ending(ctx, line.end, X(float64(line.x0)), Y(float64(line.y0)), X(float64(line.x1)), Y(float64(line.y1)))
 }
 
-// X returns symbol X position.
+// X returns the symbols x position.
 func X(x float64) float64 {
 	return x*CellSize + (CellSize / 2)
 }
 
-// Y returns symbol Y position.
+// Y returns the symbol y position.
 func Y(y float64) float64 {
 	return y*CellSize + (CellSize / 2)
 }

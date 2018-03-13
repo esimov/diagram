@@ -12,7 +12,7 @@ import (
 	"github.com/jroimartin/gocui"
 )
 
-// Fn generic function acting as a closure function for handlers.
+// Fn is a generic function acting as a closure function for event handlers.
 type Fn func(*gocui.Gui, *gocui.View) error
 
 type handler struct {

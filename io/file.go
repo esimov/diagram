@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 )
 
-// ReadFile file
+// ReadFile read the input file.
 func ReadFile(input string) []byte {
 	b, err := ioutil.ReadFile(input)
 	if err != nil {
@@ -51,7 +51,7 @@ func SaveFile(fileName string, output string, data string) (*os.File, error) {
 	return file, nil
 }
 
-// DeleteDiagram delete a diagram.
+// DeleteDiagram deletes a diagram.
 func DeleteDiagram(fileName string) error {
 	err := os.Remove(fileName)
 	if isError(err) {
@@ -60,7 +60,7 @@ func DeleteDiagram(fileName string) error {
 	return nil
 }
 
-// isError generic function to check for errors.
+// isError ia a generic function to check for errors.
 func isError(err error) bool {
 	if err != nil {
 		fmt.Errorf("Could not save file: %v", err.Error())

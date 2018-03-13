@@ -14,7 +14,7 @@ type Point struct {
 	x, y int
 }
 
-// NewPoint creates a new Point struct.
+// NewPoint instantiates a new Point.
 func NewPoint(x, y int) *Point {
 	return &Point{x, y}
 }
@@ -33,7 +33,7 @@ func NewLine(x0, y0 int, start string, x1, y1 int, end string, color string) *Li
 	return &Line{x0, y0, start, x1, y1, end, color}
 }
 
-// Text struct contains the x & y coordinates and the color.
+// Text struct containing the text x and y coordinates and the color.
 type Text struct {
 	x0, y0 int
 	text   string
@@ -45,13 +45,13 @@ func NewText(x0, y0 int, text, color string) *Text {
 	return &Text{x0, y0, text, color}
 }
 
-// Figures defines a compounded struct with Line & Text
+// Figures defines a compounded struct containing the Line and Text struct elements.
 type Figures struct {
 	Line
 	Text
 }
 
-// Diagram empty struct
+// Diagram defines a basic empty struct.
 type Diagram struct{}
 
 // ParseASCIIArt parses a given ASCII string into a list of figures.
@@ -321,8 +321,8 @@ func (d *Diagram) ParseASCIIArt(str string) []*Figures {
 	return figures
 }
 
-// DrawDiagram generates the diagram and saves into the output file.
-func DrawDiagram(content string, output string, fontpath string) error {
+// DrawDiagram generates the diagram and saves into the image file.
+func DrawDiagram(content string, output string, fontPath string) error {
 	var width, height int
 
 	diagram := &Diagram{}
@@ -336,7 +336,7 @@ func DrawDiagram(content string, output string, fontpath string) error {
 	}
 
 	ctx := gg.NewContext(width, height)
-	canvas := NewCanvas(ctx, fontpath, 3)
+	canvas := NewCanvas(ctx, fontPath, 3)
 	canvas.DrawRectangle(0, 0, float64(width), float64(height))
 	canvas.SetRGBA(1, 1, 1, 1)
 	canvas.Fill()

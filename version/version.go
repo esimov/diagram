@@ -2,16 +2,16 @@ package version
 
 import "github.com/esimov/diagram/color"
 
-// Name of application
+// Name of application.
 const Name = "diagram"
 
-// Description of application
+// Description of application.
 const Description = "Transform ASCII arts into hand drawn diagrams"
 
-// Version number
+// Version number.
 const Version = "v1.0.2"
 
-// DrawLogo draws the logo.
+// DrawLogo draws diagram logo.
 func DrawLogo() string {
 	var logo string
 
