@@ -4,7 +4,7 @@ go:
   - 1.8
   - 1.9
   - tip
-  
+
 branches:
   only:
     - "master"
@@ -13,6 +13,9 @@ matrix:
   allow_failures:
     - go: tip
   fast_finish: true
+
+script:
+  - go get -u -t ./...
 
 notifications:
   email:
