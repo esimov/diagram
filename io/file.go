@@ -12,7 +12,6 @@ import (
 func ReadFile(input string) []byte {
 	b, err := ioutil.ReadFile(input)
 	if err != nil {
-		log.Fatalf("Cannot read input file: %v", err.Error())
 		return nil
 	}
 	return b

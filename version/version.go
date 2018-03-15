@@ -9,7 +9,7 @@ const Name = "diagram"
 const Description = "Transform ASCII arts into hand drawn diagrams"
 
 // Version number.
-const Version = "v1.0.2"
+const Version = "v1.0.3"
 
 // DrawLogo draws diagram logo.
 func DrawLogo() string {
