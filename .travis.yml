@@ -1,6 +1,7 @@
 language: go
 
 go:
+  - 1.8
   - 1.9
 
 branches:
@@ -15,6 +16,15 @@ addons:
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install gtk+; fi
+
+os:
+  - linux
+  - osx
+
+matrix:
+  allow_failures:
+    - go: tip
+  fast_finish: true
 
 os:
   - linux

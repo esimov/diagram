@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"image"
+	"image/draw"
 	"log"
 	"math"
 	"os"
@@ -14,9 +15,10 @@ import (
 	"github.com/esimov/diagram/canvas"
 	"github.com/esimov/diagram/io"
 	"github.com/esimov/diagram/version"
+	"github.com/google/gxui"
+	"github.com/google/gxui/drivers/gl"
+	"github.com/google/gxui/samples/flags"
 	"github.com/jroimartin/gocui"
-	"github.com/mattn/go-gtk/glib"
-	"github.com/mattn/go-gtk/gtk"
 )
 
 type panelProperties struct {
@@ -469,35 +471,31 @@ func (ui *UI) drawDiagram(name string) error {
 				return err
 			}
 			defer func() {
-				diagram := filePath + output
-				f, err := os.Open(diagram)
-				if err != nil {
-					log.Fatalf("Failed to open image '%s': %v\n", diagram, err)
-				}
-				source, _, err := image.Decode(f)
-				if err != nil {
-					log.Fatalf("Failed to read image '%s': %v\n", diagram, err)
-				}
+				gl.StartDriver(func(driver gxui.Driver) {
+					diagram := filePath + output
+					f, err := os.Open(diagram)
+					if err != nil {
+						log.Fatalf("Failed to open image '%s': %v\n", diagram, err)
+					}
+					source, _, err := image.Decode(f)
+					if err != nil {
+						log.Fatalf("Failed to read image '%s': %v\n", diagram, err)
+					}
+					theme := flags.CreateTheme(driver)
+					img := theme.CreateImage()
 
-				gtk.Init(nil)
+					window := theme.CreateWindow(source.Bounds().Max.X, source.Bounds().Max.Y, "Diagram preview")
+					window.SetScale(flags.DefaultScaleFactor)
+					window.AddChild(img)
 
-				window := gtk.NewWindow(gtk.WINDOW_TOPLEVEL)
-				window.SetPosition(gtk.WIN_POS_CENTER)
-				window.SetTitle("Diagram Preview")
-				window.Connect("destroy", func(ctx *glib.CallbackContext) {
-					gtk.MainQuit()
-				}, "")
+					// Copy the image to a RGBA format before handing to a gxui.Texture
+					rgba := image.NewRGBA(source.Bounds())
+					draw.Draw(rgba, source.Bounds(), source, image.ZP, draw.Src)
+					texture := driver.CreateTexture(rgba, 1)
+					img.SetTexture(texture)
 
-				box := gtk.NewHPaned()
-				frame := gtk.NewVBox(false, 1)
-				image := gtk.NewImageFromFile(filePath + output)
-				frame.Add(image)
-				box.Pack1(frame, false, false)
-
-				window.Add(box)
-				window.SetSizeRequest(source.Bounds().Max.X, source.Bounds().Max.Y)
-				window.ShowAll()
-				gtk.Main()
+					window.OnClose(driver.Terminate)
+				})
 			}()
 			return nil
 		})
