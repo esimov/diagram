@@ -33,6 +33,9 @@ type panelProperties struct {
 	editor   *UI
 }
 
+// MinGUIWindow is the minimum window size
+const MinGUIWindow = 600
+
 const (
 	// Panel constants
 	LOGO_PANEL           = "logo"
@@ -460,7 +463,7 @@ func (ui *UI) drawDiagram(name string) error {
 	if err == nil {
 		ui.log(fmt.Sprintf("Successfully converted the ascii diagram into %s!", output), false)
 	} else {
-		ui.log("Error on saving the ascii diagram! Please check if the output folder exists.", true)
+		ui.log(fmt.Sprintf("Error on saving the ascii diagram: %v", err), true)
 	}
 
 	// Close progress modal after 1 second
@@ -471,31 +474,42 @@ func (ui *UI) drawDiagram(name string) error {
 				return err
 			}
 			defer func() {
-				gl.StartDriver(func(driver gxui.Driver) {
-					diagram := filePath + output
-					f, err := os.Open(diagram)
-					if err != nil {
-						log.Fatalf("Failed to open image '%s': %v\n", diagram, err)
-					}
-					source, _, err := image.Decode(f)
-					if err != nil {
-						log.Fatalf("Failed to read image '%s': %v\n", diagram, err)
-					}
-					theme := flags.CreateTheme(driver)
-					img := theme.CreateImage()
+				if err == nil {
+					gl.StartDriver(func(driver gxui.Driver) {
+						diagram := filePath + output
+						f, err := os.Open(diagram)
+						if err != nil {
+							log.Fatalf("Failed to open image '%s': %v\n", diagram, err)
+						}
+						source, _, err := image.Decode(f)
+						if err != nil {
+							log.Fatalf("Failed to read image '%s': %v\n", diagram, err)
+						}
+						theme := flags.CreateTheme(driver)
+						img := theme.CreateImage()
 
-					window := theme.CreateWindow(source.Bounds().Max.X, source.Bounds().Max.Y, "Diagram preview")
-					window.SetScale(flags.DefaultScaleFactor)
-					window.AddChild(img)
+						dx, dy := source.Bounds().Max.X, source.Bounds().Max.Y
 
-					// Copy the image to a RGBA format before handing to a gxui.Texture
-					rgba := image.NewRGBA(source.Bounds())
-					draw.Draw(rgba, source.Bounds(), source, image.ZP, draw.Src)
-					texture := driver.CreateTexture(rgba, 1)
-					img.SetTexture(texture)
+						// Use MinGUIWindow size in case the generated diagram is less then MinGUIWindow.
+						if dx < MinGUIWindow {
+							dx = MinGUIWindow
+						}
+						if dy < MinGUIWindow {
+							dy = MinGUIWindow
+						}
+						window := theme.CreateWindow(dx, dy, "Diagram preview")
+						window.SetScale(flags.DefaultScaleFactor)
+						window.AddChild(img)
 
-					window.OnClose(driver.Terminate)
-				})
+						// Copy the image to a RGBA format before handing to a gxui.Texture
+						rgba := image.NewRGBA(source.Bounds())
+						draw.Draw(rgba, source.Bounds(), source, image.ZP, draw.Src)
+						texture := driver.CreateTexture(rgba, 1)
+						img.SetTexture(texture)
+
+						window.OnClose(driver.Terminate)
+					})
+				}
 			}()
 			return nil
 		})
