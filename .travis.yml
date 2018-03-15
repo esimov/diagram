@@ -29,3 +29,6 @@ notifications:
   email:
     on_success: never
     on_failure: never
+
+ignore:
+  - github.com/esimov/diagram/vendor/github.com/fogleman/gg/examples/*
