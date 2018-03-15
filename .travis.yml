@@ -3,27 +3,16 @@ language: go
 go:
   - 1.8
   - 1.9
-
+  - tip
+  
 branches:
   only:
     - "master"
-
-os:
-  - linux
-  - osx
 
 matrix:
   allow_failures:
     - go: tip
   fast_finish: true
-
-os:
-  - linux
-  - osx
-
-env:
-  - GOOS=linux
-  - GOOS=darwin
 
 notifications:
   email:
