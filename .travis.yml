@@ -8,15 +8,6 @@ branches:
   only:
     - "master"
 
-addons:
-  apt:
-    packages:
-    - libgtk2.0-dev
-    - xvfb
-
-before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install gtk+; fi
-
 os:
   - linux
   - osx
