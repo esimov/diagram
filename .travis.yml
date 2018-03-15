@@ -1,9 +1,7 @@
 language: go
 
 go:
-  - 1.7
-  - 1.8
-  - 1.9.3
+  - 1.9
 
 branches:
   only:
@@ -13,6 +11,7 @@ addons:
   apt:
     packages:
     - libgtk2.0-dev
+    - xvfb
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install gtk+; fi
@@ -29,6 +28,3 @@ notifications:
   email:
     on_success: never
     on_failure: never
-
-ignore:
-  - github.com/esimov/diagram/vendor/github.com/fogleman/gg/examples/*
