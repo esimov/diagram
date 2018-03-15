@@ -1,15 +1,25 @@
 language: go
 
-# In theory, older versions would probably work just fine
 go:
-  - 1.9
+  - 1.7
+  - 1.8
+  - 1.9.3
 
 branches:
   only:
     - "master"
 
+addons:
+  apt:
+    packages:
+    - libgtk2.0-dev
+
 before_install:
-  - sudo apt-get install -y inotify-tools
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install gtk+; fi
+
+os:
+  - linux
+  - osx
 
 env:
   - GOOS=linux
