@@ -1,5 +1,5 @@
 package: github.com/esimov/diagram
 import:
 - package: github.com/fogleman/gg
-- package: github.com/fogleman/imview
+- package: github.com/google/gxui
 - package: github.com/jroimartin/gocui
