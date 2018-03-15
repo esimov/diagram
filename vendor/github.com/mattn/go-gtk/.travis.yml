@@ -1,0 +1,32 @@
+language: go
+
+go:
+  - 1.6
+  - 1.7
+  - 1.8
+  - 1.9.3
+
+env:
+  global:
+    - DEP_VERSION="0.4.1"
+    - secure: "ByVmoy5LqIJf/hn3G/eNasDasbTkG5jud7ZumMTUP+gdBE98/olKffQXkrfFKq1e6My5G/XVp9tTEB7fz1hKxFpOwOAr/OwTTGqXRieNZhV/YQKKepAUvQE5XxAxbiV9RqsaLCcErlvAJgidn9cJAtnjvtvSncy/k1r5DIUsZIM="
+
+before_install:
+  # Download the binary to bin folder in $GOPATH
+  - curl -L -s https://github.com/golang/dep/releases/download/v${DEP_VERSION}/dep-linux-amd64 -o $GOPATH/bin/dep
+  # Make the binary executable
+  - chmod +x $GOPATH/bin/dep
+
+install:
+  - dep ensure
+
+script: xvfb-run go test -v -race -coverprofile=coverage.txt -covermode=atomic ./gtk
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
+addons:
+  apt:
+    packages:
+    - libgtk2.0-dev
+    - xvfb

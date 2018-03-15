@@ -1,18 +1,8 @@
-hash: a725b9f4054befa76b3a6341f5980146982b655eb17de3289169dc27a72ac464
-updated: 2018-03-09T17:18:34.167391852+02:00
+hash: 989c861cdc260252b627aacf5a1bbf57b178e249ce37372ab0a80c0ebf7dcc43
+updated: 2018-03-15T12:44:32.810283865+02:00
 imports:
 - name: github.com/fogleman/gg
-  version: 6166aa3c1afaee416f384645a81636267aee6d25
-- name: github.com/fogleman/imview
-  version: 7f26a718206b7dfce51e37f8f902618a0e86eb98
-- name: github.com/go-gl/gl
-  version: eafa86a81d9705ff0b4ab163d26fe74da80e0559
-  subpackages:
-  - v2.1/gl
-- name: github.com/go-gl/glfw
-  version: 513e4f2bf85c31fba0fc4907abd7895242ccbe50
-  subpackages:
-  - v3.1/glfw
+  version: c97f757e6f0e106e5a46fce504d49f4ce8f7e7e5
 - name: github.com/golang/freetype
   version: e2365dfdc4a05e4b8299a783240d4a7d5a65d4e4
   subpackages:
@@ -20,14 +10,27 @@ imports:
   - truetype
 - name: github.com/jroimartin/gocui
   version: 4f518eddb04b8f73870836b6d1941e8aa3c06637
+- name: github.com/mattn/go-gtk
+  version: 5a311a1830abecc430a6a598b24094f69d907e96
+  subpackages:
+  - gdk
+  - gdkpixbuf
+  - gio
+  - glib
+  - gtk
+  - pango
+- name: github.com/mattn/go-pointer
+  version: 1d30dc4b6f28271a3bd126071d4d0363e618415b
 - name: github.com/mattn/go-runewidth
   version: a9d6d1e4dc51df2130326793d49971f238839169
 - name: github.com/nsf/termbox-go
   version: e2050e41c8847748ec5288741c0b19a8cb26d084
 - name: golang.org/x/image
-  version: 12117c17ca67ffa1ce22e9409f3b0b0a93ac08c7
+  version: f3a9b89b59def9194717c1d0bd4c0d08fa1afa7b
   subpackages:
+  - draw
   - font
   - font/basicfont
+  - math/f64
   - math/fixed
 testImports: []

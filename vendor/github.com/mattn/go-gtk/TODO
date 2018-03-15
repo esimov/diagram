@@ -1,0 +1,4 @@
+* more widgets.
+* main loop handling (using goroutine) (done)
+* split gtksourceview from gtk package (done)
+* copyright header in sources
