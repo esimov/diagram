@@ -1,16 +1,11 @@
 language: go
 
 go:
-  - 1.8
   - 1.9
 
 branches:
   only:
     - "master"
-
-os:
-  - linux
-  - osx
 
 matrix:
   allow_failures:
@@ -18,13 +13,8 @@ matrix:
     - go: 1.9
   fast_finish: true
 
-os:
-  - linux
-  - osx
-
-env:
-  - GOOS=linux
-  - GOOS=darwin
+script:
+  - go get -u -t ./...
 
 notifications:
   email:
