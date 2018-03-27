@@ -1,4 +1,5 @@
 # Diagram
+[![Build Status](https://travis-ci.org/esimov/diagram.svg?branch=master)](https://travis-ci.org/esimov/diagram)
 [![GoDoc](https://godoc.org/github.com/golang/gddo?status.svg)](https://godoc.org/github.com/esimov/diagram)
 
 Diagram is a CLI tool to generate hand drawn diagrams from ASCII arts. 

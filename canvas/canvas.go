@@ -1,7 +1,7 @@
 // Package canvas is responsible to convert the ascii symbols to hand drawn diagrams.
 // It implements the basic canvas drawing operations like moveTo, lineTo, fillText.
 
-// The Draw method signature declared in the Drawer interface, implements the method separately on Line and Text struct.
+// The Draw method signature declared in the Drawer interface implements the method separately on Line and Text struct.
 package canvas
 
 import (
