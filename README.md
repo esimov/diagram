@@ -10,6 +10,14 @@ It's a full featured CLI application which converts the ASCII text into hand dra
 
 ## Installation and usage
 
+Install Go, set your `GOPATH`, and make sure `$GOPATH/bin` is on your `PATH`.
+
+```bash
+$ export GOPATH="$HOME/go"
+$ export PATH="$PATH:$GOPATH/bin"
+```
+Check the [installation](https://golang.org/doc/install) guide for installing Go if you don't have it already installed. 
+
 ```bash
 $ go get github.com/esimov/diagram
 $ go install
@@ -17,6 +25,8 @@ $ go install
 # Start the application
 $ diagram
 ```
+Once you are inside the terminal application you can create, edit or delete the ascii diagrams. By pressing `CTRL+d` you can convert the ASCII art into a handwritten diagram. The `PNG` file will be saved into the `output` folder relative to the current path.
+
 A shell script is included to watch the output folder and automatically open the generated image files, however `inotifywait` is required for the Linux distribution. Use the following command to install it on Ubuntu:
 
 ```bash
@@ -87,9 +97,7 @@ Key                                     | Description
 |:--:|:--:|
 | <img src="https://user-images.githubusercontent.com/883386/29396424-9200a978-8320-11e7-9c60-17d2be989136.png" height="300"> | <img src="https://user-images.githubusercontent.com/883386/29396385-529a23a4-8320-11e7-9d70-bf9b33d769cc.png" height="300"> |
 
-## Known issues
-
-The app was tested on **Ubuntu** and **MacOS**, but on Mac the panels are not selectables with clicks.
+The app was tested on **Ubuntu** and **MacOS**.
 
 ### Acknowledgements
 The ascii to png conversion was ported from [shaky.dart](https://github.com/mraleph/moe-js/blob/master/talks/jsconfeu2012/tools/shaky/web/shaky.dart).
