@@ -35,7 +35,9 @@ A shell script is included to watch the output folder and automatically open the
 
 ### Command Line support
 
-The application supports the generation of hand drawn diagrams directly via command line. Typing `$ diagram --help` will show the supported commands for generating the diagrams without to enter the CLI tool:
+The application also supports the generation of hand drawn diagrams directly from command line without to enter into the CLI application. 
+
+`$ diagram --help` will show the currently supported options:
 
 ```bash
 Usage of diagram:
