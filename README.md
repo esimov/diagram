@@ -10,13 +10,15 @@ It's a full featured CLI application which converts the ASCII text into hand dra
 
 ## Installation and usage
 
-Install Go, set your `GOPATH`, and make sure `$GOPATH/bin` is on your `PATH`.
+In order to run the application please make sure that Go is installed on your local machine and check if `$GOPATH/bin` is included into the `PATH` directory.
 
 ```bash
 $ export GOPATH="$HOME/go"
 $ export PATH="$PATH:$GOPATH/bin"
 ```
-Check the [installation](https://golang.org/doc/install) guide for installing Go if you don't have it already installed. 
+In order to visualize the generated output (with `CTRL-D`) please make sure that [glfw](https://www.glfw.org) is installed on your machine.
+
+A shell script is bundled into the library to mitigate the generation of different binary files for different operating systems, but take care: different dependencies are needed for different operating systems. For a full list of required external dependencies check the official documentation of `go-glfw` (https://github.com/go-gl/glfw/blob/master/README.md).
 
 ```bash
 $ go get github.com/esimov/diagram
