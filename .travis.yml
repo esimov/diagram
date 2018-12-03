@@ -8,9 +8,9 @@ addons:
 language: go
 
 go:
-  - 1.8
-  - 1.9
+  - 1.11.x
   - 1.10.x
+  - 1.9
   - tip
 
 branches:
