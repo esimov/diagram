@@ -1,9 +1,11 @@
-language: go
+sudo: false
 
 addons:
   apt_packages:
     - libgl1-mesa-dev
     - xorg-dev
+
+language: go
 
 go:
   - 1.8
