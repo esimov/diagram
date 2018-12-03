@@ -8,7 +8,7 @@ It's a full featured CLI application which converts the ASCII text into hand dra
 
 ![screencast](images/screencast.gif)
 
-## Installation and usage
+## Installation
 
 In order to run the application please make sure that Go is installed on your local machine and check if `$GOPATH/bin` is included into the `PATH` directory.
 
@@ -27,6 +27,8 @@ $ go install
 # Start the application
 $ diagram
 ```
+## Usage
+
 Once you are inside the terminal application you can create, edit or delete the ascii diagrams. By pressing `CTRL+d` you can convert the ASCII art into a handwritten diagram. The `PNG` file will be saved into the `output` folder relative to the current path.
 
 A shell script is included to watch the output folder and automatically open the generated image files.
