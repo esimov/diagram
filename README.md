@@ -27,19 +27,17 @@ $ diagram
 ```
 Once you are inside the terminal application you can create, edit or delete the ascii diagrams. By pressing `CTRL+d` you can convert the ASCII art into a handwritten diagram. The `PNG` file will be saved into the `output` folder relative to the current path.
 
-A shell script is included to watch the output folder and automatically open the generated image files, however `inotifywait` is required for the Linux distribution. Use the following command to install it on Ubuntu:
-
-```bash
-sudo apt install inotify-tools
-```
-Then you can use the provided shell script to activate it by running the following command `$ ./watch`.
+A shell script is included to watch the output folder and automatically open the generated image files.
 
 **Update:**
-*The included shell script is not needed anymore, because an internal image viewer is bundled into the application.*
+
+*This is not needed anymore, since an internal image viewer is bundled into the application.*
 
 ### Command Line support
 
-The application supports the generation of hand drawn diagrams directly via command line. Typing `$ diagram --help` will show the supported commands for generating the diagrams without to enter the CLI tool:
+The application also supports the generation of hand drawn diagrams directly from command line without to enter into the CLI application. 
+
+`$ diagram --help` will show the currently supported options:
 
 ```bash
 Usage of diagram:
