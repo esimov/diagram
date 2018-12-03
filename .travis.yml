@@ -22,10 +22,6 @@ matrix:
       - go: tip
   fast_finish: true
 
-env:
-  - GOOS=linux
-  - GOOS=darwin
-
 script:
   - go get -u -t ./...
 
