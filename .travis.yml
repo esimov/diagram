@@ -1,9 +1,15 @@
 language: go
 
+addons:
+  apt_packages:
+    - libgl1-mesa-dev
+    - xorg-dev
+
 go:
   - 1.8
   - 1.9
-  - 1.10
+  - 1.10.x
+  - tip
 
 branches:
   only:
@@ -11,9 +17,7 @@ branches:
 
 matrix:
   allow_failures:
-    - go: 1.8
-    - go: 1.9
-    - go: 1.10
+      - go: tip
   fast_finish: true
 
 env:
