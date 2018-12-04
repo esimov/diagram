@@ -18,7 +18,11 @@ $ export PATH="$PATH:$GOPATH/bin"
 ```
 In order to visualize the generated output (with `CTRL-d`) please make sure that [glfw](https://www.glfw.org) is installed on your machine.
 
-A shell script is bundled into the library to mitigate the generation of different binary files for different operating systems, but take care: different dependencies are needed for different operating systems. For a full list of the required external dependencies check the official documentation of `go-glfw` (https://github.com/go-gl/glfw/blob/master/README.md).
+A shell script is bundled into the library to mitigate the generation of binary files for the most widespread operating systems, but take care: different dependencies are needed for different operating systems. To build the executables type:
+
+`$ make all`
+
+For a full list of the required external dependencies check the official documentation of `go-glfw` (https://github.com/go-gl/glfw/blob/master/README.md).
 
 ```bash
 $ go get github.com/esimov/diagram
