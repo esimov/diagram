@@ -5,6 +5,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"go/build"
 	"image"
 	"image/draw"
@@ -21,6 +22,18 @@ import (
 	"github.com/google/gxui/samples/flags"
 )
 
+const HelpBanner = `
+┌┬┐┬┌─┐┌─┐┬─┐┌─┐┌┬┐
+ │││├─┤│ ┬├┬┘├─┤│││
+─┴┘┴┴ ┴└─┘┴└─┴ ┴┴ ┴
+    Version: %s
+
+CLI app to convert ASCII arts into hand drawn diagrams.
+
+`
+// Version indicates the current build version.
+var version string
+
 var defaultFontFile = build.Default.GOPATH + "/src/github.com/esimov/diagram" + "/font/gloriahallelujah.ttf"
 
 var (
@@ -33,7 +46,12 @@ var (
 func main() {
 	rand.Seed(time.Now().UTC().UnixNano())
 
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, fmt.Sprintf(HelpBanner, version))
+		flag.PrintDefaults()
+	}
 	flag.Parse()
+
 	// In case the option parameters are used, the hand-drawn diagrams are generated without to enter into the CLI app.
 	if (*source != "") && (*destination != "") {
 		input := string(io.ReadFile(*source))
