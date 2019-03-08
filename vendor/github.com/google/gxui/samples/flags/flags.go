@@ -6,7 +6,6 @@
 package flags
 
 import (
-	"flag"
 	"github.com/google/gxui"
 	"github.com/google/gxui/themes/dark"
 	"github.com/google/gxui/themes/light"
@@ -16,12 +15,8 @@ var DefaultScaleFactor float32
 var FlagTheme string
 
 func init() {
-	flagTheme := flag.String("theme", "dark", "Theme to use {dark|light}.")
-	defaultScaleFactor := flag.Float64("scaling", 1.0, "Adjusts the scaling of UI rendering")
-	//flag.Parse()
-
-	DefaultScaleFactor = float32(*defaultScaleFactor)
-	FlagTheme = *flagTheme
+	DefaultScaleFactor = 1.0
+	FlagTheme = "light"
 }
 
 // CreateTheme creates and returns the theme specified on the command line.
