@@ -18,7 +18,7 @@ var FlagTheme string
 func init() {
 	flagTheme := flag.String("theme", "dark", "Theme to use {dark|light}.")
 	defaultScaleFactor := flag.Float64("scaling", 1.0, "Adjusts the scaling of UI rendering")
-	flag.Parse()
+	//flag.Parse()
 
 	DefaultScaleFactor = float32(*defaultScaleFactor)
 	FlagTheme = *flagTheme
