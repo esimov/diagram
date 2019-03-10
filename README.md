@@ -48,9 +48,15 @@ The application also supports the generation of hand drawn diagrams directly fro
 `$ diagram --help` will show the currently supported options:
 
 ```bash
-Usage of diagram:
+┌┬┐┬┌─┐┌─┐┬─┐┌─┐┌┬┐
+ │││├─┤│ ┬├┬┘├─┤│││
+─┴┘┴┴ ┴└─┘┴└─┴ ┴┴ ┴
+    Version: 1.0.4
+
+CLI app to convert ASCII arts into hand drawn diagrams.
+
   -font string
-    	path to font file (default "${GOPATH}/src/github.com/esimov/diagram/font/gloriahallelujah.ttf")
+    	Path to the font file (default "/Users/esimov/Projects/Go/src/github.com/esimov/diagram/font/gloriahallelujah.ttf")
   -in string
     	Source
   -out string
