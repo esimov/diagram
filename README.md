@@ -120,6 +120,6 @@ The ascii to png conversion was ported from [shaky.dart](https://github.com/mral
 
 ## License
 
-Copyright © 2018 Endre Simo
+Copyright © 2017 Endre Simo
 
 This project is under the MIT License. See the [LICENSE](https://github.com/esimov/diagram/blob/master/LICENSE) file for the full license text.
