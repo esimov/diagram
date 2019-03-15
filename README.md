@@ -114,6 +114,12 @@ The app was tested on **Ubuntu** and **MacOS**.
 ### Acknowledgements
 The ascii to png conversion was ported from [shaky.dart](https://github.com/mraleph/moe-js/blob/master/talks/jsconfeu2012/tools/shaky/web/shaky.dart).
 
+## Author
+
+* Endre Simo ([@simo_endre](https://twitter.com/simo_endre))
+
 ## License
+
+Copyright © 2018 Endre Simo
 
 This project is under the MIT License. See the [LICENSE](https://github.com/esimov/diagram/blob/master/LICENSE) file for the full license text.
