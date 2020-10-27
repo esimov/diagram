@@ -4,7 +4,7 @@
 
 Diagram is a CLI tool to generate hand drawn diagrams from ASCII arts. 
 
-It's a full featured CLI application which converts the ASCII text into hand drawn diagrams. The CLI part is based on [gocui](https://github.com/jroimartin/gocui) and the ascii to png conversion is done using the [gg](https://github.com/fogleman/gg) library.
+It's a full fledged CLI application which converts the ASCII text into a hand drawn diagram. The CLI part is based on [gocui](https://github.com/jroimartin/gocui) package and the ASCII to PNG conversion is done using the [gg](https://github.com/fogleman/gg) library.
 
 ![screencast](images/screencast.gif)
 
@@ -16,24 +16,28 @@ In order to run the application please make sure that Go is installed on your lo
 $ export GOPATH="$HOME/go"
 $ export PATH="$PATH:$GOPATH/bin"
 ```
-In order to visualize the generated output (with `CTRL-d`) please make sure that [glfw](https://www.glfw.org) is installed on your machine.
 
-A shell script is bundled into the library to mitigate the generation of binary files for the most widespread operating systems, but take care: different dependencies are needed for different operating systems. To build the executables type:
-
-`$ make all`
-
-For a full list of the required external dependencies check the official documentation of `go-glfw` (https://github.com/go-gl/glfw/blob/master/README.md).
+### Download the library
 
 ```bash
-$ go get github.com/esimov/diagram
+$ go get -u -f github.com/esimov/diagram
 $ go install
 
 # Start the application
 $ diagram
 ```
+
+In order to visualize the generated output (with `CTRL-d`) please make sure that [glfw](https://www.glfw.org) is installed on your local machine.
+
+For a full list of the required external dependencies check the official documentation of `go-glfw` (https://github.com/go-gl/glfw/blob/master/README.md).
+
+A shell script is bundled into the library to mitigate the generation of binary files for the most widespread operating systems, but take care: different dependencies are needed for different operating systems. To build the executable file run:
+
+`$ make all`
+
 ## Usage
 
-Once you are inside the terminal application you can create, edit or delete the ascii diagrams. By pressing `CTRL+d` you can convert the ASCII art into a handwritten diagram. The `PNG` file will be saved into the `output` folder relative to the current path.
+Once you are inside the terminal application you can create, edit or delete the ASCII diagrams. By pressing `CTRL+d` you can convert the ASCII art into a handwritten diagram. The generated `PNG` file will be saved into the `output` folder relative to the current path.
 
 ### Command Line support
 
@@ -105,6 +109,12 @@ The application was tested only on **Ubuntu** and **MacOS**.
 
 ### Acknowledgements
 The ascii to png conversion was ported from [shaky.dart](https://github.com/mraleph/moe-js/blob/master/talks/jsconfeu2012/tools/shaky/web/shaky.dart).
+
+## Dependencies
+
+- https://github.com/jroimartin/gocui
+- https://github.com/fogleman/gg
+- https://github.com/go-gl/glfw/
 
 ## Author
 
