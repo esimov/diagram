@@ -4,7 +4,7 @@
 
 Diagram is a CLI tool to generate hand drawn diagrams from ASCII arts. 
 
-It's a full fledged CLI application which converts the ASCII text into a hand drawn diagram. The CLI part is based on [gocui](https://github.com/jroimartin/gocui) package and the ASCII to PNG conversion is done using the [gg](https://github.com/fogleman/gg) library.
+It's a full fledged CLI application which converts the ASCII text into a hand drawn diagram. The CLI part is based on [gocui](https://github.com/jroimartin/gocui) package and the ASCII to PNG conversion is realized using the [gg](https://github.com/fogleman/gg) library.
 
 ![screencast](images/screencast.gif)
 
@@ -27,9 +27,11 @@ $ go install
 $ diagram
 ```
 
-In order to visualize the generated output (with `CTRL-d`) please make sure that [glfw](https://www.glfw.org) is installed on your local machine.
+Prior checking the generated output by invoking the visualization command (with `CTRL-d`) please make sure that [glfw](https://www.glfw.org) is installed on your local machine.
 
 For a full list of the required external dependencies check the official documentation of `go-glfw` (https://github.com/go-gl/glfw/blob/master/README.md).
+
+#### Build 
 
 A shell script is bundled into the library to mitigate the generation of binary files for the most widespread operating systems, but take care: different dependencies are needed for different operating systems. To build the executable file run:
 
@@ -84,7 +86,7 @@ diagram -in sample.txt -out sample.png -preview=false -font /path/to/my/font/MyH
 ```
 
 ### Key bindings
-Key                                     | Description
+Key                                     | Action
 ----------------------------------------|---------------------------------------
 <kbd>Tab</kbd>                          | Next Panel
 <kbd>Shift+Tab</kbd>                    | Previous Panel
