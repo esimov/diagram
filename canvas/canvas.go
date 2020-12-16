@@ -74,7 +74,7 @@ func (ctx *Canvas) shakyLine(x0, y0, x1, y1 float64) {
 	x4 = x0 + dx*k2 - dy/l*l4
 	y4 = y0 + dy*k2 + dx/l*l4
 
-	// Draw a bezier curve trough the four selected points.
+	// Draw a bezier curve through the four selected points.
 	ctx.MoveTo(x0, y0)
 	ctx.CubicTo(x3, y3, x4, y4, x1, y1)
 }
