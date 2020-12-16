@@ -2,9 +2,9 @@
 [![Build Status](https://travis-ci.org/esimov/diagram.svg?branch=master)](https://travis-ci.org/esimov/diagram)
 [![GoDoc](https://godoc.org/github.com/golang/gddo?status.svg)](https://godoc.org/github.com/esimov/diagram)
 
-Diagram is a CLI tool to generate hand drawn diagrams from ASCII arts. 
+Diagram is a CLI tool to generate ASCII art from hand drawn diagrams. 
 
-It's a full featured CLI application which converts the ASCII text into hand drawn diagrams. The CLI part is based on [gocui](https://github.com/jroimartin/gocui) and the ascii to png conversion is done using the [gg](https://github.com/fogleman/gg) library.
+It's a full fledged CLI application which converts the ASCII text into a hand drawn diagram. The CLI part is based on [gocui](https://github.com/jroimartin/gocui) package and the ASCII to PNG conversion is realized using the [gg](https://github.com/fogleman/gg) library.
 
 ![screencast](images/screencast.gif)
 
@@ -16,30 +16,30 @@ In order to run the application please make sure that Go is installed on your lo
 $ export GOPATH="$HOME/go"
 $ export PATH="$PATH:$GOPATH/bin"
 ```
-In order to visualize the generated output (with `CTRL-d`) please make sure that [glfw](https://www.glfw.org) is installed on your machine.
 
-A shell script is bundled into the library to mitigate the generation of binary files for the most widespread operating systems, but take care: different dependencies are needed for different operating systems. To build the executables type:
-
-`$ make all`
-
-For a full list of the required external dependencies check the official documentation of `go-glfw` (https://github.com/go-gl/glfw/blob/master/README.md).
+### Download the library
 
 ```bash
-$ go get github.com/esimov/diagram
+$ go get -u -f github.com/esimov/diagram
 $ go install
 
 # Start the application
 $ diagram
 ```
+
+Prior checking the generated output by invoking the visualization command (with `CTRL-d`) please make sure that [glfw](https://www.glfw.org) is installed on your local machine.
+
+For a full list of the required external dependencies check the official documentation of `go-glfw` (https://github.com/go-gl/glfw/blob/master/README.md).
+
+#### Build 
+
+A shell script is bundled into the library to mitigate the generation of binary files for the most widespread operating systems, but take care: different dependencies are needed for different operating systems. To build the executable file run:
+
+`$ make all`
+
 ## Usage
 
-Once you are inside the terminal application you can create, edit or delete the ascii diagrams. By pressing `CTRL+d` you can convert the ASCII art into a handwritten diagram. The `PNG` file will be saved into the `output` folder relative to the current path.
-
-A shell script is included to watch the output folder and automatically open the generated image files.
-
-**Update:**
-
-*This is not needed anymore, since an internal image viewer is bundled into the application.*
+Once you are inside the terminal application you can create, edit or delete the ASCII diagrams. By pressing `CTRL+d` you can convert the ASCII art into a handwritten diagram. The generated `PNG` file will be saved into the `output` folder relative to the current path.
 
 ### Command Line support
 
@@ -85,10 +85,8 @@ Generate diagram as above but use a font at a different location:
 diagram -in sample.txt -out sample.png -preview=false -font /path/to/my/font/MyHandwriting.ttf
 ```
 
-
-
 ### Key bindings
-Key                                     | Description
+Key                                     | Action
 ----------------------------------------|---------------------------------------
 <kbd>Tab</kbd>                          | Next Panel
 <kbd>Shift+Tab</kbd>                    | Previous Panel
@@ -109,10 +107,16 @@ Key                                     | Description
 |:--:|:--:|
 | <img src="https://user-images.githubusercontent.com/883386/29396424-9200a978-8320-11e7-9c60-17d2be989136.png" height="300"> | <img src="https://user-images.githubusercontent.com/883386/29396385-529a23a4-8320-11e7-9d70-bf9b33d769cc.png" height="300"> |
 
-The app was tested on **Ubuntu** and **MacOS**.
+The application was tested only on **Ubuntu** and **MacOS**.
 
 ### Acknowledgements
 The ascii to png conversion was ported from [shaky.dart](https://github.com/mraleph/moe-js/blob/master/talks/jsconfeu2012/tools/shaky/web/shaky.dart).
+
+## Dependencies
+
+- https://github.com/jroimartin/gocui
+- https://github.com/fogleman/gg
+- https://github.com/go-gl/glfw/
 
 ## Author
 
