@@ -4,7 +4,7 @@
 
 Diagram is a CLI tool to generate ASCII art from hand drawn diagrams. 
 
-It's a full fledged CLI application which converts the ASCII text into a hand drawn diagram. The CLI part is based on [gocui](https://github.com/jroimartin/gocui) package and the ASCII to PNG conversion is realized using the [gg](https://github.com/fogleman/gg) library.
+It's a full fledged CLI application which converts the ASCII text into a hand drawn diagram. The CLI part is based on [gocui](https://github.com/jroimartin/gocui) package.
 
 ![screencast](images/screencast.gif)
 
