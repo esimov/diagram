@@ -1,7 +1,0 @@
-[[constraint]]
-  branch = "master"
-  name = "github.com/google/gxui"
-
-[prune]
-  go-tests = true
-  unused-packages = true
