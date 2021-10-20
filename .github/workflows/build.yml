@@ -34,6 +34,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
+      - name: Install Linux Dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get install -y libgl1-mesa-dev xorg-dev
+
       - name: Checkout code
         uses: actions/checkout@v2
 
