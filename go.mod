@@ -17,3 +17,5 @@ require (
 )
 
 go 1.13
+
+replace github.com/google/gxui => ./vendor/github.com/google/gxui/
