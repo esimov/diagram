@@ -2,7 +2,7 @@
 [![build](https://github.com/esimov/diagram/actions/workflows/build.yml/badge.svg)](https://github.com/esimov/diagram/actions/workflows/build.yml)
 [![GoDoc](https://godoc.org/github.com/golang/gddo?status.svg)](https://godoc.org/github.com/esimov/diagram)
 
-Diagram is a CLI tool to generate ASCII art from hand drawn diagrams. 
+Diagram is a CLI tool to generate hand drawn diagrams from ASCII art.
 
 It's a full fledged CLI application which converts the ASCII text into a hand drawn diagram. The CLI part is based on [gocui](https://github.com/jroimartin/gocui) package.
 
