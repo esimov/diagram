@@ -8,26 +8,21 @@ It's a full fledged CLI application which converts the ASCII text into a hand dr
 
 ![screencast](images/screencast.gif)
 
-## Installation
+## Installation & usage
 
 In order to run the application please make sure that Go is installed on your local machine and check if `$GOPATH/bin` is included into the `PATH` directory.
 
 ```bash
-$ export GOPATH="$HOME/go"
-$ export PATH="$PATH:$GOPATH/bin"
-```
-
-### Download the library
-
-```bash
-$ go get -u -f github.com/esimov/diagram
-$ go install
+$ git clone https://github.com/esimov/diagram
+$ cd diagram
+$ go build
 
 # Start the application
 $ diagram
 ```
 
-Prior checking the generated output by invoking the visualization command (with `CTRL-d`) please make sure that [glfw](https://www.glfw.org) is installed on your local machine.
+**Notice:**
+The tool requires the [glfw](https://www.glfw.org) graphic library, so make sure that it is installed on your local machine.
 
 For a full list of the required external dependencies check the official documentation of `go-glfw` (https://github.com/go-gl/glfw/blob/master/README.md).
 
