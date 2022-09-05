@@ -8,9 +8,11 @@ It's a full fledged CLI application which converts the ASCII text into a hand dr
 
 ![screencast](images/screencast.gif)
 
-## Installation & usage
+## Installation
 
 In order to run the application please make sure that Go is installed on your local machine and check if `$GOPATH/bin` is included into the `PATH` directory.
+
+Run the following commands to download the project and build the executable.
 
 ```bash
 $ git clone https://github.com/esimov/diagram
@@ -102,10 +104,10 @@ Key                                     | Action
 |:--:|:--:|
 | <img src="https://user-images.githubusercontent.com/883386/29396424-9200a978-8320-11e7-9c60-17d2be989136.png" height="300"> | <img src="https://user-images.githubusercontent.com/883386/29396385-529a23a4-8320-11e7-9d70-bf9b33d769cc.png" height="300"> |
 
-The application was tested only on **Ubuntu** and **MacOS**.
+The application was tested on **Ubuntu**, **MacOS** and **Windows**.
 
 ### Acknowledgements
-The ascii to png conversion was ported from [shaky.dart](https://github.com/mraleph/moe-js/blob/master/talks/jsconfeu2012/tools/shaky/web/shaky.dart).
+The ASCII to PNG conversion was ported from [shaky.dart](https://github.com/mraleph/moe-js/blob/master/talks/jsconfeu2012/tools/shaky/web/shaky.dart).
 
 ## Dependencies
 
