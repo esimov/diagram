@@ -4,7 +4,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/esimov/diagram)](https://goreportcard.com/report/github.com/esimov/diagram)
 [![license](https://img.shields.io/github/license/esimov/diagram)](./LICENSE)
 
-Diagram is a full fledged CLI application to generate hand drawn diagrams from ASCII art.
+Diagram is a small CLI application to generate hand drawn diagrams from ASCII art.
 
 ![screencast](images/screencast.gif)
 
