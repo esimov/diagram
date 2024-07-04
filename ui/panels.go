@@ -3,7 +3,6 @@ package ui
 import (
 	"fmt"
 	"image"
-	"image/draw"
 	"log"
 	"math"
 	"os"
@@ -13,11 +12,9 @@ import (
 	"time"
 
 	"github.com/esimov/diagram/canvas"
+	"github.com/esimov/diagram/gui"
 	"github.com/esimov/diagram/io"
 	"github.com/esimov/diagram/version"
-	"github.com/google/gxui"
-	"github.com/google/gxui/drivers/gl"
-	"github.com/google/gxui/samples/flags"
 	"github.com/jroimartin/gocui"
 )
 
@@ -55,7 +52,7 @@ const (
 // Main views
 var panelViews = map[string]panelProperties{
 	LOGO_PANEL: {
-		title:    "Diagram",
+		title:    " Diagram ",
 		text:     version.DrawLogo(),
 		x1:       0.0,
 		y1:       0.0,
@@ -65,7 +62,7 @@ var panelViews = map[string]panelProperties{
 		cursor:   false,
 	},
 	SAVED_DIAGRAMS_PANEL: {
-		title:    "Saved Diagrams",
+		title:    " Saved Diagrams ",
 		text:     "",
 		x1:       0.0,
 		y1:       0.25,
@@ -75,7 +72,7 @@ var panelViews = map[string]panelProperties{
 		cursor:   false,
 	},
 	LOG_PANEL: {
-		title:    "Console",
+		title:    " Console ",
 		text:     "",
 		x1:       0.0,
 		y1:       0.90,
@@ -85,7 +82,7 @@ var panelViews = map[string]panelProperties{
 		cursor:   false,
 	},
 	DIAGRAM_PANEL: {
-		title:    "Editor",
+		title:    " Editor ",
 		text:     string(io.ReadFile("sample.txt")),
 		x1:       0.4,
 		y1:       0.0,
@@ -95,7 +92,7 @@ var panelViews = map[string]panelProperties{
 		cursor:   true,
 	},
 	PROGRESS_PANEL: {
-		title:    "Progress",
+		title:    " Progress ",
 		text:     "",
 		x1:       0.0,
 		y1:       0.7,
@@ -120,7 +117,7 @@ var modalViews = map[string]panelProperties{
 	},
 	PROGRESS_MODAL: {
 		title:    "",
-		text:     "\tGenerating...",
+		text:     " Generating...",
 		editable: false,
 	},
 }
@@ -216,7 +213,7 @@ func (ui *UI) toggleHelp(g *gocui.Gui, content string) error {
 		}
 		return ui.closeModal(ui.currentModal)
 	}
-	v, err := ui.openModal(HELP_PANEL, 40, panelHeight, true)
+	v, err := ui.openModal(HELP_PANEL, 45, panelHeight, true)
 	if err != nil {
 		return err
 	}
@@ -438,12 +435,14 @@ func (ui *UI) drawDiagram(name string) error {
 			return err
 		}
 	}
+
 	if currentFile == "" {
 		output = "output.png"
 	} else {
 		output = strings.TrimSuffix(currentFile, ".txt")
 		output = output + ".png"
 	}
+
 	// Show progress
 	ui.showProgressModal(PROGRESS_MODAL)
 
@@ -451,6 +450,7 @@ func (ui *UI) drawDiagram(name string) error {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	filePath := cwd + "/output/"
 
 	// Create output directory in case it does not exists.
@@ -463,7 +463,7 @@ func (ui *UI) drawDiagram(name string) error {
 	if err == nil {
 		ui.log(fmt.Sprintf("Successfully converted the ascii diagram into %s!", output), false)
 	} else {
-		ui.log(fmt.Sprintf("Error on saving the ascii diagram: %v", err), true)
+		ui.log(fmt.Sprintf("Error saving the ascii diagram: %v", err), true)
 	}
 
 	// Close progress modal after 1 second
@@ -473,47 +473,36 @@ func (ui *UI) drawDiagram(name string) error {
 			if err := ui.closeModal(PROGRESS_MODAL); err != nil {
 				return err
 			}
-			defer func() {
-				if err == nil {
-					gl.StartDriver(func(driver gxui.Driver) {
-						diagram := filePath + output
-						f, err := os.Open(diagram)
-						if err != nil {
-							log.Fatalf("Failed to open image '%s': %v\n", diagram, err)
-						}
-						source, _, err := image.Decode(f)
-						if err != nil {
-							log.Fatalf("Failed to read image '%s': %v\n", diagram, err)
-						}
-						theme := flags.CreateTheme(driver)
-						img := theme.CreateImage()
 
-						dx, dy := source.Bounds().Max.X, source.Bounds().Max.Y
-
-						// Use MinGUIWindow size in case the generated diagram is less then MinGUIWindow.
-						if dx < MinGUIWindow {
-							dx = MinGUIWindow
-						}
-						if dy < MinGUIWindow {
-							dy = MinGUIWindow
-						}
-						window := theme.CreateWindow(dx, dy, "Diagram preview")
-						window.SetScale(flags.DefaultScaleFactor)
-						window.AddChild(img)
-
-						// Copy the image to a RGBA format before handing to a gxui.Texture
-						rgba := image.NewRGBA(source.Bounds())
-						draw.Draw(rgba, source.Bounds(), source, image.ZP, draw.Src)
-						texture := driver.CreateTexture(rgba, 1)
-						img.SetTexture(texture)
-
-						window.OnClose(driver.Terminate)
-					})
-				}
-			}()
 			return nil
 		})
 	})
+
+	defer func() error {
+		if err == nil {
+			diagram := filePath + output
+			f, err := os.Open(diagram)
+			if err != nil {
+				return fmt.Errorf("failed opening the image '%s': %w", diagram, err)
+			}
+
+			source, _, err := image.Decode(f)
+			if err != nil {
+				return fmt.Errorf("failed to decode the image '%s': %w", diagram, err)
+			}
+
+			gui := gui.NewGUI(source, "ASCII diagram preview")
+			go func() error {
+				if err := gui.Draw(); err != nil {
+					return fmt.Errorf("error drawing the diagram: %w", err)
+				}
+				return nil
+			}()
+		}
+
+		return nil
+	}()
+
 	return nil
 }
 
@@ -524,10 +513,12 @@ func (ui *UI) showSaveModal(name string) error {
 	if err := ui.closeModal(ui.currentModal); err != nil {
 		return err
 	}
+
 	modal, err := ui.openModal(name, 40, 4, false)
 	if err != nil {
 		return err
 	}
+
 	if ui.modalTimer != nil {
 		ui.modalTimer.Stop()
 	}
@@ -538,6 +529,7 @@ func (ui *UI) showSaveModal(name string) error {
 
 	ui.gui.DeleteKeybinding("", gocui.MouseLeft, gocui.ModNone)
 	ui.gui.DeleteKeybinding("", gocui.MouseRelease, gocui.ModNone)
+	ui.gui.DeleteKeybinding("", gocui.KeyCtrlH, gocui.ModNone)
 
 	// Close event handler
 	onClose := func(*gocui.Gui, *gocui.View) error {
@@ -575,7 +567,7 @@ func (ui *UI) showSaveModal(name string) error {
 			}
 			ui.log(fmt.Sprintf("The file has been saved as: %s", file), false)
 		} else {
-			ui.log("File name should contain only letters, numbers and underscores!", true)
+			ui.log("Wrong file name! The file name should contain only letters, numbers and underscores!", true)
 		}
 
 		if err := ui.closeOpenedModals(modalElements); err != nil {

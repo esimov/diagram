@@ -6,20 +6,16 @@ package main
 import (
 	"flag"
 	"fmt"
-	"go/build"
 	"image"
-	"image/draw"
 	"log"
 	"math/rand"
 	"os"
 	"time"
 
 	"github.com/esimov/diagram/canvas"
+	"github.com/esimov/diagram/gui"
 	"github.com/esimov/diagram/io"
 	"github.com/esimov/diagram/ui"
-	"github.com/google/gxui"
-	"github.com/google/gxui/drivers/gl"
-	"github.com/google/gxui/samples/flags"
 )
 
 const HelpBanner = `
@@ -31,10 +27,11 @@ const HelpBanner = `
 CLI app to convert ASCII arts into hand drawn diagrams.
 
 `
+
 // Version indicates the current build version.
 var version string
 
-var defaultFontFile = build.Default.GOPATH + "/src/github.com/esimov/diagram" + "/font/gloriahallelujah.ttf"
+var defaultFontFile = "font/gloriahallelujah.ttf"
 
 var (
 	source      = flag.String("in", "", "Source")
@@ -44,7 +41,7 @@ var (
 )
 
 func main() {
-	rand.Seed(time.Now().UTC().UnixNano())
+	rand.NewSource(time.Now().UnixNano())
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, fmt.Sprintf(HelpBanner, version))
@@ -60,30 +57,21 @@ func main() {
 		if err != nil {
 			log.Fatal("Error on converting the ascii art to hand drawn diagrams!")
 		} else if *preview {
-			gl.StartDriver(func(driver gxui.Driver) {
-				f, err := os.Open(*destination)
-				if err != nil {
-					log.Fatalf("Failed to open image '%s': %v\n", *destination, err)
-				}
-				source, _, err := image.Decode(f)
-				if err != nil {
-					log.Fatalf("Failed to read image '%s': %v\n", *destination, err)
-				}
-				theme := flags.CreateTheme(driver)
-				img := theme.CreateImage()
+			f, err := os.Open(*destination)
+			if err != nil {
+				log.Fatalf("Failed to open image '%s': %v\n", *destination, err)
+			}
 
-				window := theme.CreateWindow(source.Bounds().Max.X, source.Bounds().Max.Y, "Diagram preview")
-				window.SetScale(flags.DefaultScaleFactor)
-				window.AddChild(img)
+			source, _, err := image.Decode(f)
+			if err != nil {
+				log.Fatalf("Failed to read image '%s': %v\n", *destination, err)
+			}
 
-				// Copy the image to a RGBA format before handing to a gxui.Texture
-				rgba := image.NewRGBA(source.Bounds())
-				draw.Draw(rgba, source.Bounds(), source, image.ZP, draw.Src)
-				texture := driver.CreateTexture(rgba, 1)
-				img.SetTexture(texture)
+			gui := gui.NewGUI(source, "ASCII diagram preview")
 
-				window.OnClose(driver.Terminate)
-			})
+			if err := gui.Draw(); err != nil {
+				log.Fatalf("diagram GUI draw error: %v", err)
+			}
 		}
 	} else {
 		ui.InitApp(*fontPath)

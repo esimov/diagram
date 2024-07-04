@@ -28,16 +28,16 @@ type handlers []handler
 var keyHandlers = &handlers{
 	{mainViews, gocui.KeyTab, "Tab", "Next Panel", onNextPanel},
 	{mainViews, 0xFF, "Shift+Tab", "Previous Panel", nil},
-	{nil, gocui.KeyPgup, "PgUp", "Jump to the top", nil},
-	{nil, gocui.KeyPgdn, "PgDown", "Jump to the bottom", nil},
-	{nil, gocui.KeyHome, "Home", "Jump to the start", nil},
-	{nil, gocui.KeyEnd, "End", "Jump to the end", nil},
+	{nil, gocui.KeyPgup, "PgUp", "Jump to the first line", nil},
+	{nil, gocui.KeyPgdn, "PgDown", "Jump to the last line", nil},
+	{nil, gocui.KeyHome, "Home", "Jump to the line start", nil},
+	{nil, gocui.KeyEnd, "End", "Jump to the line end", nil},
 	*getDeleteHandler(),
 	{nil, gocui.KeyCtrlX, "Ctrl+x", "Clear editor content", nil},
 	{nil, gocui.KeyCtrlZ, "Ctrl+z", "Restore editor content", nil},
 	{nil, gocui.KeyCtrlS, "Ctrl+s", "Save diagram", onSaveDiagram},
 	{nil, gocui.KeyCtrlD, "Ctrl+d", "Draw diagram", onDrawDiagram},
-	{nil, gocui.KeyCtrlC, "Ctrl+c", "Quit", onQuit},
+	{nil, gocui.KeyCtrlQ, "Ctrl+q", "Quit", onQuit},
 }
 
 // getDeleteHandler defines and returns a delete view handler
