@@ -27,13 +27,9 @@ func StringFormatBoth(fg, bg int, str string, args []string) string {
 	return fmt.Sprintf("\x1b[48;5;%dm\x1b[38;5;%d;%sm%s\x1b[0m", bg, fg, strings.Join(args, ";"), str)
 }
 
-// StringRandom returns a random colored string.
-func StringRandom(str string) string {
-	return String(Random(180, 231), str)
-}
-
 // Random color number.
 func Random(min, max int) int {
-	rand.Seed(time.Now().UTC().UnixNano())
+	src := rand.NewSource(time.Now().UnixNano())
+	rand := rand.New(src)
 	return rand.Intn(max-min) + min
 }

@@ -20,10 +20,10 @@ func (ui *UI) log(message string, isError bool) error {
 	} else {
 		message = decorate(message, "green")
 	}
-	return ui.writeContent(LOG_PANEL, message)
+	return ui.writeContent(logPanel, message)
 }
 
 // clearLog clears the log message.
 func (ui *UI) clearLog() error {
-	return ui.writeContent(LOG_PANEL, "")
+	return ui.writeContent(logPanel, "")
 }

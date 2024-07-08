@@ -1,8 +1,8 @@
 package io
 
 import (
-	"io/ioutil"
-	"log"
+	"fmt"
+	"os"
 	"path/filepath"
 )
 
@@ -12,13 +12,15 @@ func ListDiagrams(dir string) ([]string, error) {
 
 	cwd, err := filepath.Abs(filepath.Dir(""))
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("could not return the current working directory: %w", err)
 	}
+
 	path := cwd + dir
-	files, err := ioutil.ReadDir(path)
+	files, err := os.ReadDir(path)
 	if err != nil {
 		return nil, err
 	}
+
 	for _, file := range files {
 		diagrams = append(diagrams, file.Name())
 	}

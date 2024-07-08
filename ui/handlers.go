@@ -3,10 +3,10 @@ package ui
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"path/filepath"
 	"runtime"
 	"text/tabwriter"
+	"time"
 
 	"github.com/esimov/diagram/io"
 	"github.com/jroimartin/gocui"
@@ -35,8 +35,8 @@ var keyHandlers = &handlers{
 	*getDeleteHandler(),
 	{nil, gocui.KeyCtrlX, "Ctrl+x", "Clear editor content", nil},
 	{nil, gocui.KeyCtrlZ, "Ctrl+z", "Restore editor content", nil},
-	{nil, gocui.KeyCtrlS, "Ctrl+s", "Save diagram", onSaveDiagram},
-	{nil, gocui.KeyCtrlD, "Ctrl+d", "Draw diagram", onDrawDiagram},
+	{nil, gocui.KeyCtrlS, "Ctrl+s", "Save diagram", onDiagramSave},
+	{nil, gocui.KeyCtrlG, "Ctrl+p", "Generate diagram", onDiagramGenerate},
 	{nil, gocui.KeyCtrlQ, "Ctrl+q", "Quit", onQuit},
 }
 
@@ -69,17 +69,17 @@ func onQuit(ui *UI, wrap bool) Fn {
 	}
 }
 
-// onSaveDiagram is an event listener which get triggered when a save action is performed.
-func onSaveDiagram(ui *UI, wrap bool) Fn {
+// onDiagramSave is an event listener which get triggered when a save action is performed.
+func onDiagramSave(ui *UI, wrap bool) Fn {
 	return func(*gocui.Gui, *gocui.View) error {
-		return ui.saveDiagram(DIAGRAM_PANEL)
+		return ui.saveDiagram(editorPanel)
 	}
 }
 
-// onDrawDiagram is an event listener which get triggered when a draw action is performed.
-func onDrawDiagram(ui *UI, wrap bool) Fn {
+// onDiagramGenerate is an event listener which get triggered when a draw action is performed.
+func onDiagramGenerate(ui *UI, wrap bool) Fn {
 	return func(*gocui.Gui, *gocui.View) error {
-		return ui.drawDiagram(DIAGRAM_PANEL)
+		return ui.generateDiagram(editorPanel)
 	}
 }
 
@@ -105,7 +105,7 @@ func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {
 		if cy < ui.getViewTotalRows(v)-1 {
 			v.SetCursor(cx, cy+1)
 		}
-		ui.modifyView(DIAGRAM_PANEL)
+		ui.modifyView(editorPanel)
 		return nil
 	}
 	onUp := func(g *gocui.Gui, v *gocui.View) error {
@@ -114,52 +114,68 @@ func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {
 		if cy > 0 {
 			v.SetCursor(cx, cy-1)
 		}
-		ui.modifyView(DIAGRAM_PANEL)
+		ui.modifyView(editorPanel)
 		return nil
 	}
 	onDelete := func(g *gocui.Gui, v *gocui.View) error {
+		if ui.logTimer != nil {
+			ui.logTimer.Stop()
+		}
+
 		cx, cy := v.Cursor()
-		cv, err := ui.gui.View(SAVED_DIAGRAMS_PANEL)
+		cv, err := ui.gui.View(savedDiagramsPanel)
 		if err != nil {
 			return err
 		}
 		cwd, err := filepath.Abs(filepath.Dir(""))
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		currentFile = ui.getViewRow(cv, cy)[0]
-		fn := cwd + "/" + DIAGRAMS_DIR + "/" + currentFile
+		fn := fmt.Sprintf("%s/%s/%s", cwd, mainDir, currentFile)
 
-		io.DeleteDiagram(fn)
-		ui.updateDiagramList(SAVED_DIAGRAMS_PANEL)
+		err = io.DeleteDiagram(fn)
+		if err != nil {
+			return err
+		}
+		ui.log(fmt.Sprintf("The file %s has been deleted successfully from the %s directory", currentFile, cwd), false)
+		ui.updateDiagramList(savedDiagramsPanel)
 
 		if cy > 0 {
 			v.SetCursor(cx, cy-1)
 		}
-		ui.modifyView(DIAGRAM_PANEL)
+		ui.modifyView(editorPanel)
+
+		// Hide log message after 4 seconds
+		ui.logTimer = time.AfterFunc(4*time.Second, func() {
+			ui.gui.Update(func(*gocui.Gui) error {
+				return ui.clearLog()
+			})
+		})
+
 		return nil
 	}
 
-	if err := g.SetKeybinding(SAVED_DIAGRAMS_PANEL, gocui.KeyArrowDown, gocui.ModNone, onDown); err != nil {
+	if err := g.SetKeybinding(savedDiagramsPanel, gocui.KeyArrowDown, gocui.ModNone, onDown); err != nil {
 		return err
 	}
 
-	if err := g.SetKeybinding(SAVED_DIAGRAMS_PANEL, gocui.KeyArrowUp, gocui.ModNone, onUp); err != nil {
+	if err := g.SetKeybinding(savedDiagramsPanel, gocui.KeyArrowUp, gocui.ModNone, onUp); err != nil {
 		return err
 	}
 
 	if runtime.GOOS == "darwin" {
-		if err := g.SetKeybinding(SAVED_DIAGRAMS_PANEL, gocui.KeyBackspace2, gocui.ModNone, onDelete); err != nil {
+		if err := g.SetKeybinding(savedDiagramsPanel, gocui.KeyBackspace2, gocui.ModNone, onDelete); err != nil {
 			return err
 		}
 	} else {
-		if err := g.SetKeybinding(SAVED_DIAGRAMS_PANEL, gocui.KeyDelete, gocui.ModNone, onDelete); err != nil {
+		if err := g.SetKeybinding(savedDiagramsPanel, gocui.KeyDelete, gocui.ModNone, onDelete); err != nil {
 			return err
 		}
 	}
 
 	return g.SetKeybinding("", gocui.KeyCtrlH, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
-		return ui.toggleHelp(g, handlers.HelpContent())
+		return ui.toggleHelp(handlers.HelpContent())
 	})
 }
 

@@ -76,7 +76,7 @@ func (e *editor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier)
 		maxY := strings.Count(v.ViewBuffer(), "\n") - 1
 		v.SetCursor(maxX, maxY)
 	case gocui.KeyCtrlX:
-		if v.Name() == DIAGRAM_PANEL {
+		if v.Name() == editorPanel {
 			cache = []byte(v.ViewBuffer())
 			e.ui.ClearView(v.Name())
 			v.SetCursor(0, 0)

@@ -2,67 +2,58 @@ package io
 
 import (
 	"fmt"
-	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 )
 
 // ReadFile read the input file.
-func ReadFile(input string) []byte {
-	b, err := ioutil.ReadFile(input)
+func ReadFile(input string) ([]byte, error) {
+	b, err := os.ReadFile(input)
 	if err != nil {
-		return nil
+		return nil, fmt.Errorf("error reading the file: %w", err)
 	}
-	return b
+	return b, nil
 }
 
 // SaveFile saves the diagram into the output directory.
 func SaveFile(fileName string, output string, data string) (*os.File, error) {
 	var file *os.File
 
-	cwd, err := filepath.Abs(filepath.Dir(""))
-	if err != nil {
-		log.Fatal(err)
-	}
+	cwd, _ := filepath.Abs(filepath.Dir(""))
+
 	filePath := cwd + output
-	// Check if output directory does not exits. In this case create it.
+	// Check if the output directory does not exits. In this case create it.
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		os.Mkdir(filePath, os.ModePerm)
 	}
+
 	// Create the output file.
-	file, err = os.Create(filepath.Join(filePath, fileName))
-	if isError(err) {
-		return nil, err
+	file, err := os.Create(filepath.Join(filePath, fileName))
+	if err != nil {
+		return nil, fmt.Errorf("error creating the file: %w", err)
 	}
+	defer file.Close()
 
 	file, err = os.OpenFile(filepath.Join(filePath, fileName), os.O_RDWR, 0644)
-	if isError(err) {
-		return nil, err
+	if err != nil {
+		return nil, fmt.Errorf("error opening the file: %w", err)
 	}
-
 	defer file.Close()
 
 	_, err = file.WriteString(data)
-	if isError(err) {
+	if err != nil {
 		return nil, err
 	}
+
 	return file, nil
 }
 
 // DeleteDiagram deletes a diagram.
 func DeleteDiagram(fileName string) error {
 	err := os.Remove(fileName)
-	if isError(err) {
-		return err
-	}
-	return nil
-}
-
-// isError ia a generic function to check for errors.
-func isError(err error) bool {
 	if err != nil {
-		fmt.Errorf("Could not save file: %v", err.Error())
+		return fmt.Errorf("failed deleting the diagram: %w", err)
 	}
-	return (err != nil)
+
+	return nil
 }

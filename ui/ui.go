@@ -94,7 +94,7 @@ func (ui *UI) initGui(g *gocui.Gui) error {
 	ui.gui.Cursor = true
 	ui.gui.Mouse = true
 
-	ui.currentView = ui.findViewByName(DIAGRAM_PANEL)
+	ui.currentView = ui.findViewByName(editorPanel)
 	ui.nextItem = 0
 
 	// Set Layout function

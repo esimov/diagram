@@ -6,7 +6,7 @@ import "github.com/esimov/diagram/color"
 const Name = "diagram"
 
 // Description of application.
-const Description = "Transform ASCII arts into hand drawn diagrams"
+const Description = " ...transforms your ASCII arts into hand drawn diagrams!"
 
 // Version number.
 const Version = "v1.0.4"
@@ -15,13 +15,17 @@ const Version = "v1.0.4"
 func DrawLogo() string {
 	var logo string
 
+	c := color.Random(180, 231)
+
 	logo += "\n\n"
-	logo += color.StringRandom("  ██████╗ ██╗ █████╗  ██████╗ ██████╗  █████╗ ███╗   ███╗\n")
-	logo += color.StringRandom("  ██╔══██╗██║██╔══██╗██╔════╝ ██╔══██╗██╔══██╗████╗ ████║\n")
-	logo += color.StringRandom("  ██║  ██║██║███████║██║  ███╗██████╔╝███████║██╔████╔██║\n")
-	logo += color.StringRandom("  ██║  ██║██║██╔══██║██║   ██║██╔══██╗██╔══██║██║╚██╔╝██║\n")
-	logo += color.StringRandom("  ██████╔╝██║██║  ██║╚██████╔╝██║  ██║██║  ██║██║ ╚═╝ ██║\n")
-	logo += color.StringRandom("  ╚═════╝ ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝ " + Version)
+	logo += color.String(c, "  ██████╗ ██╗ █████╗  ██████╗ ██████╗  █████╗ ███╗   ███╗\n")
+	logo += color.String(c, "  ██╔══██╗██║██╔══██╗██╔════╝ ██╔══██╗██╔══██╗████╗ ████║\n")
+	logo += color.String(c, "  ██║  ██║██║███████║██║  ███╗██████╔╝███████║██╔████╔██║\n")
+	logo += color.String(c, "  ██║  ██║██║██╔══██║██║   ██║██╔══██╗██╔══██║██║╚██╔╝██║\n")
+	logo += color.String(c, "  ██████╔╝██║██║  ██║╚██████╔╝██║  ██║██║  ██║██║ ╚═╝ ██║\n")
+	logo += color.String(c, "  ╚═════╝ ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝ "+Version)
+	logo += "\n\n\n\n"
+	logo += color.String(c, Description)
 
 	return logo
 }

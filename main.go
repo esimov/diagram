@@ -1,4 +1,4 @@
-// Package Diagram is a Go package to generate hand drawn diagrams from ASCII arts.
+// Diagram is a Go library to generate hand drawn diagrams from ASCII arts.
 //
 // It's a full featured CLI application which converts the ASCII text into hand drawn diagrams.
 package main
@@ -51,9 +51,12 @@ func main() {
 
 	// In case the option parameters are used, the hand-drawn diagrams are generated without to enter into the CLI app.
 	if (*source != "") && (*destination != "") {
-		input := string(io.ReadFile(*source))
+		input, err := io.ReadFile("sample.txt")
+		if err != nil {
+			log.Fatalf("error reading the sample file: %v", err)
+		}
 
-		err := canvas.DrawDiagram(input, *destination, *fontPath)
+		err = canvas.DrawDiagram(string(input), *destination, *fontPath)
 		if err != nil {
 			log.Fatal("Error on converting the ascii art to hand drawn diagrams!")
 		} else if *preview {
@@ -67,7 +70,7 @@ func main() {
 				log.Fatalf("Failed to read image '%s': %v\n", *destination, err)
 			}
 
-			gui := gui.NewGUI(source, "ASCII diagram preview")
+			gui := gui.NewGUI(source, "Diagram preview")
 
 			if err := gui.Draw(); err != nil {
 				log.Fatalf("diagram GUI draw error: %v", err)

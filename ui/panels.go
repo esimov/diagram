@@ -3,7 +3,6 @@ package ui
 import (
 	"fmt"
 	"image"
-	"log"
 	"math"
 	"os"
 	"path/filepath"
@@ -30,105 +29,37 @@ type panelProperties struct {
 	editor   *UI
 }
 
-// MinGUIWindow is the minimum window size
-const MinGUIWindow = 600
-
 const (
-	// Panel constants
-	LOGO_PANEL           = "logo"
-	SAVED_DIAGRAMS_PANEL = "saved_diagrams"
-	LOG_PANEL            = "log"
-	DIAGRAM_PANEL        = "diagram"
-	PROGRESS_PANEL       = "progress"
-	HELP_PANEL           = "help"
-	SAVE_MODAL           = "save_modal"
-	PROGRESS_MODAL       = "progress_modal"
+	// Main panels
+	logoPanel          = "logo"
+	savedDiagramsPanel = "saved_diagrams"
+	logPanel           = "log"
+	editorPanel        = "diagram"
+
+	// Modals
+	helpModal     = "help"
+	saveModal     = "save_modal"
+	progressModal = "progress_modal"
 
 	// Log messages
-	ERROR_EMPTY  = "The editor should not be empty!"
-	DIAGRAMS_DIR = "/diagrams"
+	logErrorEmpty = "The editor should not be empty!"
+
+	mainDir = "/diagrams"
 )
 
 // Main views
-var panelViews = map[string]panelProperties{
-	LOGO_PANEL: {
-		title:    " Diagram ",
-		text:     version.DrawLogo(),
-		x1:       0.0,
-		y1:       0.0,
-		x2:       0.4,
-		y2:       0.25,
-		editable: true,
-		cursor:   false,
-	},
-	SAVED_DIAGRAMS_PANEL: {
-		title:    " Saved Diagrams ",
-		text:     "",
-		x1:       0.0,
-		y1:       0.25,
-		x2:       0.4,
-		y2:       0.90,
-		editable: true,
-		cursor:   false,
-	},
-	LOG_PANEL: {
-		title:    " Console ",
-		text:     "",
-		x1:       0.0,
-		y1:       0.90,
-		x2:       0.4,
-		y2:       1.0,
-		editable: true,
-		cursor:   false,
-	},
-	DIAGRAM_PANEL: {
-		title:    " Editor ",
-		text:     string(io.ReadFile("sample.txt")),
-		x1:       0.4,
-		y1:       0.0,
-		x2:       1.0,
-		y2:       1.0,
-		editable: true,
-		cursor:   true,
-	},
-	PROGRESS_PANEL: {
-		title:    " Progress ",
-		text:     "",
-		x1:       0.0,
-		y1:       0.7,
-		x2:       1,
-		y2:       0.8,
-		editable: false,
-		cursor:   false,
-	},
-}
+var panelViews map[string]panelProperties
 
 // Modal views
-var modalViews = map[string]panelProperties{
-	HELP_PANEL: {
-		title:    "Key Shortcuts",
-		text:     "",
-		editable: false,
-	},
-	SAVE_MODAL: {
-		title:    "Save diagram",
-		text:     ".txt",
-		editable: true,
-	},
-	PROGRESS_MODAL: {
-		title:    "",
-		text:     " Generating...",
-		editable: false,
-	},
-}
+var modalViews map[string]panelProperties
 
 var (
 	// Panel Views
 	mainViews = []string{
-		LOGO_PANEL,
-		SAVED_DIAGRAMS_PANEL,
-		LOG_PANEL,
-		DIAGRAM_PANEL,
+		logoPanel,
+		savedDiagramsPanel,
+		logPanel,
+		editorPanel,
 	}
 	modalElements = []string{"save_modal", "save", "cancel"}
 	currentFile   string
@@ -136,6 +67,72 @@ var (
 
 // Layout initialize the panel views and associates the key bindings to them.
 func (ui *UI) Layout(g *gocui.Gui) error {
+	defaultContent, err := io.ReadFile("sample.txt")
+	if err != nil {
+		fmt.Errorf("error reading the sample file: %w", err)
+	}
+
+	panelViews = map[string]panelProperties{
+		logoPanel: {
+			title:    " Info ",
+			text:     version.DrawLogo(),
+			x1:       0.0,
+			y1:       0.0,
+			x2:       0.4,
+			y2:       0.20,
+			editable: true,
+			cursor:   false,
+		},
+		savedDiagramsPanel: {
+			title:    " Saved Diagrams ",
+			text:     "",
+			x1:       0.0,
+			y1:       0.20,
+			x2:       0.4,
+			y2:       0.85,
+			editable: true,
+			cursor:   false,
+		},
+		logPanel: {
+			title:    " Console ",
+			text:     "",
+			x1:       0.0,
+			y1:       0.85,
+			x2:       0.4,
+			y2:       1.0,
+			editable: true,
+			cursor:   false,
+		},
+		editorPanel: {
+			title:    " Editor ",
+			text:     string(defaultContent),
+			x1:       0.4,
+			y1:       0.0,
+			x2:       1.0,
+			y2:       1.0,
+			editable: true,
+			cursor:   true,
+		},
+	}
+
+	modalViews = map[string]panelProperties{
+		helpModal: {
+			title:    "Key Shortcuts",
+			text:     "",
+			editable: false,
+		},
+		saveModal: {
+			title:    "Save diagram",
+			text:     ".txt",
+			editable: true,
+		},
+		progressModal: {
+			title:    "",
+			text:     " Generating diagram...",
+			editable: false,
+		},
+	}
+
 	initPanel := func(g *gocui.Gui, v *gocui.View) error {
 		// Disable panel views selection with mouse in case the modal is activated
 		if ui.currentModal == "" {
@@ -158,8 +155,8 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 
 		// Refresh the diagram panel with the new diagram content
 		cv := ui.gui.CurrentView()
-		if cv.Name() == SAVED_DIAGRAMS_PANEL && len(cv.ViewBuffer()) > 0 {
-			ui.modifyView(DIAGRAM_PANEL)
+		if cv.Name() == savedDiagramsPanel && len(cv.ViewBuffer()) > 0 {
+			ui.modifyView(editorPanel)
 		}
 		return nil
 	}
@@ -179,12 +176,12 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 
 	// Activate the first panel on first run
 	if v := ui.gui.CurrentView(); v == nil {
-		_, err := ui.gui.SetCurrentView(DIAGRAM_PANEL)
+		_, err := ui.gui.SetCurrentView(editorPanel)
 		if err != gocui.ErrUnknownView {
 			return err
 		}
 	}
-	return g.SetKeybinding(DIAGRAM_PANEL, gocui.MouseWheelDown, gocui.ModNone, ui.scrollDown)
+	return g.SetKeybinding(editorPanel, gocui.MouseWheelDown, gocui.ModNone, ui.scrollDown)
 }
 
 // scrollDown moves the cursor to the next buffer line.
@@ -197,12 +194,12 @@ func (ui *UI) scrollDown(g *gocui.Gui, v *gocui.View) error {
 }
 
 // toggleHelp toggle the help view on key pressing.
-func (ui *UI) toggleHelp(g *gocui.Gui, content string) error {
+func (ui *UI) toggleHelp(content string) error {
 	if err := ui.closeOpenedModals(modalElements); err != nil {
 		return err
 	}
 	panelHeight := strings.Count(content, "\n")
-	if ui.currentModal == HELP_PANEL {
+	if ui.currentModal == helpModal {
 		ui.gui.DeleteKeybinding("", gocui.MouseLeft, gocui.ModNone)
 		ui.gui.DeleteKeybinding("", gocui.MouseRelease, gocui.ModNone)
 
@@ -213,7 +210,7 @@ func (ui *UI) toggleHelp(g *gocui.Gui, content string) error {
 		}
 		return ui.closeModal(ui.currentModal)
 	}
-	v, err := ui.openModal(HELP_PANEL, 45, panelHeight, true)
+	v, err := ui.openModal(helpModal, 45, panelHeight, true)
 	if err != nil {
 		return err
 	}
@@ -306,11 +303,11 @@ func (ui *UI) createPanelView(name string, x1, y1, x2, y2 int) (*gocui.View, err
 	}
 
 	switch name {
-	case DIAGRAM_PANEL:
+	case editorPanel:
 		v.Highlight = false
 		v.Autoscroll = true
 		v.Editor = newEditor(ui, nil)
-	case SAVED_DIAGRAMS_PANEL:
+	case savedDiagramsPanel:
 		v.Highlight = true
 		v.SelBgColor = gocui.ColorGreen
 		v.SelFgColor = gocui.ColorBlack
@@ -406,23 +403,22 @@ func (ui *UI) saveDiagram(name string) error {
 		return err
 	}
 
-	// Reset log timer firing in case of new incoming message.
-	if ui.logTimer != nil {
-		ui.logTimer.Stop()
-	}
-
 	if len(v.ViewBuffer()) == 0 {
-		ui.consoleLog = ERROR_EMPTY
+		ui.consoleLog = logErrorEmpty
 		if err := ui.log(ui.consoleLog, true); err != nil {
 			return err
 		}
 	}
-	return ui.showSaveModal(SAVE_MODAL)
+	return ui.showSaveModal(saveModal)
 }
 
-// drawDiagram converts the ASCII to the hand-drawn diagram.
-func (ui *UI) drawDiagram(name string) error {
+// generateDiagram converts the ASCII to the hand-drawn diagram.
+func (ui *UI) generateDiagram(name string) error {
 	var output string
+
+	if ui.logTimer != nil {
+		ui.logTimer.Stop()
+	}
 
 	v, err := ui.gui.View(name)
 	if err != nil {
@@ -430,7 +426,7 @@ func (ui *UI) drawDiagram(name string) error {
 	}
 
 	if len(v.ViewBuffer()) == 0 {
-		ui.consoleLog = ERROR_EMPTY
+		ui.consoleLog = logErrorEmpty
 		if err := ui.log(ui.consoleLog, true); err != nil {
 			return err
 		}
@@ -444,11 +440,11 @@ func (ui *UI) drawDiagram(name string) error {
 	}
 
 	// Show progress
-	ui.showProgressModal(PROGRESS_MODAL)
+	ui.showProgressModal(progressModal)
 
 	cwd, err := filepath.Abs(filepath.Dir(""))
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	filePath := cwd + "/output/"
@@ -461,7 +457,7 @@ func (ui *UI) drawDiagram(name string) error {
 	// Generate the hand-drawn diagram.
 	err = canvas.DrawDiagram(v.Buffer(), filePath+output, ui.fontPath)
 	if err == nil {
-		ui.log(fmt.Sprintf("Successfully converted the ascii diagram into %s!", output), false)
+		ui.log(fmt.Sprintf("Successfully converted the ascii diagram into %s.", output), false)
 	} else {
 		ui.log(fmt.Sprintf("Error saving the ascii diagram: %v", err), true)
 	}
@@ -470,7 +466,7 @@ func (ui *UI) drawDiagram(name string) error {
 	ui.modalTimer = time.AfterFunc(1*time.Second, func() {
 		ui.gui.Update(func(*gocui.Gui) error {
 			ui.nextItem = 0 // reset modal elements counter to 0
-			if err := ui.closeModal(PROGRESS_MODAL); err != nil {
+			if err := ui.closeModal(progressModal); err != nil {
 				return err
 			}
 
@@ -491,7 +487,7 @@ func (ui *UI) drawDiagram(name string) error {
 				return fmt.Errorf("failed to decode the image '%s': %w", diagram, err)
 			}
 
-			gui := gui.NewGUI(source, "ASCII diagram preview")
+			gui := gui.NewGUI(source, "Diagram preview")
 			go func() error {
 				if err := gui.Draw(); err != nil {
 					return fmt.Errorf("error drawing the diagram: %w", err)
@@ -542,7 +538,10 @@ func (ui *UI) showSaveModal(name string) error {
 
 	// Save event handler
 	onSave := func(*gocui.Gui, *gocui.View) error {
-		diagram, _ := ui.gui.View(DIAGRAM_PANEL)
+		if ui.logTimer != nil {
+			ui.logTimer.Stop()
+		}
+		diagram, _ := ui.gui.View(editorPanel)
 		v := modalViews[name]
 
 		ui.nextItem = 0 // reset modal elements counter to 0
@@ -553,7 +552,7 @@ func (ui *UI) showSaveModal(name string) error {
 		res := re.MatchString(buffer)
 
 		if len(diagram.ViewBuffer()) == 0 {
-			ui.log("The diagram is empty!", true)
+			ui.log("Missing content on diagram save!", true)
 			return nil
 		}
 
@@ -561,13 +560,14 @@ func (ui *UI) showSaveModal(name string) error {
 			ui.log("File name should not be empty!", true)
 		} else if res {
 			file := buffer + v.text
-			_, err := io.SaveFile(file, DIAGRAMS_DIR, diagram.ViewBuffer())
+			f, err := io.SaveFile(file, mainDir, diagram.ViewBuffer())
 			if err != nil {
 				return err
 			}
+			defer f.Close()
 			ui.log(fmt.Sprintf("The file has been saved as: %s", file), false)
 		} else {
-			ui.log("Wrong file name! The file name should contain only letters, numbers and underscores!", true)
+			ui.log("Error saving the diagram. The file name should contain only letters, numbers and underscores!", true)
 		}
 
 		if err := ui.closeOpenedModals(modalElements); err != nil {
@@ -575,7 +575,7 @@ func (ui *UI) showSaveModal(name string) error {
 		}
 
 		// Update diagrams directory list
-		ui.updateDiagramList(SAVED_DIAGRAMS_PANEL)
+		ui.updateDiagramList(savedDiagramsPanel)
 
 		return nil
 	}
@@ -642,8 +642,7 @@ func (ui *UI) showSaveModal(name string) error {
 	// Hide log message after 4 seconds
 	ui.logTimer = time.AfterFunc(4*time.Second, func() {
 		ui.gui.Update(func(*gocui.Gui) error {
-			ui.clearLog()
-			return nil
+			return ui.clearLog()
 		})
 	})
 
@@ -687,17 +686,24 @@ func (ui *UI) modifyView(name string) error {
 		return err
 	}
 	if v != nil {
-		cv, err := ui.gui.View(SAVED_DIAGRAMS_PANEL)
+		cv, err := ui.gui.View(savedDiagramsPanel)
 		if err != nil {
 			return err
 		}
 		_, cy := cv.Cursor()
 		cwd, err := filepath.Abs(filepath.Dir(""))
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
+
 		currentFile = ui.getViewRow(cv, cy)[0]
-		buffer := string(io.ReadFile(cwd + "/" + DIAGRAMS_DIR + "/" + currentFile))
+		filePath := fmt.Sprintf("%s/%s/%s", cwd, mainDir, currentFile)
+
+		content, err := io.ReadFile(filePath)
+		if err != nil {
+			return err
+		}
+		buffer := string(content)
 
 		if err := ui.updateView(v, buffer); err != nil {
 			return err
@@ -713,7 +719,7 @@ func (ui *UI) updateDiagramList(name string) error {
 		return err
 	}
 	v.Clear()
-	diagrams, _ := io.ListDiagrams(DIAGRAMS_DIR)
+	diagrams, _ := io.ListDiagrams(mainDir)
 
 	for idx, diagram := range diagrams {
 		if idx < len(diagrams)-1 {
