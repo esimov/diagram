@@ -457,7 +457,7 @@ func (ui *UI) generateDiagram(name string) error {
 	// Generate the hand-drawn diagram.
 	err = canvas.DrawDiagram(v.Buffer(), filePath+output, ui.fontPath)
 	if err == nil {
-		ui.log(fmt.Sprintf("Successfully converted the ascii diagram into %s.", output), false)
+		ui.log(fmt.Sprintf("The ASCII diagram has been successfully converted to %q file.", output), false)
 	} else {
 		ui.log(fmt.Sprintf("Error saving the ascii diagram: %v", err), true)
 	}
@@ -479,12 +479,12 @@ func (ui *UI) generateDiagram(name string) error {
 			diagram := filePath + output
 			f, err := os.Open(diagram)
 			if err != nil {
-				return fmt.Errorf("failed opening the image '%s': %w", diagram, err)
+				return fmt.Errorf("failed opening the image %q: %w", diagram, err)
 			}
 
 			source, _, err := image.Decode(f)
 			if err != nil {
-				return fmt.Errorf("failed to decode the image '%s': %w", diagram, err)
+				return fmt.Errorf("failed to decode the image %q: %w", diagram, err)
 			}
 
 			gui := gui.NewGUI(source, "Diagram preview")
@@ -562,7 +562,7 @@ func (ui *UI) showSaveModal(name string) error {
 			file := buffer + v.text
 			f, err := io.SaveFile(file, mainDir, diagram.ViewBuffer())
 			if err != nil {
-				return err
+				return fmt.Errorf("failed saving the file: %w", err)
 			}
 			defer f.Close()
 			ui.log(fmt.Sprintf("The file has been saved as: %s", file), false)
@@ -571,11 +571,21 @@ func (ui *UI) showSaveModal(name string) error {
 		}
 
 		if err := ui.closeOpenedModals(modalElements); err != nil {
-			return err
+			return fmt.Errorf("could not close opened modal: %w", err)
 		}
 
 		// Update diagrams directory list
-		ui.updateDiagramList(savedDiagramsPanel)
+		err := ui.updateDiagramList(savedDiagramsPanel)
+		if err != nil {
+			return fmt.Errorf("could not update diagram list: %w", err)
+		}
+
+		// Hide log message after 4 seconds
+		ui.logTimer = time.AfterFunc(4*time.Second, func() {
+			ui.gui.Update(func(*gocui.Gui) error {
+				return ui.clearLog()
+			})
+		})
 
 		return nil
 	}
@@ -719,7 +729,10 @@ func (ui *UI) updateDiagramList(name string) error {
 		return err
 	}
 	v.Clear()
-	diagrams, _ := io.ListDiagrams(mainDir)
+	diagrams, err := io.ListDiagrams(mainDir)
+	if err != nil {
+		return err
+	}
 
 	for idx, diagram := range diagrams {
 		if idx < len(diagrams)-1 {

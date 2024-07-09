@@ -36,7 +36,7 @@ var keyHandlers = &handlers{
 	{nil, gocui.KeyCtrlX, "Ctrl+x", "Clear editor content", nil},
 	{nil, gocui.KeyCtrlZ, "Ctrl+z", "Restore editor content", nil},
 	{nil, gocui.KeyCtrlS, "Ctrl+s", "Save diagram", onDiagramSave},
-	{nil, gocui.KeyCtrlG, "Ctrl+p", "Generate diagram", onDiagramGenerate},
+	{nil, gocui.KeyCtrlG, "Ctrl+g", "Generate diagram", onDiagramGenerate},
 	{nil, gocui.KeyCtrlQ, "Ctrl+q", "Quit", onQuit},
 }
 
@@ -131,14 +131,18 @@ func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {
 		if err != nil {
 			return err
 		}
+
 		currentFile = ui.getViewRow(cv, cy)[0]
+		if len(currentFile) == 0 { // this means that the file list is empty!
+			return nil
+		}
 		fn := fmt.Sprintf("%s/%s/%s", cwd, mainDir, currentFile)
 
 		err = io.DeleteDiagram(fn)
 		if err != nil {
 			return err
 		}
-		ui.log(fmt.Sprintf("The file %s has been deleted successfully from the %s directory", currentFile, cwd), false)
+		ui.log(fmt.Sprintf("The file %q has been deleted successfully from the %q directory", currentFile, cwd), false)
 		ui.updateDiagramList(savedDiagramsPanel)
 
 		if cy > 0 {

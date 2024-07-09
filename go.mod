@@ -1,6 +1,6 @@
 module github.com/esimov/diagram
 
-go 1.22
+go 1.21
 
 require (
 	gioui.org v0.7.0

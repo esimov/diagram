@@ -24,7 +24,7 @@ func DrawLogo() string {
 	logo += color.String(c, "  ██║  ██║██║██╔══██║██║   ██║██╔══██╗██╔══██║██║╚██╔╝██║\n")
 	logo += color.String(c, "  ██████╔╝██║██║  ██║╚██████╔╝██║  ██║██║  ██║██║ ╚═╝ ██║\n")
 	logo += color.String(c, "  ╚═════╝ ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝ "+Version)
-	logo += "\n\n\n\n"
+	logo += "\n\n\n"
 	logo += color.String(c, Description)
 
 	return logo
