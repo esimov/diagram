@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"os"
 
 	"gioui.org/app"
 	"gioui.org/io/key"
@@ -35,6 +36,9 @@ func (ui *GUI) Draw() error {
 	), app.Title(ui.title))
 
 	if err := ui.Run(w); err != nil {
+		defer func() {
+			os.Exit(0)
+		}()
 		return fmt.Errorf("GUI rendering error: %w", err)
 	}
 

@@ -12,6 +12,7 @@ import (
 	"os"
 	"time"
 
+	"gioui.org/app"
 	"github.com/esimov/diagram/canvas"
 	"github.com/esimov/diagram/gui"
 	"github.com/esimov/diagram/io"
@@ -79,4 +80,6 @@ func main() {
 	} else {
 		ui.InitApp(*fontPath)
 	}
+
+	go app.Main()
 }

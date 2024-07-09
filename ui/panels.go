@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"image"
+	"log"
 	"math"
 	"os"
 	"path/filepath"
@@ -474,32 +475,33 @@ func (ui *UI) generateDiagram(name string) error {
 		})
 	})
 
-	defer func() error {
+	defer func() {
 		if err == nil {
 			diagram := filePath + output
 			f, err := os.Open(diagram)
 			if err != nil {
-				return fmt.Errorf("failed opening the image %q: %w", diagram, err)
+				log.Fatalf("failed opening the image %q: %v", diagram, err)
 			}
 
 			source, _, err := image.Decode(f)
 			if err != nil {
-				return fmt.Errorf("failed to decode the image %q: %w", diagram, err)
+				log.Fatalf("failed to decode the image %q: %v", diagram, err)
 			}
 
-			gui := gui.NewGUI(source, "Diagram preview")
-			go func() error {
-				if err := gui.Draw(); err != nil {
-					return fmt.Errorf("error drawing the diagram: %w", err)
-				}
-				return nil
-			}()
+			// Lunch Gio GUI thread.
+			go ui.showPreview(source, "Diagram preview")
 		}
-
-		return nil
 	}()
 
 	return nil
+}
+
+func (ui *UI) showPreview(img image.Image, title string) {
+	gui := gui.NewGUI(img, title)
+
+	if err := gui.Draw(); err != nil {
+		log.Fatalf("error drawing the diagram: %v", err)
+	}
 }
 
 // showSaveModal show the save modal.
