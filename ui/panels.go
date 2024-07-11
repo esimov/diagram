@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"gioui.org/app"
 	"github.com/esimov/diagram/canvas"
 	"github.com/esimov/diagram/gui"
 	"github.com/esimov/diagram/io"
@@ -489,7 +490,9 @@ func (ui *UI) generateDiagram(name string) error {
 			}
 
 			// Lunch Gio GUI thread.
-			go ui.showPreview(source, "Diagram preview")
+			ui.showPreview(source, "Diagram preview")
+
+			go app.Main()
 		}
 	}()
 
