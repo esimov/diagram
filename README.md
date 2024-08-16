@@ -23,14 +23,9 @@ $ go build
 $ diagram
 ```
 
-**Notice:**
-The tool requires the [glfw](https://www.glfw.org) graphic library, so make sure that it is installed on your local machine.
-
-For a full list of the required external dependencies check the official documentation of `go-glfw` (https://github.com/go-gl/glfw/blob/master/README.md).
-
 #### Build 
 
-A shell script is bundled into the library to mitigate the generation of binary files for the most widespread operating systems, but take care: different dependencies are needed for different operating systems. To build the executable file run:
+A shell script is bundled into the library to mitigate the generation of binary files for the most known operating systems, but take care: different dependencies are needed for different operating systems. To build the executable file run:
 
 `$ make all`
 
@@ -113,7 +108,7 @@ The ASCII to PNG conversion was ported from [shaky.dart](https://github.com/mral
 
 - https://github.com/jroimartin/gocui
 - https://github.com/fogleman/gg
-- https://github.com/go-gl/glfw/
+- https://gioui.org/
 
 ## Author
 
