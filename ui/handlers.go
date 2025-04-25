@@ -197,7 +197,7 @@ func (handlers handlers) HelpContent() string {
 		fmt.Fprintf(w, "  %s\t: %s\n", handler.keyName, handler.help)
 	}
 
-	fmt.Fprintf(w, "  %s\t: %s\n", "F1", "Toggle Help")
+	fmt.Fprintf(w, "  %s\t: %s\n", "F1", "Show/hide help panel")
 	w.Flush()
 
 	return buf.String()
