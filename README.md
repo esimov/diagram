@@ -23,7 +23,7 @@ $ go build
 $ diagram
 ```
 
-#### Build 
+#### Build
 
 A shell script is bundled into the library to mitigate the generation of binary files for the most known operating systems, but take care: different dependencies are needed for different operating systems. To build the executable file run:
 
@@ -31,11 +31,11 @@ A shell script is bundled into the library to mitigate the generation of binary 
 
 ## Usage
 
-Once you are inside the terminal application you can create, edit or delete the ASCII diagrams. By pressing `CTRL+d` you can convert the ASCII art into a handwritten diagram. The generated `PNG` file will be saved into the `output` folder relative to the current path.
+Once you are inside the terminal application you can create, edit or delete the ASCII diagrams. By pressing `CTRL+g` you can convert the ASCII art into a handwritten diagram. The generated `PNG` file will be saved into the `output` folder relative to the current path.
 
 ### Command Line support
 
-The application also supports the generation of hand drawn diagrams directly from command line without to enter into the CLI application. 
+The application also supports the generation of hand drawn diagrams directly from command line without to enter into the CLI application.
 
 `$ diagram --help` will show the currently supported options:
 
@@ -43,7 +43,7 @@ The application also supports the generation of hand drawn diagrams directly fro
 ┌┬┐┬┌─┐┌─┐┬─┐┌─┐┌┬┐
  │││├─┤│ ┬├┬┘├─┤│││
 ─┴┘┴┴ ┴└─┘┴└─┴ ┴┴ ┴
-    Version: 1.0.4
+    Version: 1.0.6
 
 CLI app to convert ASCII arts into hand drawn diagrams.
 
@@ -80,6 +80,7 @@ diagram -in sample.txt -out sample.png -preview=false -font /path/to/my/font/MyH
 ### Key bindings
 Key                                     | Action
 ----------------------------------------|---------------------------------------
+<kbd>F1</kbd>                           | Show/hide help panel
 <kbd>Tab</kbd>                          | Next Panel
 <kbd>Shift+Tab</kbd>                    | Previous Panel
 <kbd>Ctrl+s</kbd>                       | Open Save Diagram Modal
@@ -91,7 +92,7 @@ Key                                     | Action
 <kbd>PageDown</kbd>                     | Jump to the bottom
 <kbd>Home</kbd>                         | Jump to the line start
 <kbd>End</kbd>                          | Jump to the line end
-<kbd>Delete/Backspace</kbd>            | Delete diagram
+<kbd>Delete/Backspace</kbd>             | Delete diagram
 <kbd>Ctrl+c</kbd>                       | Quit
 
 ### Example

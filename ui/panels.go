@@ -28,7 +28,6 @@ type panelProperties struct {
 	y2       float64
 	editable bool
 	cursor   bool
-	editor   *UI
 }
 
 const (
@@ -71,7 +70,7 @@ var (
 func (ui *UI) Layout(g *gocui.Gui) error {
 	defaultContent, err := io.ReadFile("sample.txt")
 	if err != nil {
-		fmt.Errorf("error reading the sample file: %w", err)
+		return fmt.Errorf("error reading the sample file: %w", err)
 	}
 
 	panelViews = map[string]panelProperties{
@@ -219,7 +218,7 @@ func (ui *UI) toggleHelp(content string) error {
 	ui.gui.Cursor = false
 	v.Editor = newEditor(ui, &staticViewEditor{})
 
-	fmt.Fprintf(v, content)
+	fmt.Fprint(v, content)
 	return nil
 }
 
@@ -269,10 +268,10 @@ func (ui *UI) closeModal(modals ...string) error {
 // createModal initializes and creates the modal view.
 func (ui *UI) createModal(name string, w, h int) (*gocui.View, error) {
 	width, height := ui.gui.Size()
-	x1, y1 := width/2-w/2, int(math.Ceil(float64(height/2-h/2-1)))
-	x2, y2 := width/2+w/2, int(math.Ceil(float64(height/2+h/2+1)))
+	x1, y1 := width/2-w/2, math.Ceil(float64(height/2-h/2-1))
+	x2, y2 := width/2+w/2, math.Ceil(float64(height/2+h/2+1))
 
-	return ui.createModalView(name, x1, y1, x2, y2)
+	return ui.createModalView(name, x1, int(y1), x2, int(y2))
 }
 
 // initPanelView initializes the panel view.
@@ -379,7 +378,7 @@ func (ui *UI) writeContent(name, text string) error {
 		return err
 	}
 	v.Clear()
-	fmt.Fprintf(v, text)
+	fmt.Fprint(v, text)
 	v.SetCursor(len(text), 0)
 	ui.cursors.Set(name, len(text), 0)
 
@@ -442,7 +441,9 @@ func (ui *UI) generateDiagram(name string) error {
 	}
 
 	// Show progress
-	ui.showProgressModal(progressModal)
+	if err := ui.showProgressModal(progressModal); err != nil {
+		return fmt.Errorf("error on showing the progress modal: %w", err)
+	}
 
 	cwd, err := filepath.Abs(filepath.Dir(""))
 	if err != nil {
@@ -453,7 +454,9 @@ func (ui *UI) generateDiagram(name string) error {
 
 	// Create output directory in case it does not exists.
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		os.Mkdir(filePath, os.ModePerm)
+		if err = os.Mkdir(filePath, os.ModePerm); err != nil {
+			return fmt.Errorf("cannot create the output directory: %w", err)
+		}
 	}
 
 	// Generate the hand-drawn diagram.
@@ -490,8 +493,7 @@ func (ui *UI) generateDiagram(name string) error {
 			}
 
 			// Lunch Gio GUI thread.
-			ui.showPreview(source, "Diagram preview")
-
+			ui.showPreview(source)
 			go app.Main()
 		}
 	}()
@@ -499,12 +501,14 @@ func (ui *UI) generateDiagram(name string) error {
 	return nil
 }
 
-func (ui *UI) showPreview(img image.Image, title string) {
-	gui := gui.NewGUI(img, title)
+func (ui *UI) showPreview(img image.Image) {
+	gui := gui.NewGUI(img)
 
-	if err := gui.Draw(); err != nil {
-		log.Fatalf("error drawing the diagram: %v", err)
-	}
+	go func() {
+		if err := gui.Draw(); err != nil {
+			log.Fatalf("error drawing the diagram: %v", err)
+		}
+	}()
 }
 
 // showSaveModal show the save modal.
@@ -530,7 +534,7 @@ func (ui *UI) showSaveModal(name string) error {
 
 	ui.gui.DeleteKeybinding("", gocui.MouseLeft, gocui.ModNone)
 	ui.gui.DeleteKeybinding("", gocui.MouseRelease, gocui.ModNone)
-	ui.gui.DeleteKeybinding("", gocui.KeyCtrlH, gocui.ModNone)
+	ui.gui.DeleteKeybinding("", gocui.KeyF1, gocui.ModNone)
 
 	// Close event handler
 	onClose := func(*gocui.Gui, *gocui.View) error {
@@ -741,9 +745,9 @@ func (ui *UI) updateDiagramList(name string) error {
 
 	for idx, diagram := range diagrams {
 		if idx < len(diagrams)-1 {
-			fmt.Fprintf(v, diagram+"\n")
+			fmt.Fprint(v, diagram+"\n")
 		} else {
-			fmt.Fprintf(v, diagram)
+			fmt.Fprint(v, diagram)
 		}
 		v.SetCursor(len(diagram), 0)
 		ui.cursors.Set(name, len(diagram), 0)

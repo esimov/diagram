@@ -143,7 +143,10 @@ func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {
 			return err
 		}
 		ui.log(fmt.Sprintf("The file %q has been deleted successfully from the %q directory", currentFile, cwd), false)
-		ui.updateDiagramList(savedDiagramsPanel)
+
+		if err := ui.updateDiagramList(savedDiagramsPanel); err != nil {
+			return fmt.Errorf("cannot update the diagram list: %w", err)
+		}
 
 		if cy > 0 {
 			v.SetCursor(cx, cy-1)
@@ -178,7 +181,7 @@ func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {
 		}
 	}
 
-	return g.SetKeybinding("", gocui.KeyCtrlH, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
+	return g.SetKeybinding("", gocui.KeyF1, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
 		return ui.toggleHelp(handlers.HelpContent())
 	})
 }
@@ -194,7 +197,7 @@ func (handlers handlers) HelpContent() string {
 		fmt.Fprintf(w, "  %s\t: %s\n", handler.keyName, handler.help)
 	}
 
-	fmt.Fprintf(w, "  %s\t: %s\n", "Ctrl+h", "Toggle Help")
+	fmt.Fprintf(w, "  %s\t: %s\n", "F1", "Toggle Help")
 	w.Flush()
 
 	return buf.String()

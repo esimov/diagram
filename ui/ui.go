@@ -2,7 +2,6 @@ package ui
 
 import (
 	"log"
-	"sync"
 	"time"
 
 	"github.com/jroimartin/gocui"
@@ -18,7 +17,6 @@ type UI struct {
 	cursors      Cursors
 	modalTimer   *time.Timer
 	logTimer     *time.Timer
-	mutex        *sync.Mutex
 	fontPath     string
 }
 

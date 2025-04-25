@@ -44,7 +44,7 @@ func main() {
 	rand.NewSource(time.Now().UnixNano())
 
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, fmt.Sprintf(HelpBanner, version))
+		fmt.Fprint(os.Stderr, fmt.Sprintf(HelpBanner, version))
 		flag.PrintDefaults()
 	}
 	flag.Parse()
@@ -70,7 +70,7 @@ func main() {
 				log.Fatalf("Failed to read image '%s': %v\n", *destination, err)
 			}
 
-			gui := gui.NewGUI(source, "Diagram preview")
+			gui := gui.NewGUI(source)
 
 			if err := gui.Draw(); err != nil {
 				log.Fatalf("diagram GUI draw error: %v", err)
