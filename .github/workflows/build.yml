@@ -18,13 +18,12 @@ jobs:
     env:
       GO111MODULE: "on"
     steps:
-      - name: Install Go
-        uses: actions/setup-go@v2
+      - name: Setup Go
+        uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go-version }}
-
       - name: Cache-Go
-        uses: actions/cache@v1
+        uses: actions/cache@v4
         with:
           path: |
             ~/go/pkg/mod              # Module download cache
@@ -46,5 +45,6 @@ jobs:
       - name: Download Go modules
         run: go mod download
 
-      - name: Install project
-        run: go install
+      - name: Build application
+        run: |
+          go build -o diagram main.go
