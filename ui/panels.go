@@ -463,10 +463,8 @@ func (ui *UI) generateDiagram(name string) error {
 
 	// Generate the hand-drawn diagram.
 	err = canvas.DrawDiagram(v.Buffer(), filePath+output, ui.fontPath)
-	if err == nil {
-		ui.log(fmt.Sprintf("The ASCII diagram has been successfully converted to %q file.", output), false)
-	} else {
-		ui.log(fmt.Sprintf("Error saving the ascii diagram: %v", err), true)
+	if err != nil {
+		return err
 	}
 
 	// Close progress modal after 1 second
@@ -482,22 +480,20 @@ func (ui *UI) generateDiagram(name string) error {
 	})
 
 	defer func() {
-		if err == nil {
-			diagram := filePath + output
-			f, err := os.Open(diagram)
-			if err != nil {
-				log.Fatalf("failed opening the image %q: %v", diagram, err)
-			}
-
-			source, _, err := image.Decode(f)
-			if err != nil {
-				log.Fatalf("failed to decode the image %q: %v", diagram, err)
-			}
-
-			// Lunch Gio GUI thread.
-			ui.showPreview(source)
-			go app.Main()
+		diagram := filePath + output
+		f, err := os.Open(diagram)
+		if err != nil {
+			log.Fatalf("failed opening the image %q: %v", diagram, err)
 		}
+
+		source, _, err := image.Decode(f)
+		if err != nil {
+			log.Fatalf("failed to decode the image %q: %v", diagram, err)
+		}
+
+		// Lunch Gio GUI thread.
+		ui.showPreview(source)
+		go app.Main()
 	}()
 
 	return nil
@@ -505,12 +501,9 @@ func (ui *UI) generateDiagram(name string) error {
 
 func (ui *UI) showPreview(img image.Image) {
 	gui := gui.NewGUI(img)
-
-	go func() {
-		if err := gui.Draw(); err != nil {
-			log.Fatalf("error drawing the diagram: %v", err)
-		}
-	}()
+	if err := gui.Draw(); err != nil {
+		log.Fatalf("error drawing the diagram: %v", err)
+	}
 }
 
 // showSaveModal show the save modal.

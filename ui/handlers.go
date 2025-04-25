@@ -79,7 +79,12 @@ func onDiagramSave(ui *UI, wrap bool) Fn {
 // onDiagramGenerate is an event listener which get triggered when a draw action is performed.
 func onDiagramGenerate(ui *UI, wrap bool) Fn {
 	return func(*gocui.Gui, *gocui.View) error {
-		return ui.generateDiagram(editorPanel)
+		err := ui.generateDiagram(editorPanel)
+		if err != nil {
+			return ui.log(fmt.Sprintf("Error saving the ascii diagram: %v", err), true)
+		}
+
+		return ui.log("The ASCII diagram has been successfully converted to hand drawn diagram.", false)
 	}
 }
 

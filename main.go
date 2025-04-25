@@ -44,7 +44,7 @@ func main() {
 	rand.NewSource(time.Now().UnixNano())
 
 	flag.Usage = func() {
-		fmt.Fprint(os.Stderr, fmt.Sprintf(HelpBanner, version))
+		fmt.Fprintf(os.Stderr, fmt.Sprintf(HelpBanner, version))
 		flag.PrintDefaults()
 	}
 	flag.Parse()

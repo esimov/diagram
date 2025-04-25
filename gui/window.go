@@ -17,17 +17,15 @@ import (
 	"gioui.org/widget"
 )
 
-const title = "Generated diagram preview..."
+const title = "Diagram preview..."
 
 type GUI struct {
 	image paint.ImageOp
-	title string
 }
 
 func NewGUI(img image.Image) *GUI {
 	return &GUI{
 		image: paint.NewImageOp(img),
-		title: title,
 	}
 }
 
@@ -37,12 +35,16 @@ func (ui *GUI) Draw() error {
 	w.Option(app.Size(
 		unit.Dp(ui.image.Size().X),
 		unit.Dp(ui.image.Size().Y),
-	), app.Title(ui.title))
+	), app.Title(title))
+
+	// Center the window on the screen.
+	w.Perform(system.ActionCenter)
 
 	if err := ui.run(w); err != nil {
 		defer func() {
 			os.Exit(0)
 		}()
+
 		return fmt.Errorf("GUI rendering error: %w", err)
 	}
 
