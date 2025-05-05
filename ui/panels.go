@@ -11,9 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"gioui.org/app"
 	"github.com/esimov/diagram/canvas"
-	"github.com/esimov/diagram/gui"
 	"github.com/esimov/diagram/io"
 	"github.com/esimov/diagram/version"
 	"github.com/jroimartin/gocui"
@@ -486,22 +484,20 @@ func (ui *UI) generateDiagram(name string) error {
 			log.Fatalf("failed opening the image %q: %v", diagram, err)
 		}
 
-		source, _, err := image.Decode(f)
+		srcImg, _, err := image.Decode(f)
 		if err != nil {
 			log.Fatalf("failed to decode the image %q: %v", diagram, err)
 		}
 
 		// Lunch Gio GUI thread.
-		ui.showPreview(source)
-		go app.Main()
+		ui.showPreview(srcImg)
 	}()
 
 	return nil
 }
 
 func (ui *UI) showPreview(img image.Image) {
-	gui := gui.NewGUI(img)
-	if err := gui.Draw(); err != nil {
+	if err := ui.gioGui.Draw(img); err != nil {
 		log.Fatalf("error drawing the diagram: %v", err)
 	}
 }

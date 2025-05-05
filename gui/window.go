@@ -20,27 +20,29 @@ import (
 const title = "Diagram preview..."
 
 type GUI struct {
-	image paint.ImageOp
+	image  paint.ImageOp
+	window *app.Window
 }
 
-func NewGUI(img image.Image) *GUI {
+func NewGUI() *GUI {
 	return &GUI{
-		image: paint.NewImageOp(img),
+		window: new(app.Window),
 	}
 }
 
-func (ui *GUI) Draw() error {
-	w := new(app.Window)
-
-	w.Option(app.Size(
-		unit.Dp(ui.image.Size().X),
-		unit.Dp(ui.image.Size().Y),
+func (gui *GUI) Draw(img image.Image) error {
+	gui.image = paint.NewImageOp(img)
+	gui.window.Option(app.Size(
+		unit.Dp(gui.image.Size().X),
+		unit.Dp(gui.image.Size().Y),
 	), app.Title(title))
 
 	// Center the window on the screen.
-	w.Perform(system.ActionCenter)
+	gui.window.Perform(system.ActionCenter)
+	// Bring this window to the top of all open windows.
+	gui.window.Perform(system.ActionRaise)
 
-	if err := ui.run(w); err != nil {
+	if err := gui.run(gui.window); err != nil {
 		defer func() {
 			os.Exit(0)
 		}()
@@ -51,7 +53,7 @@ func (ui *GUI) Draw() error {
 	return nil
 }
 
-func (ui *GUI) run(w *app.Window) error {
+func (gui *GUI) run(w *app.Window) error {
 	var ops op.Ops
 
 	for {
@@ -74,7 +76,7 @@ func (ui *GUI) run(w *app.Window) error {
 				}
 			}
 
-			ui.drawDiagram(gtx)
+			gui.drawDiagram(gtx)
 			e.Frame(gtx.Ops)
 		case app.DestroyEvent:
 			return e.Err
@@ -82,7 +84,7 @@ func (ui *GUI) run(w *app.Window) error {
 	}
 }
 
-func (ui *GUI) drawDiagram(gtx layout.Context) {
+func (gui *GUI) drawDiagram(gtx layout.Context) {
 	layout.Stack{}.Layout(gtx,
 		layout.Stacked(func(gtx layout.Context) layout.Dimensions {
 			paint.FillShape(gtx.Ops, color.NRGBA{R: 0xFF, G: 0xFF, B: 0xFF, A: 0xff},
@@ -92,7 +94,7 @@ func (ui *GUI) drawDiagram(gtx layout.Context) {
 			return layout.UniformInset(unit.Dp(0)).Layout(gtx,
 				func(gtx layout.Context) layout.Dimensions {
 					widget.Image{
-						Src:   ui.image,
+						Src:   gui.image,
 						Scale: 1 / float32(unit.Dp(1)),
 						Fit:   widget.Contain,
 					}.Layout(gtx)

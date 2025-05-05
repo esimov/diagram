@@ -12,6 +12,7 @@ import (
 	"os"
 	"time"
 
+	"gioui.org/app"
 	"github.com/esimov/diagram/canvas"
 	"github.com/esimov/diagram/gui"
 	"github.com/esimov/diagram/io"
@@ -70,13 +71,13 @@ func main() {
 				log.Fatalf("Failed to read image '%s': %v\n", *destination, err)
 			}
 
-			gui := gui.NewGUI(source)
-
-			if err := gui.Draw(); err != nil {
+			gui := gui.NewGUI()
+			if err := gui.Draw(source); err != nil {
 				log.Fatalf("diagram GUI draw error: %v", err)
 			}
 		}
 	} else {
-		ui.InitApp(*fontPath)
+		go ui.InitApp(*fontPath)
+		app.Main()
 	}
 }

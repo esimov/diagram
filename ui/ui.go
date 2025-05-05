@@ -4,12 +4,14 @@ import (
 	"log"
 	"time"
 
+	gioGui "github.com/esimov/diagram/gui"
 	"github.com/jroimartin/gocui"
 )
 
 // UI defines the basic UI components.
 type UI struct {
 	gui          *gocui.Gui
+	gioGui       *gioGui.GUI
 	currentView  int
 	nextItem     int
 	currentModal string
@@ -29,6 +31,7 @@ func NewUI(fontPath string) *UI {
 	if err != nil {
 		log.Panicln(err)
 	}
+	ui.gioGui = gioGui.NewGUI()
 
 	ui.cursors = NewCursors()
 	ui.fontPath = fontPath
