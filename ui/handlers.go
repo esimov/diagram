@@ -79,9 +79,20 @@ func onDiagramSave(ui *UI, wrap bool) Fn {
 // onDiagramGenerate is an event listener which get triggered when a draw action is performed.
 func onDiagramGenerate(ui *UI, wrap bool) Fn {
 	return func(*gocui.Gui, *gocui.View) error {
+		start := time.Now()
 		err := ui.generateDiagram(editorPanel)
 		if err != nil {
-			return ui.log(fmt.Sprintf("Error saving the ascii diagram: %v", err), true)
+			ui.modalTimer = time.AfterFunc(time.Since(start), func() {
+				ui.gui.Update(func(*gocui.Gui) error {
+					ui.nextItem = 0 // reset modal elements counter to 0
+					if err := ui.closeModal(progressModal); err != nil {
+						return err
+					}
+
+					return nil
+				})
+			})
+			return ui.log(fmt.Sprintf("Error saving the ASCII diagram: %v", err), true)
 		}
 
 		return ui.log("The ASCII diagram has been successfully converted to hand drawn diagram.", false)
@@ -110,8 +121,8 @@ func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {
 		if cy < ui.getViewTotalRows(v)-1 {
 			v.SetCursor(cx, cy+1)
 		}
-		ui.modifyView(editorPanel)
-		return nil
+
+		return ui.modifyView(editorPanel)
 	}
 	onUp := func(g *gocui.Gui, v *gocui.View) error {
 		cx, cy := v.Cursor()
@@ -119,8 +130,8 @@ func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {
 		if cy > 0 {
 			v.SetCursor(cx, cy-1)
 		}
-		ui.modifyView(editorPanel)
-		return nil
+
+		return ui.modifyView(editorPanel)
 	}
 	onDelete := func(g *gocui.Gui, v *gocui.View) error {
 		if ui.logTimer != nil {
@@ -156,7 +167,10 @@ func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {
 		if cy > 0 {
 			v.SetCursor(cx, cy-1)
 		}
-		ui.modifyView(editorPanel)
+
+		if err := ui.modifyView(editorPanel); err != nil {
+			return err
+		}
 
 		// Hide log message after 4 seconds
 		ui.logTimer = time.AfterFunc(4*time.Second, func() {

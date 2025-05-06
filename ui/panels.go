@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/esimov/diagram/canvas"
 	"github.com/esimov/diagram/io"
@@ -41,7 +42,8 @@ const (
 	progressModal = "progress_modal"
 
 	// Log messages
-	logErrorEmpty = "The editor should not be empty!"
+	errorEmpty     = "The editor should not be empty!"
+	invalidContent = "Cannot display the file content!"
 
 	mainDir = "/diagrams"
 )
@@ -315,7 +317,9 @@ func (ui *UI) createPanelView(name string, x1, y1, x2, y2 int) (*gocui.View, err
 		v.Editor = newEditor(ui, &staticViewEditor{})
 
 		// Update diagrams directory list
-		ui.updateDiagramList(name)
+		if err := ui.updateDiagramList(name); err != nil {
+			return nil, err
+		}
 	default:
 		v.Editor = newEditor(ui, &staticViewEditor{})
 	}
@@ -382,7 +386,7 @@ func (ui *UI) writeContent(name, text string) error {
 	v.SetCursor(len(text), 0)
 	ui.cursors.Set(name, len(text), 0)
 
-	return nil
+	return v.SetOrigin(0, 0)
 }
 
 // findViewByName find the view defined by name and returns the view index.
@@ -405,7 +409,7 @@ func (ui *UI) saveDiagram(name string) error {
 	}
 
 	if len(v.ViewBuffer()) == 0 {
-		ui.consoleLog = logErrorEmpty
+		ui.consoleLog = errorEmpty
 		if err := ui.log(ui.consoleLog, true); err != nil {
 			return err
 		}
@@ -427,10 +431,19 @@ func (ui *UI) generateDiagram(name string) error {
 	}
 
 	if len(v.ViewBuffer()) == 0 {
-		ui.consoleLog = logErrorEmpty
+		ui.consoleLog = errorEmpty
 		if err := ui.log(ui.consoleLog, true); err != nil {
 			return err
 		}
+	}
+
+	content := strings.ReplaceAll(v.ViewBuffer(), "\n", "")
+	if content == invalidContent {
+		ui.consoleLog = invalidContent
+		if err := ui.log(ui.consoleLog, true); err != nil {
+			return err
+		}
+		return fmt.Errorf("invalid file format")
 	}
 
 	if currentFile == "" {
@@ -680,11 +693,8 @@ func (ui *UI) showProgressModal(name string) error {
 
 // updateView update the view content.
 func (ui *UI) updateView(v *gocui.View, buffer string) error {
-	if v != nil {
-		v.Clear()
-		if err := ui.writeContent(v.Name(), buffer); err != nil {
-			return err
-		}
+	if err := ui.writeContent(v.Name(), buffer); err != nil {
+		return err
 	}
 	return nil
 }
@@ -695,31 +705,30 @@ func (ui *UI) modifyView(name string) error {
 	if err != nil {
 		return err
 	}
-	if v != nil {
-		cv, err := ui.gui.View(savedDiagramsPanel)
-		if err != nil {
-			return err
-		}
-		_, cy := cv.Cursor()
-		cwd, err := filepath.Abs(filepath.Dir(""))
-		if err != nil {
-			return err
-		}
 
-		currentFile = ui.getViewRow(cv, cy)[0]
-		filePath := fmt.Sprintf("%s/%s/%s", cwd, mainDir, currentFile)
-
-		content, err := io.ReadFile(filePath)
-		if err != nil {
-			return err
-		}
-		buffer := string(content)
-
-		if err := ui.updateView(v, buffer); err != nil {
-			return err
-		}
+	cv, err := ui.gui.View(savedDiagramsPanel)
+	if err != nil {
+		return err
 	}
-	return nil
+	_, cy := cv.Cursor()
+	cwd, err := filepath.Abs(filepath.Dir(""))
+	if err != nil {
+		return err
+	}
+
+	currentFile = ui.getViewRow(cv, cy)[0]
+	file := fmt.Sprintf("%s/%s/%s", cwd, mainDir, currentFile)
+	content, err := io.ReadFile(file)
+	if err != nil {
+		return err
+	}
+
+	buffer := string(content)
+	if !utf8.ValidString(buffer) {
+		buffer = invalidContent
+	}
+
+	return ui.updateView(v, buffer)
 }
 
 // updateDiagramList updates the diagram panel content.
@@ -750,7 +759,7 @@ func (ui *UI) updateDiagramList(name string) error {
 func (ui *UI) closeOpenedModals(views []string) error {
 	for _, v := range views {
 		if view, _ := ui.gui.View(v); view != nil {
-			ui.closeModal(view.Name())
+			return ui.closeModal(view.Name())
 		}
 	}
 	return nil
@@ -793,7 +802,7 @@ func (ui *UI) ClearView(name string) {
 }
 
 // DeleteView deletes the current view.
-func (ui *UI) DeleteView(name string) {
+func (ui *UI) DeleteView(name string) error {
 	v, _ := ui.gui.View(name)
-	ui.gui.DeleteView(v.Name())
+	return ui.gui.DeleteView(v.Name())
 }
