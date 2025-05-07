@@ -3,7 +3,6 @@ package ui
 import (
 	"fmt"
 	"image"
-	"log"
 	"math"
 	"os"
 	"path/filepath"
@@ -196,8 +195,8 @@ func (ui *UI) scrollDown(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-// toggleHelp toggle the help view on key pressing.
-func (ui *UI) toggleHelp(content string) error {
+// toggleHelpModal toggle the help view on key pressing.
+func (ui *UI) toggleHelpModal(content string) error {
 	if err := ui.closeOpenedModals(modalElements); err != nil {
 		return err
 	}
@@ -224,7 +223,8 @@ func (ui *UI) toggleHelp(content string) error {
 	return nil
 }
 
-// openModal creates and opens the modal window. If "autoHide" parameter is true, the modal will be automatically closed after 5 seconds.
+// openModal creates and opens the modal window.
+// If "autoHide" parameter is true, the modal will be automatically closed after certain seconds.
 func (ui *UI) openModal(name string, w, h int, autoHide bool) (*gocui.View, error) {
 	v, err := ui.createModal(name, w, h)
 	if err != nil {
@@ -237,8 +237,8 @@ func (ui *UI) openModal(name string, w, h int, autoHide bool) (*gocui.View, erro
 	ui.currentModal = name
 
 	if autoHide {
-		// Close the modal automatically after 10 seconds
-		ui.modalTimer = time.AfterFunc(10*time.Second, func() {
+		// Close the modal automatically after 5 seconds
+		ui.modalTimer = time.AfterFunc(5*time.Second, func() {
 			ui.gui.Update(func(*gocui.Gui) error {
 				if err := ui.closeModal(name); err != nil {
 					return err
@@ -453,6 +453,7 @@ func (ui *UI) generateDiagram(name string) error {
 		output = output + ".png"
 	}
 
+	start := time.Now()
 	// Show progress
 	if err := ui.showProgressModal(progressModal); err != nil {
 		return fmt.Errorf("error on showing the progress modal: %w", err)
@@ -464,6 +465,7 @@ func (ui *UI) generateDiagram(name string) error {
 	}
 
 	filePath := cwd + "/output/"
+	diagram := filePath + output
 
 	// Create output directory in case it does not exists.
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
@@ -473,46 +475,50 @@ func (ui *UI) generateDiagram(name string) error {
 	}
 
 	// Generate the hand-drawn diagram.
-	err = canvas.DrawDiagram(v.Buffer(), filePath+output, ui.fontPath)
+	err = canvas.DrawDiagram(v.Buffer(), diagram, ui.fontPath)
 	if err != nil {
 		return err
 	}
 
-	// Close progress modal after 1 second
-	ui.modalTimer = time.AfterFunc(1*time.Second, func() {
+	ui.modalTimer = time.AfterFunc(time.Since(start), func() {
 		ui.gui.Update(func(*gocui.Gui) error {
 			ui.nextItem = 0 // reset modal elements counter to 0
 			if err := ui.closeModal(progressModal); err != nil {
 				return err
 			}
 
-			return nil
+			if err := ui.showDiagram(diagram); err != nil {
+				return fmt.Errorf("error previewing the diagram: %w", err)
+			}
+
+			if ui.modalTimer != nil {
+				ui.modalTimer.Stop()
+			}
+
+			return ui.log("The ASCII diagram has been successfully converted to hand drawn diagram.", false)
 		})
 	})
-
-	defer func() {
-		diagram := filePath + output
-		f, err := os.Open(diagram)
-		if err != nil {
-			log.Fatalf("failed opening the image %q: %v", diagram, err)
-		}
-
-		srcImg, _, err := image.Decode(f)
-		if err != nil {
-			log.Fatalf("failed to decode the image %q: %v", diagram, err)
-		}
-
-		// Lunch Gio GUI thread.
-		ui.showPreview(srcImg)
-	}()
 
 	return nil
 }
 
-func (ui *UI) showPreview(img image.Image) {
-	if err := ui.gioGui.Draw(img); err != nil {
-		log.Fatalf("error drawing the diagram: %v", err)
+func (ui *UI) showDiagram(diagram string) error {
+	f, err := os.Open(diagram)
+	if err != nil {
+		return fmt.Errorf("failed opening the image %q: %w", diagram, err)
 	}
+
+	srcImg, _, err := image.Decode(f)
+	if err != nil {
+		return fmt.Errorf("failed to decode the image %q: %w", diagram, err)
+	}
+
+	// Lunch Gio GUI thread.
+	if err := ui.gioGui.Draw(srcImg); err != nil {
+		return fmt.Errorf("error drawing the diagram: %w", err)
+	}
+
+	return nil
 }
 
 // showSaveModal show the save modal.
@@ -538,7 +544,6 @@ func (ui *UI) showSaveModal(name string) error {
 
 	ui.gui.DeleteKeybinding("", gocui.MouseLeft, gocui.ModNone)
 	ui.gui.DeleteKeybinding("", gocui.MouseRelease, gocui.ModNone)
-	ui.gui.DeleteKeybinding("", gocui.KeyF1, gocui.ModNone)
 
 	// Close event handler
 	onClose := func(*gocui.Gui, *gocui.View) error {
@@ -575,9 +580,10 @@ func (ui *UI) showSaveModal(name string) error {
 			file := buffer + v.text
 			f, err := io.SaveFile(file, mainDir, diagram.ViewBuffer())
 			if err != nil {
-				return fmt.Errorf("failed saving the file: %w", err)
+				return fmt.Errorf("error saving the file: %w", err)
 			}
 			defer f.Close()
+
 			ui.log(fmt.Sprintf("The file has been saved as: %s", file), false)
 		} else {
 			ui.log("Error saving the diagram. The file name should contain only letters, numbers and underscores!", true)
@@ -759,7 +765,7 @@ func (ui *UI) updateDiagramList(name string) error {
 func (ui *UI) closeOpenedModals(views []string) error {
 	for _, v := range views {
 		if view, _ := ui.gui.View(v); view != nil {
-			return ui.closeModal(view.Name())
+			_ = ui.closeModal(view.Name())
 		}
 	}
 	return nil

@@ -79,23 +79,12 @@ func onDiagramSave(ui *UI, wrap bool) Fn {
 // onDiagramGenerate is an event listener which get triggered when a draw action is performed.
 func onDiagramGenerate(ui *UI, wrap bool) Fn {
 	return func(*gocui.Gui, *gocui.View) error {
-		start := time.Now()
 		err := ui.generateDiagram(editorPanel)
 		if err != nil {
-			ui.modalTimer = time.AfterFunc(time.Since(start), func() {
-				ui.gui.Update(func(*gocui.Gui) error {
-					ui.nextItem = 0 // reset modal elements counter to 0
-					if err := ui.closeModal(progressModal); err != nil {
-						return err
-					}
-
-					return nil
-				})
-			})
 			return ui.log(fmt.Sprintf("Error saving the ASCII diagram: %v", err), true)
 		}
 
-		return ui.log("The ASCII diagram has been successfully converted to hand drawn diagram.", false)
+		return nil
 	}
 }
 
@@ -168,9 +157,7 @@ func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {
 			v.SetCursor(cx, cy-1)
 		}
 
-		if err := ui.modifyView(editorPanel); err != nil {
-			return err
-		}
+		_ = ui.modifyView(editorPanel)
 
 		// Hide log message after 4 seconds
 		ui.logTimer = time.AfterFunc(4*time.Second, func() {
@@ -201,12 +188,12 @@ func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {
 	}
 
 	return g.SetKeybinding("", gocui.KeyF1, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
-		return ui.toggleHelp(handlers.HelpContent())
+		return ui.toggleHelpModal(handlers.helpContent())
 	})
 }
 
-// HelpContent populates the help panel.
-func (handlers handlers) HelpContent() string {
+// helpContent populates the help panel.
+func (handlers handlers) helpContent() string {
 	buf := &bytes.Buffer{}
 	w := tabwriter.NewWriter(buf, 0, 0, 3, ' ', tabwriter.DiscardEmptyColumns)
 	for _, handler := range handlers {
