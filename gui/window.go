@@ -19,6 +19,11 @@ import (
 
 const title = "Diagram preview..."
 
+const (
+	maxWindowWidth  = 1024
+	maxWindowHeight = 768
+)
+
 type GUI struct {
 	image  paint.ImageOp
 	window *app.Window
@@ -32,10 +37,38 @@ func NewGUI() *GUI {
 
 func (gui *GUI) Draw(img image.Image) error {
 	gui.image = paint.NewImageOp(img)
-	gui.window.Option(app.Size(
-		unit.Dp(gui.image.Size().X),
-		unit.Dp(gui.image.Size().Y),
-	), app.Title(title))
+
+	var windowWidth, windowHeight float32
+	imgWidth, imgHeight := img.Bounds().Dx(), img.Bounds().Dy()
+
+	aspectRatio := float32(imgWidth) / float32(imgHeight)
+
+	if aspectRatio > 1 {
+		windowWidth = min(maxWindowWidth, float32(imgWidth))
+		windowHeight = windowWidth / aspectRatio
+	} else {
+		windowHeight = min(maxWindowHeight, float32(imgHeight))
+		windowWidth = windowHeight * aspectRatio
+	}
+
+	windowWidth = max(windowWidth, maxWindowWidth)
+	windowHeight = max(windowHeight, maxWindowHeight)
+
+	// Swap the GUI window width & height in case the image height is greater than its width.
+	if imgHeight > imgWidth {
+		tmpWindowWidth := windowWidth
+		windowWidth = windowHeight
+		windowHeight = tmpWindowWidth
+	}
+
+	gui.window.Option(
+		app.Size(
+			unit.Dp(windowWidth),
+			unit.Dp(windowHeight),
+		),
+		app.MaxSize(unit.Dp(windowWidth), unit.Dp(windowHeight)),
+		app.Title(title),
+	)
 
 	// Center the window on the screen.
 	gui.window.Perform(system.ActionCenter)
@@ -75,7 +108,6 @@ func (gui *GUI) run(w *app.Window) error {
 					}
 				}
 			}
-
 			gui.drawDiagram(gtx)
 			e.Frame(gtx.Ops)
 		case app.DestroyEvent:
@@ -95,7 +127,7 @@ func (gui *GUI) drawDiagram(gtx layout.Context) {
 				func(gtx layout.Context) layout.Dimensions {
 					widget.Image{
 						Src:   gui.image,
-						Scale: 1 / float32(unit.Dp(1)),
+						Scale: 1 / float32(gtx.Dp(unit.Dp(1))),
 						Fit:   widget.Contain,
 					}.Layout(gtx)
 
