@@ -111,7 +111,7 @@ func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {
 			v.SetCursor(cx, cy+1)
 		}
 
-		return ui.modifyView(editorPanel)
+		return ui.loadContent(editorPanel)
 	}
 	onUp := func(g *gocui.Gui, v *gocui.View) error {
 		cx, cy := v.Cursor()
@@ -120,7 +120,7 @@ func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {
 			v.SetCursor(cx, cy-1)
 		}
 
-		return ui.modifyView(editorPanel)
+		return ui.loadContent(editorPanel)
 	}
 	onDelete := func(g *gocui.Gui, v *gocui.View) error {
 		if ui.logTimer != nil {
@@ -128,7 +128,7 @@ func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {
 		}
 
 		cx, cy := v.Cursor()
-		cv, err := ui.gui.View(savedDiagramsPanel)
+		cv, err := ui.gui.View(diagramsPanel)
 		if err != nil {
 			return err
 		}
@@ -137,19 +137,19 @@ func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {
 			return err
 		}
 
-		currentFile = ui.getViewRow(cv, cy)[0]
+		currentFile = ui.getViewRow(cv, cy)
 		if len(currentFile) == 0 { // this means that the file list is empty!
 			return nil
 		}
 		fn := fmt.Sprintf("%s/%s/%s", cwd, mainDir, currentFile)
 
-		err = io.DeleteDiagram(fn)
+		err = io.DeleteFile(fn)
 		if err != nil {
 			return err
 		}
 		ui.log(fmt.Sprintf("The file %q has been deleted successfully from the %q directory", currentFile, cwd), false)
 
-		if err := ui.updateDiagramList(savedDiagramsPanel); err != nil {
+		if err := ui.updateDiagramList(diagramsPanel); err != nil {
 			return fmt.Errorf("cannot update the diagram list: %w", err)
 		}
 
@@ -157,7 +157,7 @@ func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {
 			v.SetCursor(cx, cy-1)
 		}
 
-		_ = ui.modifyView(editorPanel)
+		_ = ui.loadContent(editorPanel)
 
 		// Hide log message after 4 seconds
 		ui.logTimer = time.AfterFunc(4*time.Second, func() {
@@ -169,20 +169,21 @@ func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {
 		return nil
 	}
 
-	if err := g.SetKeybinding(savedDiagramsPanel, gocui.KeyArrowDown, gocui.ModNone, onDown); err != nil {
+	// Activate key bindings
+	if err := g.SetKeybinding(diagramsPanel, gocui.KeyArrowDown, gocui.ModNone, onDown); err != nil {
 		return err
 	}
 
-	if err := g.SetKeybinding(savedDiagramsPanel, gocui.KeyArrowUp, gocui.ModNone, onUp); err != nil {
+	if err := g.SetKeybinding(diagramsPanel, gocui.KeyArrowUp, gocui.ModNone, onUp); err != nil {
 		return err
 	}
 
 	if runtime.GOOS == "darwin" {
-		if err := g.SetKeybinding(savedDiagramsPanel, gocui.KeyBackspace2, gocui.ModNone, onDelete); err != nil {
+		if err := g.SetKeybinding(diagramsPanel, gocui.KeyBackspace2, gocui.ModNone, onDelete); err != nil {
 			return err
 		}
 	} else {
-		if err := g.SetKeybinding(savedDiagramsPanel, gocui.KeyDelete, gocui.ModNone, onDelete); err != nil {
+		if err := g.SetKeybinding(diagramsPanel, gocui.KeyDelete, gocui.ModNone, onDelete); err != nil {
 			return err
 		}
 	}

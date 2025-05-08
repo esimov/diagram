@@ -6,6 +6,7 @@ import "os"
 func InitApp(fontPath string) {
 	ui := NewUI(fontPath)
 
+	// This will close the Gio application, which is running on the main thread.
 	defer func() {
 		os.Exit(0)
 	}()

@@ -30,13 +30,13 @@ type panelProperties struct {
 
 const (
 	// Main panels
-	logoPanel          = "logo"
-	savedDiagramsPanel = "saved_diagrams"
-	logPanel           = "log"
-	editorPanel        = "diagram"
+	logoPanel     = "logo_panel"
+	diagramsPanel = "diagrams_panel"
+	editorPanel   = "editor_panel"
+	logPanel      = "log_panel"
 
 	// Modals
-	helpModal     = "help"
+	helpModal     = "help_modal"
 	saveModal     = "save_modal"
 	progressModal = "progress_modal"
 
@@ -57,7 +57,7 @@ var (
 	// Panel Views
 	mainViews = []string{
 		logoPanel,
-		savedDiagramsPanel,
+		diagramsPanel,
 		logPanel,
 		editorPanel,
 	}
@@ -67,9 +67,22 @@ var (
 
 // Layout initialize the panel views and associates the key bindings to them.
 func (ui *UI) Layout(g *gocui.Gui) error {
-	defaultContent, err := io.ReadFile("sample.txt")
+	var defaultContent []byte
+	diagrams, err := io.ListDiagrams(mainDir)
 	if err != nil {
-		return fmt.Errorf("error reading the sample file: %w", err)
+		return err
+	}
+
+	if len(diagrams) > 0 {
+		defaultContent, err = io.ReadFile(diagrams[0])
+		if err != nil {
+			return fmt.Errorf("error reading the opened file content: %w", err)
+		}
+	} else {
+		defaultContent, err = io.ReadFile("sample.txt")
+		if err != nil {
+			return fmt.Errorf("error reading the sample file content: %w", err)
+		}
 	}
 
 	panelViews = map[string]panelProperties{
@@ -83,7 +96,7 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 			editable: true,
 			cursor:   false,
 		},
-		savedDiagramsPanel: {
+		diagramsPanel: {
 			title:    " Saved Diagrams ",
 			text:     "",
 			x1:       0.0,
@@ -155,8 +168,8 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 
 		// Refresh the diagram panel with the new diagram content
 		cv := ui.gui.CurrentView()
-		if cv.Name() == savedDiagramsPanel && len(cv.ViewBuffer()) > 0 {
-			if err := ui.modifyView(editorPanel); err != nil {
+		if cv.Name() == diagramsPanel && len(cv.Buffer()) > 0 {
+			if err := ui.loadContent(editorPanel); err != nil {
 				return fmt.Errorf("panel error: %w", err)
 			}
 		}
@@ -183,14 +196,37 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 			return err
 		}
 	}
-	return g.SetKeybinding(editorPanel, gocui.MouseWheelDown, gocui.ModNone, ui.scrollDown)
+
+	if err := g.SetKeybinding(editorPanel, gocui.MouseWheelDown, gocui.ModNone, ui.scrollDown); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding(editorPanel, gocui.MouseWheelUp, gocui.ModNone, ui.scrollUp); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// scrollUp moves the cursor to the next buffer line.
+func (ui *UI) scrollUp(g *gocui.Gui, v *gocui.View) error {
+	ox, oy := v.Origin()
+	cx, cy := v.Cursor()
+	if err := v.SetCursor(cx, cy-1); err != nil && oy > 0 {
+		if err := v.SetOrigin(ox, oy-1); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // scrollDown moves the cursor to the next buffer line.
 func (ui *UI) scrollDown(g *gocui.Gui, v *gocui.View) error {
-	maxY := strings.Count(v.Buffer(), "\n")
-	if maxY < 1 {
-		v.SetCursor(0, 0)
+	cx, cy := v.Cursor()
+	if err := v.SetCursor(cx, cy+1); err != nil {
+		ox, oy := v.Origin()
+		if err := v.SetOrigin(ox, oy+1); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -309,8 +345,9 @@ func (ui *UI) createPanelView(name string, x1, y1, x2, y2 int) (*gocui.View, err
 	case editorPanel:
 		v.Highlight = false
 		v.Autoscroll = true
+		v.Wrap = true
 		v.Editor = newEditor(ui, nil)
-	case savedDiagramsPanel:
+	case diagramsPanel:
 		v.Highlight = true
 		v.SelBgColor = gocui.ColorGreen
 		v.SelFgColor = gocui.ColorBlack
@@ -323,6 +360,7 @@ func (ui *UI) createPanelView(name string, x1, y1, x2, y2 int) (*gocui.View, err
 	default:
 		v.Editor = newEditor(ui, &staticViewEditor{})
 	}
+
 	return v, nil
 }
 
@@ -382,11 +420,12 @@ func (ui *UI) writeContent(name, text string) error {
 		return err
 	}
 	v.Clear()
-	fmt.Fprint(v, text)
+	v.SetOrigin(0, 0)
 	v.SetCursor(len(text), 0)
 	ui.cursors.Set(name, len(text), 0)
+	fmt.Fprint(v, text)
 
-	return v.SetOrigin(0, 0)
+	return nil
 }
 
 // findViewByName find the view defined by name and returns the view index.
@@ -594,7 +633,7 @@ func (ui *UI) showSaveModal(name string) error {
 		}
 
 		// Update diagrams directory list
-		err := ui.updateDiagramList(savedDiagramsPanel)
+		err := ui.updateDiagramList(diagramsPanel)
 		if err != nil {
 			return fmt.Errorf("could not update diagram list: %w", err)
 		}
@@ -697,22 +736,23 @@ func (ui *UI) showProgressModal(name string) error {
 	return nil
 }
 
-// updateView update the view content.
+// updateView updates the view content.
 func (ui *UI) updateView(v *gocui.View, buffer string) error {
 	if err := ui.writeContent(v.Name(), buffer); err != nil {
 		return err
 	}
+
 	return nil
 }
 
-// modifyView will change the editor content with the content of the opened file.
-func (ui *UI) modifyView(name string) error {
+// loadContent load the content of the selected file into the editor panel.
+func (ui *UI) loadContent(name string) error {
 	v, err := ui.gui.View(name)
 	if err != nil {
 		return err
 	}
 
-	cv, err := ui.gui.View(savedDiagramsPanel)
+	cv, err := ui.gui.View(diagramsPanel)
 	if err != nil {
 		return err
 	}
@@ -722,7 +762,7 @@ func (ui *UI) modifyView(name string) error {
 		return err
 	}
 
-	currentFile = ui.getViewRow(cv, cy)[0]
+	currentFile = ui.getViewRow(cv, cy)
 	file := fmt.Sprintf("%s/%s/%s", cwd, mainDir, currentFile)
 	content, err := io.ReadFile(file)
 	if err != nil {

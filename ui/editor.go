@@ -146,36 +146,37 @@ func (e *modalSaveEditor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.
 }
 
 // getViewRow returns the row content defined by "y"
-func (ui *UI) getViewRow(v *gocui.View, y int) []string {
-	var row string
+func (ui *UI) getViewRow(v *gocui.View, y int) string {
 	rows := []string{}
 	buffer := v.ViewBuffer()
-	for _, char := range []byte(buffer) {
-		if string(char) == "\n" {
-			rows = append(rows, row)
-			row = ""
+	sb := new(strings.Builder)
+
+	for _, char := range buffer {
+		if char == '\n' {
+			rows = append(rows, sb.String())
+			sb.Reset()
 		} else {
-			row = row + string(char)
+			sb.WriteString(string(char))
 		}
 	}
 	if len(rows) > 0 && (y > -1 && y < len(rows)) {
-		return []string{rows[y]}
+		return rows[y]
 	}
-	return []string{""}
+	return ""
 }
 
 // getViewLastRow returns the last row content
-func (ui *UI) getViewLastRow(v *gocui.View) []string {
-	var row string
+func (ui *UI) getViewLastRow(v *gocui.View) string {
 	rows := []string{}
 	buffer := v.ViewBuffer()
+	sb := new(strings.Builder)
 
-	for _, char := range []byte(buffer) {
-		if string(char) == "\n" {
-			rows = append(rows, row)
-			row = ""
+	for _, char := range buffer {
+		if char == '\n' {
+			rows = append(rows, sb.String())
+			sb.Reset()
 		} else {
-			row = row + string(char)
+			sb.WriteString(string(char))
 		}
 	}
 
@@ -194,21 +195,19 @@ func (ui *UI) getViewLastRow(v *gocui.View) []string {
 			return idx
 		}
 		index := fn(rows)
-		return rows[len(rows)-index:]
+		return rows[len(rows)-index]
 	}
-	return []string{""}
+	return ""
 }
 
 // getViewRowCount returns the number of characters in the row defined by "y"
 func (ui *UI) getViewRowCount(v *gocui.View, y int) int {
-	row := ui.getViewRow(v, y)
-	return len(strings.Split(row[0], ""))
+	return len(ui.getViewRow(v, y))
 }
 
 // getViewLastRowCount returns the number of characters in the last row
 func (ui *UI) getViewLastRowCount(v *gocui.View) int {
-	lastRow := ui.getViewLastRow(v)
-	return len(strings.Split(lastRow[0], ""))
+	return len(ui.getViewLastRow(v))
 }
 
 // getViewTotalRows returns the total number of rows of the current view
@@ -226,23 +225,23 @@ func (ui *UI) getViewTotalRows(v *gocui.View) int {
 
 // getPartialViewBuffer returns the view buffer down until the row defined by "n"
 func (ui *UI) getPartialViewBuffer(v *gocui.View, n int) string {
-	var row string
 	var idx int
 	var newBuffer string
 
 	rows := []string{}
 	buffer := v.ViewBuffer()
+	sb := new(strings.Builder)
 
-	for _, char := range []byte(buffer) {
-		if string(char) == "\n" {
-			rows = append(rows, row)
-			row = ""
+	for _, char := range buffer {
+		if char == '\n' {
+			rows = append(rows, sb.String())
+			sb.Reset()
 			if idx > n {
 				break
 			}
 			idx++
 		} else {
-			row = row + string(char)
+			sb.WriteString(string(char))
 		}
 	}
 	if idx < n {

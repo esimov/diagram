@@ -66,8 +66,8 @@ func SaveFile(fileName string, output string, data string) (*os.File, error) {
 	return file, nil
 }
 
-// DeleteDiagram deletes a diagram.
-func DeleteDiagram(fileName string) error {
+// DeleteFile deletes a diagram.
+func DeleteFile(fileName string) error {
 	err := os.Remove(fileName)
 	if err != nil {
 		return fmt.Errorf("failed deleting the diagram: %w", err)
