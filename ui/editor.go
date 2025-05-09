@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/jroimartin/gocui"
@@ -65,9 +66,9 @@ func (e *editor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier)
 		maxX := e.ui.getViewRowCount(v, cy)
 		v.SetCursor(maxX, cy)
 	case gocui.KeyPgup:
-		vx, vy := v.Origin()
-		if err := v.SetCursor(0, 0); err != nil && vy > 0 {
-			if err := v.SetOrigin(vx, 0); err != nil {
+		ox, oy := v.Origin()
+		if err := v.SetCursor(0, 0); err != nil && oy > 0 {
+			if err := v.SetOrigin(ox, 0); err != nil {
 				return
 			}
 		}
@@ -83,7 +84,7 @@ func (e *editor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier)
 		}
 	case gocui.KeyCtrlZ:
 		if len(cache) > 0 {
-			v.Write(cache)
+			fmt.Fprintf(v, "%s", cache)
 			cache = []byte{}
 		}
 	}

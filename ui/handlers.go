@@ -173,8 +173,13 @@ func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {
 	if err := g.SetKeybinding(diagramsPanel, gocui.KeyArrowDown, gocui.ModNone, onDown); err != nil {
 		return err
 	}
-
 	if err := g.SetKeybinding(diagramsPanel, gocui.KeyArrowUp, gocui.ModNone, onUp); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding(editorPanel, gocui.MouseWheelDown, gocui.ModNone, ui.scrollDown); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding(editorPanel, gocui.MouseWheelUp, gocui.ModNone, ui.scrollUp); err != nil {
 		return err
 	}
 

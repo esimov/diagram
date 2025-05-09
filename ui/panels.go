@@ -63,6 +63,8 @@ var (
 	}
 	modalElements = []string{"save_modal", "save", "cancel"}
 	currentFile   string
+
+	mouseX, mouseY int
 )
 
 // Layout initialize the panel views and associates the key bindings to them.
@@ -76,12 +78,12 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 	if len(diagrams) > 0 {
 		defaultContent, err = io.ReadFile(diagrams[0])
 		if err != nil {
-			return fmt.Errorf("error reading the opened file content: %w", err)
+			return fmt.Errorf("error loading the file content: %w", err)
 		}
 	} else {
 		defaultContent, err = io.ReadFile("sample.txt")
 		if err != nil {
-			return fmt.Errorf("error reading the sample file content: %w", err)
+			return fmt.Errorf("error loading the sample file content: %w", err)
 		}
 	}
 
@@ -147,6 +149,14 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 	}
 
 	initPanel := func(g *gocui.Gui, v *gocui.View) error {
+		// Obtain the cursor position once a click is detected inside the editor panel.
+		if v.Name() == editorPanel {
+			cx, cy := v.Cursor()
+			v.SetCursor(cx, cy)
+			ui.cursors.Set(editorPanel, cx, cy)
+			mouseX, mouseY = cx, cy
+		}
+
 		// Disable panel views selection with mouse in case the modal is activated
 		if ui.currentModal == "" {
 			cx, cy := v.Cursor()
@@ -173,6 +183,7 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 				return fmt.Errorf("panel error: %w", err)
 			}
 		}
+
 		return nil
 	}
 
@@ -197,21 +208,15 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 		}
 	}
 
-	if err := g.SetKeybinding(editorPanel, gocui.MouseWheelDown, gocui.ModNone, ui.scrollDown); err != nil {
-		return err
-	}
-	if err := g.SetKeybinding(editorPanel, gocui.MouseWheelUp, gocui.ModNone, ui.scrollUp); err != nil {
-		return err
-	}
-
 	return nil
 }
 
-// scrollUp moves the cursor to the next buffer line.
+// scrollUp moves the cursor up to the next buffer line.
 func (ui *UI) scrollUp(g *gocui.Gui, v *gocui.View) error {
+	mouseY--
 	ox, oy := v.Origin()
-	cx, cy := v.Cursor()
-	if err := v.SetCursor(cx, cy-1); err != nil && oy > 0 {
+	if err := v.SetCursor(mouseX, mouseY); err != nil && oy > 0 {
+		ui.cursors.Set(v.Name(), mouseX, mouseY)
 		if err := v.SetOrigin(ox, oy-1); err != nil {
 			return err
 		}
@@ -219,10 +224,11 @@ func (ui *UI) scrollUp(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-// scrollDown moves the cursor to the next buffer line.
+// scrollDown moves the cursor down to the next buffer line.
 func (ui *UI) scrollDown(g *gocui.Gui, v *gocui.View) error {
-	cx, cy := v.Cursor()
-	if err := v.SetCursor(cx, cy+1); err != nil {
+	mouseY++
+	if err := v.SetCursor(mouseX, mouseY); err != nil {
+		ui.cursors.Set(v.Name(), mouseX, mouseY)
 		ox, oy := v.Origin()
 		if err := v.SetOrigin(ox, oy+1); err != nil {
 			return err
@@ -231,7 +237,7 @@ func (ui *UI) scrollDown(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-// toggleHelpModal toggle the help view on key pressing.
+// toggleHelpModal show or hide the help modal.
 func (ui *UI) toggleHelpModal(content string) error {
 	if err := ui.closeOpenedModals(modalElements); err != nil {
 		return err
@@ -420,8 +426,11 @@ func (ui *UI) writeContent(name, text string) error {
 		return err
 	}
 	v.Clear()
-	v.SetOrigin(0, 0)
-	v.SetCursor(len(text), 0)
+	if err := v.SetCursor(len(text), 0); err != nil {
+		if err := v.SetOrigin(0, 0); err != nil {
+			return err
+		}
+	}
 	ui.cursors.Set(name, len(text), 0)
 	fmt.Fprint(v, text)
 
@@ -730,6 +739,7 @@ func (ui *UI) showProgressModal(name string) error {
 		ui.modalTimer.Stop()
 	}
 
+	ui.gui.Cursor = false
 	ui.gui.DeleteKeybinding("", gocui.MouseLeft, gocui.ModNone)
 	ui.gui.DeleteKeybinding("", gocui.MouseRelease, gocui.ModNone)
 
