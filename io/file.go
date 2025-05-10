@@ -9,7 +9,8 @@ import (
 	"strings"
 )
 
-// ReadFile read the input file.
+// ReadFile read the input file, and if it's the case
+// replaces the CRLF line endings with LF.
 func ReadFile(input string) ([]byte, error) {
 	buff, err := os.ReadFile(input)
 	if err != nil {

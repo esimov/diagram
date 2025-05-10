@@ -72,7 +72,7 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 	var defaultContent []byte
 	diagrams, err := io.ListDiagrams(mainDir)
 	if err != nil {
-		return err
+		return fmt.Errorf("error listing the existing diagrams: %w", err)
 	}
 
 	if len(diagrams) > 0 {
