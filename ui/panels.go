@@ -213,7 +213,6 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 
 // scrollUp moves the cursor up to the next buffer line.
 func (ui *UI) scrollUp(g *gocui.Gui, v *gocui.View) error {
-	mouseY--
 	ox, oy := v.Origin()
 	if err := v.SetCursor(mouseX, mouseY); err != nil && oy > 0 {
 		ui.cursors.Set(v.Name(), mouseX, mouseY)
@@ -221,12 +220,14 @@ func (ui *UI) scrollUp(g *gocui.Gui, v *gocui.View) error {
 			return err
 		}
 	}
+	if mouseY > 0 {
+		mouseY--
+	}
 	return nil
 }
 
 // scrollDown moves the cursor down to the next buffer line.
 func (ui *UI) scrollDown(g *gocui.Gui, v *gocui.View) error {
-	mouseY++
 	if err := v.SetCursor(mouseX, mouseY); err != nil {
 		ui.cursors.Set(v.Name(), mouseX, mouseY)
 		ox, oy := v.Origin()
@@ -234,6 +235,8 @@ func (ui *UI) scrollDown(g *gocui.Gui, v *gocui.View) error {
 			return err
 		}
 	}
+	mouseY++
+
 	return nil
 }
 
