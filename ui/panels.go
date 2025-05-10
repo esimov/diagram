@@ -63,8 +63,6 @@ var (
 	}
 	modalElements = []string{"save_modal", "save", "cancel"}
 	currentFile   string
-
-	mouseX, mouseY int
 )
 
 // Layout initialize the panel views and associates the key bindings to them.
@@ -149,14 +147,6 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 	}
 
 	initPanel := func(g *gocui.Gui, v *gocui.View) error {
-		// Obtain the cursor position once a click is detected inside the editor panel.
-		if v.Name() == editorPanel {
-			cx, cy := v.Cursor()
-			v.SetCursor(cx, cy)
-			ui.cursors.Set(editorPanel, cx, cy)
-			mouseX, mouseY = cx, cy
-		}
-
 		// Disable panel views selection with mouse in case the modal is activated
 		if ui.currentModal == "" {
 			cx, cy := v.Cursor()
@@ -211,31 +201,33 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 	return nil
 }
 
-// scrollUp moves the cursor up to the next buffer line.
+// scrollUp moves the cursor up to the previous buffer line.
 func (ui *UI) scrollUp(g *gocui.Gui, v *gocui.View) error {
 	ox, oy := v.Origin()
-	if err := v.SetCursor(mouseX, mouseY); err != nil && oy > 0 {
-		ui.cursors.Set(v.Name(), mouseX, mouseY)
+	if err := v.SetCursor(ox, 0); err == nil && oy > 0 {
+		ui.cursors.Set(v.Name(), ox, 0)
 		if err := v.SetOrigin(ox, oy-1); err != nil {
 			return err
 		}
 	}
-	if mouseY > 0 {
-		mouseY--
-	}
+
 	return nil
 }
 
 // scrollDown moves the cursor down to the next buffer line.
 func (ui *UI) scrollDown(g *gocui.Gui, v *gocui.View) error {
-	if err := v.SetCursor(mouseX, mouseY); err != nil {
-		ui.cursors.Set(v.Name(), mouseX, mouseY)
-		ox, oy := v.Origin()
-		if err := v.SetOrigin(ox, oy+1); err != nil {
-			return err
+	totalRows := ui.getBufferTotalRows(v)
+	_, maxY := v.Size()
+
+	ox, oy := v.Origin()
+	if err := v.SetCursor(ox, 0); err == nil {
+		ui.cursors.Set(v.Name(), ox, 0)
+		if totalRows > maxY {
+			if err := v.SetOrigin(ox, oy+1); err != nil {
+				return err
+			}
 		}
 	}
-	mouseY++
 
 	return nil
 }
@@ -353,7 +345,7 @@ func (ui *UI) createPanelView(name string, x1, y1, x2, y2 int) (*gocui.View, err
 	switch name {
 	case editorPanel:
 		v.Highlight = false
-		v.Autoscroll = true
+		v.Autoscroll = false
 		v.Wrap = true
 		v.Editor = newEditor(ui, nil)
 	case diagramsPanel:

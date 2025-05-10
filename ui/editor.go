@@ -222,6 +222,20 @@ func (ui *UI) getViewTotalRows(v *gocui.View) int {
 		}
 	}
 	return rows
+
+}
+
+// getTotalRows returns the total number of rows of the entire buffer
+func (ui *UI) getBufferTotalRows(v *gocui.View) int {
+	var rows int
+	buffer := v.Buffer()
+
+	for _, char := range []byte(buffer) {
+		if string(char) == "\n" {
+			rows++
+		}
+	}
+	return rows
 }
 
 // getPartialViewBuffer returns the view buffer down until the row defined by "n"

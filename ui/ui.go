@@ -90,6 +90,8 @@ func (ui *UI) initGui(g *gocui.Gui) error {
 	ui.gui.Highlight = true
 	ui.gui.InputEsc = false
 	ui.gui.SelFgColor = gocui.ColorGreen
+	ui.gui.SelBgColor = gocui.ColorBlack
+	ui.gui.BgColor = ui.gui.SelBgColor
 
 	// Mouse settings
 	ui.gui.Cursor = true
