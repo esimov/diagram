@@ -66,16 +66,32 @@ func (e *editor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier)
 		maxX := e.ui.getViewRowCount(v, cy)
 		v.SetCursor(maxX, cy)
 	case gocui.KeyPgup:
-		ox, oy := v.Origin()
-		if err := v.SetCursor(0, 0); err != nil && oy > 0 {
-			if err := v.SetOrigin(ox, 0); err != nil {
+		totalRows := e.ui.getTotalRows(v)
+		cx, cy := v.Cursor()
+		_, sy := v.Size()
+		_, oy := v.Origin()
+		offsetY := max(0, oy-(totalRows%sy))
+
+		if err := v.SetOrigin(cx, offsetY); err == nil {
+			if err := v.SetCursor(cx, cy+offsetY); err != nil {
 				return
 			}
 		}
 	case gocui.KeyPgdn:
-		maxX := e.ui.getViewLastRowCount(v)
-		maxY := strings.Count(v.ViewBuffer(), "\n") - 1
-		v.SetCursor(maxX, maxY)
+		totalRows := e.ui.getTotalRows(v)
+		cx, cy := v.Cursor()
+		_, sy := v.Size()
+		_, oy := v.Origin()
+		offsetY := oy + (totalRows % sy)
+		cy = min(offsetY+cy, totalRows)
+
+		if offsetY <= totalRows {
+			if err := v.SetOrigin(cx, offsetY); err == nil {
+				if err := v.SetCursor(cx, cy-offsetY); err != nil {
+					return
+				}
+			}
+		}
 	case gocui.KeyCtrlX:
 		if v.Name() == editorPanel {
 			cache = []byte(v.ViewBuffer())
@@ -226,7 +242,7 @@ func (ui *UI) getViewTotalRows(v *gocui.View) int {
 }
 
 // getTotalRows returns the total number of rows of the entire buffer
-func (ui *UI) getBufferTotalRows(v *gocui.View) int {
+func (ui *UI) getTotalRows(v *gocui.View) int {
 	var rows int
 	buffer := v.Buffer()
 

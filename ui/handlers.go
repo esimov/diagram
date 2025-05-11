@@ -28,10 +28,10 @@ type handlers []handler
 var keyHandlers = &handlers{
 	{mainViews, gocui.KeyTab, "Tab", "Next Panel", onNextPanel},
 	{mainViews, 0xFF, "Shift+Tab", "Previous Panel", nil},
-	{nil, gocui.KeyPgup, "PgUp", "Jump to the first line", nil},
-	{nil, gocui.KeyPgdn, "PgDown", "Jump to the last line", nil},
-	{nil, gocui.KeyHome, "Home", "Jump to the line start", nil},
-	{nil, gocui.KeyEnd, "End", "Jump to the line end", nil},
+	{nil, gocui.KeyPgup, "PgUp", "Jump to the next page", nil},
+	{nil, gocui.KeyPgdn, "PgDown", "Jump to the previous page", nil},
+	{nil, gocui.KeyHome, "Home", "Jump to the start of the line", nil},
+	{nil, gocui.KeyEnd, "End", "Jump to the end of the line", nil},
 	*getDeleteHandler(),
 	{nil, gocui.KeyCtrlX, "Ctrl+x", "Clear editor content", nil},
 	{nil, gocui.KeyCtrlZ, "Ctrl+z", "Restore editor content", nil},
@@ -160,11 +160,13 @@ func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {
 		_ = ui.loadContent(editorPanel)
 
 		// Hide log message after 4 seconds
-		ui.logTimer = time.AfterFunc(4*time.Second, func() {
-			ui.gui.Update(func(*gocui.Gui) error {
-				return ui.clearLog()
+		defer func() {
+			ui.logTimer = time.AfterFunc(4*time.Second, func() {
+				ui.gui.Update(func(*gocui.Gui) error {
+					return ui.clearLog()
+				})
 			})
-		})
+		}()
 
 		return nil
 	}

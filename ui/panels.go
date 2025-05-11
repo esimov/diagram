@@ -3,7 +3,7 @@ package ui
 import (
 	"fmt"
 	"image"
-	"math"
+	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -74,9 +74,15 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 	}
 
 	if len(diagrams) > 0 {
-		defaultContent, err = io.ReadFile(diagrams[0])
+		cwd, err := filepath.Abs(filepath.Dir(""))
 		if err != nil {
-			return fmt.Errorf("error loading the file content: %w", err)
+			return err
+		}
+
+		file := fmt.Sprintf("%s/%s/%s", cwd, mainDir, diagrams[0])
+		defaultContent, err = io.ReadFile(file)
+		if err != nil {
+			log.Fatalf("error loading the file content: %v", err)
 		}
 	} else {
 		defaultContent, err = io.ReadFile("sample.txt")
@@ -204,7 +210,8 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 // scrollUp moves the cursor up to the previous buffer line.
 func (ui *UI) scrollUp(g *gocui.Gui, v *gocui.View) error {
 	ox, oy := v.Origin()
-	if err := v.SetCursor(ox, 0); err == nil && oy > 0 {
+	_, cy := v.Cursor()
+	if err := v.SetCursor(ox, cy-1); err == nil && oy > 0 {
 		ui.cursors.Set(v.Name(), ox, 0)
 		if err := v.SetOrigin(ox, oy-1); err != nil {
 			return err
@@ -216,11 +223,12 @@ func (ui *UI) scrollUp(g *gocui.Gui, v *gocui.View) error {
 
 // scrollDown moves the cursor down to the next buffer line.
 func (ui *UI) scrollDown(g *gocui.Gui, v *gocui.View) error {
-	totalRows := ui.getBufferTotalRows(v)
+	totalRows := ui.getTotalRows(v)
 	_, maxY := v.Size()
 
 	ox, oy := v.Origin()
-	if err := v.SetCursor(ox, 0); err == nil {
+	_, cy := v.Cursor()
+	if err := v.SetCursor(ox, cy+1); err == nil {
 		ui.cursors.Set(v.Name(), ox, 0)
 		if totalRows > maxY {
 			if err := v.SetOrigin(ox, oy+1); err != nil {
@@ -249,7 +257,7 @@ func (ui *UI) toggleHelpModal(content string) error {
 		}
 		return ui.closeModal(ui.currentModal)
 	}
-	v, err := ui.openModal(helpModal, 45, panelHeight, true)
+	v, err := ui.openModal(helpModal, 50, panelHeight, true)
 	if err != nil {
 		return err
 	}
@@ -274,8 +282,8 @@ func (ui *UI) openModal(name string, w, h int, autoHide bool) (*gocui.View, erro
 	ui.currentModal = name
 
 	if autoHide {
-		// Close the modal automatically after 5 seconds
-		ui.modalTimer = time.AfterFunc(5*time.Second, func() {
+		// Close the modal automatically after 10 seconds
+		ui.modalTimer = time.AfterFunc(10*time.Second, func() {
 			ui.gui.Update(func(*gocui.Gui) error {
 				if err := ui.closeModal(name); err != nil {
 					return err
@@ -307,8 +315,8 @@ func (ui *UI) closeModal(modals ...string) error {
 // createModal initializes and creates the modal view.
 func (ui *UI) createModal(name string, w, h int) (*gocui.View, error) {
 	width, height := ui.gui.Size()
-	x1, y1 := width/2-w/2, math.Ceil(float64(height/2-h/2-1))
-	x2, y2 := width/2+w/2, math.Ceil(float64(height/2+h/2+1))
+	x1, y1 := width/2-w/2, float64(height/2-h/2-1)
+	x2, y2 := width/2+w/2, float64(height/2+h/2+1)
 
 	return ui.createModalView(name, x1, int(y1), x2, int(y2))
 }
@@ -642,12 +650,14 @@ func (ui *UI) showSaveModal(name string) error {
 			return fmt.Errorf("could not update diagram list: %w", err)
 		}
 
-		// Hide log message after 4 seconds
-		ui.logTimer = time.AfterFunc(4*time.Second, func() {
-			ui.gui.Update(func(*gocui.Gui) error {
-				return ui.clearLog()
+		defer func() {
+			// Hide log message after 4 seconds
+			ui.logTimer = time.AfterFunc(4*time.Second, func() {
+				ui.gui.Update(func(*gocui.Gui) error {
+					return ui.clearLog()
+				})
 			})
-		})
+		}()
 
 		return nil
 	}
@@ -710,13 +720,6 @@ func (ui *UI) showSaveModal(name string) error {
 			return err
 		}
 	}
-
-	// Hide log message after 4 seconds
-	ui.logTimer = time.AfterFunc(4*time.Second, func() {
-		ui.gui.Update(func(*gocui.Gui) error {
-			return ui.clearLog()
-		})
-	})
 
 	return nil
 }
