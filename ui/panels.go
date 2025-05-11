@@ -109,7 +109,7 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 			y1:       0.20,
 			x2:       0.35,
 			y2:       0.85,
-			editable: true,
+			editable: false,
 			cursor:   false,
 		},
 		logPanel: {
@@ -187,10 +187,10 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 		if err := g.SetKeybinding(view, gocui.MouseLeft, gocui.ModNone, initPanel); err != nil {
 			return err
 		}
-
 		if err := g.SetKeybinding(view, gocui.MouseRelease, gocui.ModNone, initPanel); err != nil {
 			return err
 		}
+
 		if _, err := ui.initPanelView(view); err != nil {
 			return err
 		}
@@ -358,14 +358,29 @@ func (ui *UI) createPanelView(name string, x1, y1, x2, y2 int) (*gocui.View, err
 		v.Editor = newEditor(ui, nil)
 	case diagramsPanel:
 		v.Highlight = true
+		v.Autoscroll = false
 		v.SelBgColor = gocui.ColorGreen
 		v.SelFgColor = gocui.ColorBlack
 		v.Editor = newEditor(ui, &staticViewEditor{})
+
+		// TODO: workaround to disable scrolling.
+		_ = ui.gui.SetKeybinding(v.Name(), gocui.MouseWheelUp, gocui.ModNone,
+			func(g *gocui.Gui, v *gocui.View) error {
+				return v.SetCursor(0, 0)
+			},
+		)
+		_ = ui.gui.SetKeybinding(v.Name(), gocui.MouseWheelDown, gocui.ModNone,
+			func(g *gocui.Gui, v *gocui.View) error {
+				return v.SetCursor(0, 0)
+			},
+		)
 
 		// Update diagrams directory list
 		if err := ui.updateDiagramList(name); err != nil {
 			return nil, err
 		}
+	case logPanel:
+		v.Wrap = true
 	default:
 		v.Editor = newEditor(ui, &staticViewEditor{})
 	}
@@ -635,7 +650,7 @@ func (ui *UI) showSaveModal(name string) error {
 			}
 			defer f.Close()
 
-			ui.log(fmt.Sprintf("The file has been saved as: %s", file), false)
+			ui.log(fmt.Sprintf("The diagram %q has been saved into the %q folder.", file, mainDir), false)
 		} else {
 			ui.log("Error saving the diagram. The file name should contain only letters, numbers and underscores!", true)
 		}

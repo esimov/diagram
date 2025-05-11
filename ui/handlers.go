@@ -147,7 +147,7 @@ func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {
 		if err != nil {
 			return err
 		}
-		ui.log(fmt.Sprintf("The file %q has been deleted successfully from the %q directory", currentFile, cwd), false)
+		ui.log(fmt.Sprintf("The %q diagram has been successfully deleted.", fn), false)
 
 		if err := ui.updateDiagramList(diagramsPanel); err != nil {
 			return fmt.Errorf("cannot update the diagram list: %w", err)

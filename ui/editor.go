@@ -85,7 +85,7 @@ func (e *editor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier)
 		offsetY := oy + (totalRows % sy)
 		cy = min(offsetY+cy, totalRows)
 
-		if offsetY <= totalRows {
+		if offsetY < totalRows {
 			if err := v.SetOrigin(cx, offsetY); err == nil {
 				if err := v.SetCursor(cx, cy-offsetY); err != nil {
 					return

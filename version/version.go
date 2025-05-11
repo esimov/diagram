@@ -6,7 +6,7 @@ import "github.com/esimov/diagram/color"
 const Name = "diagram"
 
 // Description of application.
-const Description = " ...transforms your ASCII arts into hand drawn diagrams!"
+const Description = " TUI tool to transform your ASCII arts into hand drawn diagrams."
 
 // Version number.
 const Version = "v1.0.6"
