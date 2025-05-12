@@ -20,6 +20,7 @@ type UI struct {
 	modalTimer   *time.Timer
 	logTimer     *time.Timer
 	fontPath     string
+	widget       WidgetHandler
 }
 
 // NewUI returns a new UI component.

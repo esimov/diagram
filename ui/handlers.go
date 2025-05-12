@@ -37,6 +37,7 @@ var keyHandlers = &handlers{
 	{nil, gocui.KeyCtrlZ, "Ctrl+z", "Restore editor content", nil},
 	{nil, gocui.KeyCtrlS, "Ctrl+s", "Save diagram", onDiagramSave},
 	{nil, gocui.KeyCtrlG, "Ctrl+g", "Generate diagram", onDiagramGenerate},
+	{nil, gocui.KeyCtrlL, "Ctrl+l", "Change layout color", onChangeLayoutColor},
 	{nil, gocui.KeyCtrlQ, "Ctrl+q", "Quit", onQuit},
 }
 
@@ -72,6 +73,9 @@ func onQuit(ui *UI, wrap bool) Fn {
 // onDiagramSave is an event listener which get triggered when a save action is performed.
 func onDiagramSave(ui *UI, wrap bool) Fn {
 	return func(*gocui.Gui, *gocui.View) error {
+		if ui.currentModal == saveModal {
+			return nil
+		}
 		return ui.saveDiagram(editorPanel)
 	}
 }
@@ -85,6 +89,13 @@ func onDiagramGenerate(ui *UI, wrap bool) Fn {
 		}
 
 		return nil
+	}
+}
+
+// onDiagramSave is an event listener which get triggered when a save action is performed.
+func onChangeLayoutColor(ui *UI, wrap bool) Fn {
+	return func(*gocui.Gui, *gocui.View) error {
+		return ui.changeLayoutColor(layoutModal)
 	}
 }
 

@@ -38,11 +38,15 @@ const (
 	// Modals
 	helpModal     = "help_modal"
 	saveModal     = "save_modal"
+	layoutModal   = "layout_modal"
 	progressModal = "progress_modal"
 
 	// Log messages
 	errorEmpty     = "The editor should not be empty!"
 	invalidContent = "Cannot display the file content!"
+
+	saveButton   = "save"
+	cancelButton = "cancel"
 
 	mainDir = "/diagrams"
 )
@@ -143,6 +147,10 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 		saveModal: {
 			title:    "Save diagram",
 			text:     ".txt",
+			editable: true,
+		},
+		layoutModal: {
+			title:    "Change layout color",
 			editable: true,
 		},
 		progressModal: {
@@ -480,7 +488,11 @@ func (ui *UI) saveDiagram(name string) error {
 			return err
 		}
 	}
-	return ui.showSaveModal(saveModal)
+	if err := ui.showSaveModal(saveModal); err != nil {
+		log.Fatalf("error opening the save modal: %v", err)
+	}
+
+	return nil
 }
 
 // generateDiagram converts the ASCII to the hand-drawn diagram.
@@ -589,7 +601,7 @@ func (ui *UI) showDiagram(diagram string) error {
 
 // showSaveModal show the save modal.
 func (ui *UI) showSaveModal(name string) error {
-	var saveBtn, cancelBtn *gocui.View
+	var saveBtnWidget, cancelBtnWidget WidgetHandler
 
 	if err := ui.closeModal(ui.currentModal); err != nil {
 		return err
@@ -640,8 +652,10 @@ func (ui *UI) showSaveModal(name string) error {
 			return nil
 		}
 
+		var hasErrors bool
 		if len(strings.TrimSpace(modal.Buffer())) <= len(v.text) {
 			ui.log("File name should not be empty!", true)
+			hasErrors = true
 		} else if res {
 			file := buffer + v.text
 			f, err := io.SaveFile(file, mainDir, diagram.ViewBuffer())
@@ -653,10 +667,13 @@ func (ui *UI) showSaveModal(name string) error {
 			ui.log(fmt.Sprintf("The diagram %q has been saved into the %q folder.", file, mainDir), false)
 		} else {
 			ui.log("Error saving the diagram. The file name should contain only letters, numbers and underscores!", true)
+			hasErrors = true
 		}
 
-		if err := ui.closeOpenedModals(modalElements); err != nil {
-			return fmt.Errorf("could not close opened modal: %w", err)
+		if !hasErrors {
+			if err := ui.closeOpenedModals(modalElements); err != nil {
+				return fmt.Errorf("could not close opened modal: %w", err)
+			}
 		}
 
 		// Update diagrams directory list
@@ -681,9 +698,12 @@ func (ui *UI) showSaveModal(name string) error {
 	onNext := func(*gocui.Gui, *gocui.View) error {
 		var pv *gocui.View
 
-		if err := ui.nextElement(modalElements); err != nil {
-			return err
+		if saveBtnWidget != nil {
+			if err := saveBtnWidget.NextElement(modalElements); err != nil {
+				return err
+			}
 		}
+
 		if (ui.nextItem - 1) > 0 {
 			pv, _ = ui.gui.View(modalElements[ui.nextItem-1])
 		} else {
@@ -700,18 +720,29 @@ func (ui *UI) showSaveModal(name string) error {
 	sw, sh := ui.gui.Size()
 	mw, _ := modal.Size()
 
-	saveBtn, err = ui.createButtonWidget("save", sw/2-mw/2, sh/2, "Save", nil)
+	saveBtnWidget, err = NewButton(saveButton, sw/2-mw/2, sh/2, len(saveButton)+1, WithGUI(ui))
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create a new button widget: %w", err)
+	}
+
+	saveBtn, err := saveBtnWidget.Draw()
+	if err != nil {
+		return fmt.Errorf("failed drawing the button: %w", err)
 	}
 
 	if saveBtn != nil {
 		saveBtnSize, _ := saveBtn.Size()
 		//Calculate the current modal button position relative to the previous button.
-		cancelBtn, err = ui.createButtonWidget("cancel", (sw/2-mw/2)+saveBtnSize+4, sh/2, "Cancel", nil)
+		cancelBtnWidget, err = NewButton(cancelButton, (sw/2-mw/2)+saveBtnSize+4, sh/2, len(cancelButton)+1, WithGUI(ui))
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to create a new button widget: %w", err)
 		}
+
+		cancelBtn, err := cancelBtnWidget.Draw()
+		if err != nil {
+			return fmt.Errorf("failed drawing the button: %w", err)
+		}
+
 		if err := ui.gui.SetKeybinding(saveBtn.Name(), gocui.KeyEnter, gocui.ModNone, onSave); err != nil {
 			return err
 		}
@@ -726,6 +757,7 @@ func (ui *UI) showSaveModal(name string) error {
 			return err
 		}
 	}
+
 	// Associate the close modal key binding to each modal element.
 	for _, view := range modalElements {
 		if err := ui.gui.SetKeybinding(view, gocui.KeyCtrlX, gocui.ModNone, onClose); err != nil {
@@ -745,6 +777,26 @@ func (ui *UI) showProgressModal(name string) error {
 		return err
 	}
 	_, err := ui.openModal(name, 40, 1, false)
+	if err != nil {
+		return err
+	}
+	if ui.modalTimer != nil {
+		ui.modalTimer.Stop()
+	}
+
+	ui.gui.Cursor = false
+	ui.gui.DeleteKeybinding("", gocui.MouseLeft, gocui.ModNone)
+	ui.gui.DeleteKeybinding("", gocui.MouseRelease, gocui.ModNone)
+
+	return nil
+}
+
+// showProgressModal shows the progress modal.
+func (ui *UI) changeLayoutColor(name string) error {
+	if err := ui.closeModal(ui.currentModal); err != nil {
+		return err
+	}
+	_, err := ui.openModal(name, 40, 5, false)
 	if err != nil {
 		return err
 	}
