@@ -7,58 +7,88 @@ import (
 	"github.com/jroimartin/gocui"
 )
 
-type buttonWidget struct {
-	name      string
-	x, y      int
-	width     int
-	handlerFn func(*gocui.Gui, *gocui.View) error
+type Widget struct {
+	name       string
+	posX, posY int
+	width      int
+	handlerFn  func(*gocui.Gui, *gocui.View) error
 	*UI
 }
 
-type handlerFn func(g *gocui.Gui, v *gocui.View) error
-type WidgetOption func(*buttonWidget) error
+type WidgetEmbedder interface {
+	GetWidget() *Widget
+}
 
-var _ WidgetHandler = (*buttonWidget)(nil)
+type HandlerFn func(g *gocui.Gui, v *gocui.View) error
+type WidgetOption[T WidgetEmbedder] func(T) error
 
-// NewButton creates a new button widget.
-func NewButton(name string, x, y, w int, options ...WidgetOption) (*buttonWidget, error) {
-	widget := &buttonWidget{
-		name:  name,
-		x:     x,
-		y:     y,
-		width: w,
-	}
+var _ ComponentHandler = (*Widget)(nil)
 
+// New creates a new widget.
+func NewWidget[T WidgetEmbedder](w T, options ...WidgetOption[T]) (*T, error) {
 	for _, opt := range options {
-		if err := opt(widget); err != nil {
-			return nil, fmt.Errorf("button widget option error: %w", err)
+		if err := opt(w); err != nil {
+			return nil, fmt.Errorf("widget option error: %w", err)
 		}
 	}
 
-	return widget, nil
+	return &w, nil
 }
 
-func WithHandlerFn(handlerFn *handlerFn) WidgetOption {
-	return func(w *buttonWidget) error {
-		w.handlerFn = *handlerFn
-
+// WithDefaultWidgetOptions sets the default widget options for an already created widget element.
+func WithDefaultWidgetOptions[T WidgetEmbedder](name string, posX, posY int) WidgetOption[T] {
+	return func(w T) error {
+		w.GetWidget().setDefaultWidgetOptions(name, posX, posY)
 		return nil
 	}
 }
 
-func WithGUI(ui *UI) WidgetOption {
-	return func(w *buttonWidget) error {
+// WithWidgetWidth sets the widget element width.
+func WithWidgetWidth[T WidgetEmbedder](width int) WidgetOption[T] {
+	return func(w T) error {
+		w.GetWidget().setWidth(width)
+		return nil
+	}
+}
+
+// WithHandlerFn assigns an handler function to the widget.
+func WithHandlerFn[T WidgetEmbedder](handlerFn HandlerFn) WidgetOption[T] {
+	return func(w T) error {
+		w.GetWidget().setHandlerFn(handlerFn)
+		return nil
+	}
+}
+
+// WithUIHandler assigns an already initialized UI struct to the widget.
+func WithUIHandler[T WidgetEmbedder](ui *UI) WidgetOption[T] {
+	return func(w T) error {
 		if ui == nil {
 			return fmt.Errorf("UI not initialized")
 		}
-		w.UI = ui
-
+		w.GetWidget().setUI(ui)
 		return nil
 	}
 }
 
-func (w *buttonWidget) Draw() (*gocui.View, error) {
-	v, err := w.gui.SetView(w.name, w.x, w.y, w.x+w.width, w.y+2)
+// GetWidget implements the interface method definition.
+func (w *Widget) GetWidget() *Widget {
+	return w
+}
+
+func (w *Widget) setDefaultWidgetOptions(name string, posX, posY int) {
+	w.name = name
+	w.posX = posX
+	w.posY = posY
+}
+func (w *Widget) setWidth(width int) { w.width = width }
+func (w *Widget) setUI(ui *UI)       { w.UI = ui }
+func (w *Widget) setHandlerFn(handlerFn HandlerFn) {
+	w.handlerFn = handlerFn
+}
+
+// Draw draws the widget element.
+func (w *Widget) Draw() (*gocui.View, error) {
+	v, err := w.gui.SetView(w.name, w.posX, w.posY, w.posX+w.width, w.posY+2)
 	if err != gocui.ErrUnknownView {
 		return nil, err
 	}
@@ -73,7 +103,7 @@ func (w *buttonWidget) Draw() (*gocui.View, error) {
 }
 
 // NextElement activate the next element inside the modal view.
-func (w *buttonWidget) NextElement(views []string) error {
+func (w *Widget) NextElement(views []string) error {
 	var index int
 	index = w.nextItem + 1
 	if index > len(views)-1 {
@@ -89,8 +119,7 @@ func (w *buttonWidget) NextElement(views []string) error {
 	}
 	if w.nextItem != 0 {
 		v.Highlight = true
-		v.SelBgColor = gocui.ColorGreen
-		v.SelFgColor = gocui.ColorBlack
+		v.SelFgColor = gocui.ColorWhite
 		w.gui.Cursor = false
 	}
 
@@ -99,7 +128,7 @@ func (w *buttonWidget) NextElement(views []string) error {
 }
 
 // PrevElement activate the previous element inside the modal view.
-func (w *buttonWidget) PrevElement(views []string) error {
+func (w *Widget) PrevElement(views []string) error {
 	var index int
 	index = w.nextItem - 1
 	if index < 0 {
@@ -116,8 +145,7 @@ func (w *buttonWidget) PrevElement(views []string) error {
 	}
 	if w.nextItem != 0 {
 		v.Highlight = true
-		v.SelBgColor = gocui.ColorGreen
-		v.SelFgColor = gocui.ColorBlack
+		v.SelFgColor = gocui.ColorWhite
 		w.gui.Cursor = false
 	}
 

@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -28,29 +29,6 @@ type panelProperties struct {
 	cursor   bool
 }
 
-const (
-	// Main panels
-	logoPanel     = "logo_panel"
-	diagramsPanel = "diagrams_panel"
-	editorPanel   = "editor_panel"
-	logPanel      = "log_panel"
-
-	// Modals
-	helpModal     = "help_modal"
-	saveModal     = "save_modal"
-	layoutModal   = "layout_modal"
-	progressModal = "progress_modal"
-
-	// Log messages
-	errorEmpty     = "The editor should not be empty!"
-	invalidContent = "Cannot display the file content!"
-
-	saveButton   = "save"
-	cancelButton = "cancel"
-
-	mainDir = "/diagrams"
-)
-
 // Main views
 var panelViews map[string]panelProperties
 
@@ -65,8 +43,18 @@ var (
 		logPanel,
 		editorPanel,
 	}
-	modalElements = []string{"save_modal", "save", "cancel"}
-	currentFile   string
+	saveModalViews = []string{saveModal, saveButton, cancelButton}
+	layoutOptions  = []string{
+		defaultLayout.ToString(),
+		blackLayout.ToString(),
+		blueLayout.ToString(),
+		greenLayout.ToString(),
+		magentaLayout.ToString(),
+		cyanLayout.ToString(),
+	}
+	layoutModalViews = slices.Concat([]string{layoutModal}, layoutOptions)
+
+	currentFile string
 )
 
 // Layout initialize the panel views and associates the key bindings to them.
@@ -113,7 +101,7 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 			y1:       0.20,
 			x2:       0.35,
 			y2:       0.85,
-			editable: false,
+			editable: true,
 			cursor:   false,
 		},
 		logPanel: {
@@ -140,22 +128,22 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 
 	modalViews = map[string]panelProperties{
 		helpModal: {
-			title:    "Key Shortcuts",
+			title:    " Key Shortcuts ",
 			text:     "",
 			editable: false,
 		},
 		saveModal: {
-			title:    "Save diagram",
+			title:    " Save diagram ",
 			text:     ".txt",
 			editable: true,
 		},
 		layoutModal: {
-			title:    "Change layout color",
+			title:    " Layout color ",
 			editable: true,
 		},
 		progressModal: {
 			title:    "",
-			text:     " Generating diagram...",
+			text:     " Generating diagram... ",
 			editable: false,
 		},
 	}
@@ -250,9 +238,11 @@ func (ui *UI) scrollDown(g *gocui.Gui, v *gocui.View) error {
 
 // toggleHelpModal show or hide the help modal.
 func (ui *UI) toggleHelpModal(content string) error {
-	if err := ui.closeOpenedModals(modalElements); err != nil {
+	modals := slices.Concat(saveModalViews, layoutModalViews)
+	if err := ui.closeModals(modals...); err != nil {
 		return err
 	}
+
 	panelHeight := strings.Count(content, "\n")
 	if ui.currentModal == helpModal {
 		ui.gui.DeleteKeybinding("", gocui.MouseLeft, gocui.ModNone)
@@ -265,14 +255,16 @@ func (ui *UI) toggleHelpModal(content string) error {
 		}
 		return ui.closeModal(ui.currentModal)
 	}
-	v, err := ui.openModal(helpModal, 50, panelHeight, true)
+	modal, err := ui.openModal(helpModal, 50, panelHeight, true)
 	if err != nil {
 		return err
 	}
-	ui.gui.Cursor = false
-	v.Editor = newEditor(ui, &staticViewEditor{})
 
-	fmt.Fprint(v, content)
+	ui.gui.Cursor = false
+	modal.BgColor = gocui.ColorBlack
+	modal.Editor = newEditor(ui, &staticViewEditor{})
+	fmt.Fprint(modal, content)
+
 	return nil
 }
 
@@ -389,6 +381,7 @@ func (ui *UI) createPanelView(name string, x1, y1, x2, y2 int) (*gocui.View, err
 		}
 	case logPanel:
 		v.Wrap = true
+		v.Editor = newEditor(ui, &staticViewEditor{})
 	default:
 		v.Editor = newEditor(ui, &staticViewEditor{})
 	}
@@ -601,9 +594,10 @@ func (ui *UI) showDiagram(diagram string) error {
 
 // showSaveModal show the save modal.
 func (ui *UI) showSaveModal(name string) error {
-	var saveBtnWidget, cancelBtnWidget WidgetHandler
+	var saveBtnWidget, cancelBtnWidget ComponentHandler
 
-	if err := ui.closeModal(ui.currentModal); err != nil {
+	modals := slices.Concat(saveModalViews, layoutModalViews)
+	if err := ui.closeModals(modals...); err != nil {
 		return err
 	}
 
@@ -617,7 +611,8 @@ func (ui *UI) showSaveModal(name string) error {
 	}
 
 	ui.gui.Cursor = true
-	modal.Editor = newEditor(ui, &modalSaveEditor{30})
+	modal.BgColor = ui.selectedColor
+	modal.Editor = newEditor(ui, &modalViewEditor{30})
 	modal.SetCursor(0, 0)
 
 	ui.gui.DeleteKeybinding("", gocui.MouseLeft, gocui.ModNone)
@@ -626,7 +621,7 @@ func (ui *UI) showSaveModal(name string) error {
 	// Close event handler
 	onClose := func(*gocui.Gui, *gocui.View) error {
 		ui.nextItem = 0 // reset modal elements counter to 0
-		if err := ui.closeOpenedModals(modalElements); err != nil {
+		if err := ui.closeModals(saveModalViews...); err != nil {
 			return err
 		}
 		return nil
@@ -664,14 +659,14 @@ func (ui *UI) showSaveModal(name string) error {
 			}
 			defer f.Close()
 
-			ui.log(fmt.Sprintf("The diagram %q has been saved into the %q folder.", file, mainDir), false)
+			ui.log(fmt.Sprintf("The diagram has been saved as %q into the %q folder.", file, mainDir), false)
 		} else {
 			ui.log("Error saving the diagram. The file name should contain only letters, numbers and underscores!", true)
 			hasErrors = true
 		}
 
 		if !hasErrors {
-			if err := ui.closeOpenedModals(modalElements); err != nil {
+			if err := ui.closeModals(saveModalViews...); err != nil {
 				return fmt.Errorf("could not close opened modal: %w", err)
 			}
 		}
@@ -699,15 +694,15 @@ func (ui *UI) showSaveModal(name string) error {
 		var pv *gocui.View
 
 		if saveBtnWidget != nil {
-			if err := saveBtnWidget.NextElement(modalElements); err != nil {
+			if err := saveBtnWidget.NextElement(saveModalViews); err != nil {
 				return err
 			}
 		}
 
 		if (ui.nextItem - 1) > 0 {
-			pv, _ = ui.gui.View(modalElements[ui.nextItem-1])
+			pv, _ = ui.gui.View(saveModalViews[ui.nextItem-1])
 		} else {
-			pv, _ = ui.gui.View(modalElements[len(modalElements)-1])
+			pv, _ = ui.gui.View(saveModalViews[len(saveModalViews)-1])
 		}
 		pv.Highlight = false
 		if ui.nextItem == 0 {
@@ -720,7 +715,7 @@ func (ui *UI) showSaveModal(name string) error {
 	sw, sh := ui.gui.Size()
 	mw, _ := modal.Size()
 
-	saveBtnWidget, err = NewButton(saveButton, sw/2-mw/2, sh/2, len(saveButton)+1, WithGUI(ui))
+	saveBtnWidget, err = NewButton[*ButtonWidget](ui, saveButton, sw/2-mw/2, sh/2, len(saveButton)+1)
 	if err != nil {
 		return fmt.Errorf("failed to create a new button widget: %w", err)
 	}
@@ -733,7 +728,7 @@ func (ui *UI) showSaveModal(name string) error {
 	if saveBtn != nil {
 		saveBtnSize, _ := saveBtn.Size()
 		//Calculate the current modal button position relative to the previous button.
-		cancelBtnWidget, err = NewButton(cancelButton, (sw/2-mw/2)+saveBtnSize+4, sh/2, len(cancelButton)+1, WithGUI(ui))
+		cancelBtnWidget, err = NewButton[*ButtonWidget](ui, cancelButton, (sw/2-mw/2)+saveBtnSize+4, sh/2, len(cancelButton)+1)
 		if err != nil {
 			return fmt.Errorf("failed to create a new button widget: %w", err)
 		}
@@ -759,7 +754,7 @@ func (ui *UI) showSaveModal(name string) error {
 	}
 
 	// Associate the close modal key binding to each modal element.
-	for _, view := range modalElements {
+	for _, view := range saveModalViews {
 		if err := ui.gui.SetKeybinding(view, gocui.KeyCtrlX, gocui.ModNone, onClose); err != nil {
 			return err
 		}
@@ -773,18 +768,21 @@ func (ui *UI) showSaveModal(name string) error {
 
 // showProgressModal shows the progress modal.
 func (ui *UI) showProgressModal(name string) error {
-	if err := ui.closeModal(ui.currentModal); err != nil {
+	modals := slices.Concat(saveModalViews, layoutModalViews)
+	if err := ui.closeModals(modals...); err != nil {
 		return err
 	}
-	_, err := ui.openModal(name, 40, 1, false)
+
+	modal, err := ui.openModal(name, 40, 1, false)
 	if err != nil {
 		return err
 	}
 	if ui.modalTimer != nil {
 		ui.modalTimer.Stop()
 	}
-
+	modal.BgColor = gocui.ColorBlack
 	ui.gui.Cursor = false
+
 	ui.gui.DeleteKeybinding("", gocui.MouseLeft, gocui.ModNone)
 	ui.gui.DeleteKeybinding("", gocui.MouseRelease, gocui.ModNone)
 
@@ -792,21 +790,59 @@ func (ui *UI) showProgressModal(name string) error {
 }
 
 // showProgressModal shows the progress modal.
-func (ui *UI) changeLayoutColor(name string) error {
-	if err := ui.closeModal(ui.currentModal); err != nil {
+func (ui *UI) showLayoutModal(name string) error {
+	modals := slices.Concat(saveModalViews, layoutModalViews)
+	if err := ui.closeModals(modals...); err != nil {
 		return err
 	}
-	_, err := ui.openModal(name, 40, 5, false)
-	if err != nil {
-		return err
+
+	// Close event handler
+	onClose := func(*gocui.Gui, *gocui.View) error {
+		if err := ui.closeModals(layoutModalViews...); err != nil {
+			return err
+		}
+		ui.ApplyLayoutColor(ui.selectedColor)
+		return nil
 	}
+
 	if ui.modalTimer != nil {
 		ui.modalTimer.Stop()
 	}
 
+	modal, err := ui.openModal(name, 60, 4, false)
+	if err != nil {
+		return err
+	}
+
 	ui.gui.Cursor = false
+	modal.BgColor = gocui.ColorBlack
+	modal.Editor = newEditor(ui, &staticViewEditor{})
+	modal.SetCursor(0, 0)
+
 	ui.gui.DeleteKeybinding("", gocui.MouseLeft, gocui.ModNone)
 	ui.gui.DeleteKeybinding("", gocui.MouseRelease, gocui.ModNone)
+
+	// Get modal with and height
+	sw, sh := ui.gui.Size()
+	mw, mh := modal.Size()
+
+	radioBtnWidget, err := NewRadioButton[*RadioBtnWidget](ui, layoutModal, sw/2-mw/2, sh/2-mh/2)
+	if err != nil {
+		return fmt.Errorf("failed to create a new radio button widget: %w", err)
+	}
+	radioBtnWidget.AddOptions(layoutOptions...)
+
+	_, err = radioBtnWidget.Draw()
+	if err != nil {
+		return fmt.Errorf("failed drawing the button: %w", err)
+	}
+
+	// Associate the close modal key binding to each modal element.
+	for _, view := range layoutModalViews {
+		if err := ui.gui.SetKeybinding(view, gocui.KeyCtrlC, gocui.ModNone, onClose); err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
@@ -876,8 +912,8 @@ func (ui *UI) updateDiagramList(name string) error {
 	return nil
 }
 
-// closeOpenedModals closes all the opened modal elements.
-func (ui *UI) closeOpenedModals(views []string) error {
+// closeModals closes the modal elements provided as parameters.
+func (ui *UI) closeModals(views ...string) error {
 	for _, v := range views {
 		if view, _ := ui.gui.View(v); view != nil {
 			_ = ui.closeModal(view.Name())
@@ -926,4 +962,15 @@ func (ui *UI) ClearView(name string) {
 func (ui *UI) DeleteView(name string) error {
 	v, _ := ui.gui.View(name)
 	return ui.gui.DeleteView(v.Name())
+}
+
+// ApplyLayoutColor applies the selected color to the layout views.
+func (ui *UI) ApplyLayoutColor(layoutColor gocui.Attribute) {
+	// views := slices.Concat(mainViews, layoutModalViews)
+	for _, name := range mainViews {
+		if v, err := ui.gui.View(name); v != nil && err == nil {
+			v.BgColor = layoutColor
+		}
+	}
+	ui.gui.BgColor = layoutColor
 }

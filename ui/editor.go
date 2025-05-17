@@ -128,12 +128,12 @@ func (e *staticViewEditor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui
 	}
 }
 
-type modalSaveEditor struct {
+type modalViewEditor struct {
 	maxWidth int
 }
 
 // Save modal editor
-func (e *modalSaveEditor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+func (e *modalViewEditor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 	x, _ := v.Cursor()
 	switch {
 	case key == gocui.KeyBackspace || key == gocui.KeyBackspace2:

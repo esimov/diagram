@@ -127,8 +127,8 @@ func (gui *GUI) drawDiagram(gtx layout.Context) {
 				func(gtx layout.Context) layout.Dimensions {
 					widget.Image{
 						Src:   gui.image,
-						Scale: 1 / float32(gtx.Dp(unit.Dp(1))),
-						Fit:   widget.Contain,
+						Scale: 1 / float32(gtx.Dp(unit.Dp(2))),
+						Fit:   widget.Unscaled,
 					}.Layout(gtx)
 
 					return layout.Dimensions{Size: gtx.Constraints.Max}

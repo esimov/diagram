@@ -10,17 +10,18 @@ import (
 
 // UI defines the basic UI components.
 type UI struct {
-	gui          *gocui.Gui
-	gioGui       *gioGui.GUI
-	currentView  int
-	nextItem     int
-	currentModal string
-	consoleLog   string
-	cursors      Cursors
-	modalTimer   *time.Timer
-	logTimer     *time.Timer
-	fontPath     string
-	widget       WidgetHandler
+	selectedColor gocui.Attribute
+	gui           *gocui.Gui
+	gioGui        *gioGui.GUI
+	cursors       Cursors
+	modalTimer    *time.Timer
+	logTimer      *time.Timer
+	currentView   int
+	activeLayout  int
+	nextItem      int
+	currentModal  string
+	consoleLog    string
+	fontPath      string
 }
 
 // NewUI returns a new UI component.
@@ -87,12 +88,15 @@ func (ui *UI) Close() {
 
 // initGui initializes the GUI.
 func (ui *UI) initGui(g *gocui.Gui) error {
+	ui.selectedColor = gocui.ColorBlack
+	ui.activeLayout = int(ui.selectedColor)
+
 	// Default Panel settings
 	ui.gui.Highlight = true
 	ui.gui.InputEsc = false
+	ui.gui.BgColor = ui.selectedColor
+	ui.gui.SelBgColor = ui.selectedColor
 	ui.gui.SelFgColor = gocui.ColorGreen
-	ui.gui.SelBgColor = gocui.ColorBlack
-	ui.gui.BgColor = ui.gui.SelBgColor
 
 	// Mouse settings
 	ui.gui.Cursor = true

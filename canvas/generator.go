@@ -262,7 +262,7 @@ func (d *Diagram) ParseASCIIArt(str string) []*Figures {
 		figures = append(figures, &Figures{*line, Text{}})
 		erase(line)
 
-		// Adjust line start and end to accomodate for arrow endings.
+		// Adjust line start and end to accommodate for arrow endings.
 		// Those should not intersect with their targets but should touch them instead.
 		// Should be done after erasure to ensure that erase deletes arrowheads.
 		if start == "arrow" {
