@@ -10,18 +10,19 @@ import (
 
 // UI defines the basic UI components.
 type UI struct {
-	selectedColor gocui.Attribute
-	gui           *gocui.Gui
-	gioGui        *gioGui.GUI
-	cursors       Cursors
-	modalTimer    *time.Timer
-	logTimer      *time.Timer
-	currentView   int
-	activeLayout  int
-	nextItem      int
-	currentModal  string
-	consoleLog    string
-	fontPath      string
+	selectedColor  gocui.Attribute
+	gui            *gocui.Gui
+	gioGui         *gioGui.GUI
+	cursors        Cursors
+	modalTimer     *time.Timer
+	logTimer       *time.Timer
+	currentView    int
+	activeLayout   int
+	nextItem       int
+	currentModal   string
+	consoleLog     string
+	fontPath       string
+	defaultContent []byte
 }
 
 // NewUI returns a new UI component.
@@ -37,11 +38,14 @@ func NewUI(fontPath string) *UI {
 
 	ui.cursors = NewCursors()
 	ui.fontPath = fontPath
+
 	return ui
 }
 
 // Init initialize the UI component.
-func (ui *UI) Init() {
+func (ui *UI) Init(defaultContent []byte) {
+	ui.defaultContent = defaultContent
+
 	if err := ui.initGui(ui.gui); err != nil {
 		log.Panicln(err)
 	}

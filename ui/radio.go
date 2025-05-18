@@ -66,7 +66,7 @@ func NewRadioButton[T WidgetEmbedder](ui *UI, name string, posX, posY int) (*Rad
 }
 
 // Draw draws the radio button
-func (w *RadioBtnWidget) Draw() (*gocui.View, error) {
+func (w *RadioBtnWidget) Draw() *RadioBtnWidget {
 	for i, opt := range w.options {
 		if v, err := w.gui.SetView(opt.name, opt.x, opt.y, opt.w, opt.h); err != nil {
 			if err != gocui.ErrUnknownView {
@@ -91,7 +91,7 @@ func (w *RadioBtnWidget) Draw() (*gocui.View, error) {
 		}
 	}
 
-	return nil, nil
+	return w
 }
 
 // AddOptions add options

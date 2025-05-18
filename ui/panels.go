@@ -1,6 +1,7 @@
 package ui
 
 import (
+	_ "embed"
 	"fmt"
 	"image"
 	"log"
@@ -59,27 +60,17 @@ var (
 
 // Layout initialize the panel views and associates the key bindings to them.
 func (ui *UI) Layout(g *gocui.Gui) error {
-	var defaultContent []byte
 	diagrams, err := io.ListDiagrams(mainDir)
-	if err != nil {
-		return fmt.Errorf("error listing the existing diagrams: %w", err)
-	}
-
-	if len(diagrams) > 0 {
+	if len(diagrams) > 0 && err == nil {
 		cwd, err := filepath.Abs(filepath.Dir(""))
 		if err != nil {
 			return err
 		}
 
 		file := fmt.Sprintf("%s/%s/%s", cwd, mainDir, diagrams[0])
-		defaultContent, err = io.ReadFile(file)
+		ui.defaultContent, err = io.ReadFile(file)
 		if err != nil {
 			log.Fatalf("error loading the file content: %v", err)
-		}
-	} else {
-		defaultContent, err = io.ReadFile("sample.txt")
-		if err != nil {
-			return fmt.Errorf("error loading the sample file content: %w", err)
 		}
 	}
 
@@ -116,7 +107,7 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 		},
 		editorPanel: {
 			title:    " Editor ",
-			text:     string(defaultContent),
+			text:     string(ui.defaultContent),
 			x1:       0.35,
 			y1:       0.0,
 			x2:       1.0,
@@ -548,7 +539,7 @@ func (ui *UI) generateDiagram(name string) error {
 	// Generate the hand-drawn diagram.
 	err = canvas.DrawDiagram(v.Buffer(), diagram, ui.fontPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("cannot generate diagram: %w", err)
 	}
 
 	ui.modalTimer = time.AfterFunc(time.Since(start), func() {
@@ -809,7 +800,7 @@ func (ui *UI) showLayoutModal(name string) error {
 		ui.modalTimer.Stop()
 	}
 
-	modal, err := ui.openModal(name, 60, 4, false)
+	modal, err := ui.openModal(name, 60, 3, false)
 	if err != nil {
 		return err
 	}
@@ -830,12 +821,7 @@ func (ui *UI) showLayoutModal(name string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create a new radio button widget: %w", err)
 	}
-	radioBtnWidget.AddOptions(layoutOptions...)
-
-	_, err = radioBtnWidget.Draw()
-	if err != nil {
-		return fmt.Errorf("failed drawing the button: %w", err)
-	}
+	radioBtnWidget.AddOptions(layoutOptions...).Draw()
 
 	// Associate the close modal key binding to each modal element.
 	for _, view := range layoutModalViews {

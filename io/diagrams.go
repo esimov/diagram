@@ -1,7 +1,9 @@
 package io
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 )
@@ -16,9 +18,16 @@ func ListDiagrams(dir string) ([]string, error) {
 	}
 
 	path := cwd + dir
+	_, err = os.Stat(path)
+	if errors.Is(err, fs.ErrNotExist) {
+		if err = os.Mkdir(path, os.ModePerm); err != nil {
+			return nil, fmt.Errorf("cannot create directory: %w", err)
+		}
+	}
+
 	files, err := os.ReadDir(path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot read directory: %w", err)
 	}
 
 	for _, file := range files {

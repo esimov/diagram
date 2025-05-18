@@ -1,9 +1,11 @@
 package ui
 
-import "os"
+import (
+	"os"
+)
 
 // InitApp initialize the CLI application.
-func InitApp(fontPath string) {
+func InitApp(fontPath string, defaultContent []byte) {
 	ui := NewUI(fontPath)
 
 	// This will close the Gio application, which is running on the main thread.
@@ -12,6 +14,6 @@ func InitApp(fontPath string) {
 	}()
 	defer ui.Close()
 
-	ui.Init()
+	ui.Init(defaultContent)
 	ui.Loop()
 }

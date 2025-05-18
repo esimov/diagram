@@ -4,6 +4,7 @@
 package main
 
 import (
+	_ "embed"
 	"flag"
 	"fmt"
 	"image"
@@ -15,7 +16,6 @@ import (
 	"gioui.org/app"
 	"github.com/esimov/diagram/canvas"
 	"github.com/esimov/diagram/gui"
-	"github.com/esimov/diagram/io"
 	"github.com/esimov/diagram/ui"
 )
 
@@ -33,6 +33,9 @@ CLI app to convert ASCII arts into hand drawn diagrams.
 var version string
 
 var defaultFontFile = "font/gloriahallelujah.ttf"
+
+//go:embed sample.txt
+var defaultContent []byte
 
 var (
 	source      = flag.String("in", "", "Source")
@@ -52,12 +55,7 @@ func main() {
 
 	// In case the option parameters are used, the hand-drawn diagrams are generated without to enter into the CLI app.
 	if (*source != "") && (*destination != "") {
-		input, err := io.ReadFile("sample.txt")
-		if err != nil {
-			log.Fatalf("error reading the sample file: %v", err)
-		}
-
-		err = canvas.DrawDiagram(string(input), *destination, *fontPath)
+		err := canvas.DrawDiagram(string(defaultContent), *destination, *fontPath)
 		if err != nil {
 			log.Fatal("Error on converting the ascii art to hand drawn diagrams!")
 		} else if *preview {
@@ -77,7 +75,7 @@ func main() {
 			}
 		}
 	} else {
-		go ui.InitApp(*fontPath)
+		go ui.InitApp(*fontPath, defaultContent)
 		app.Main()
 	}
 }
