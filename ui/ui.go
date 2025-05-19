@@ -105,6 +105,7 @@ func (ui *UI) initGui(g *gocui.Gui) error {
 	// Mouse settings
 	ui.gui.Cursor = true
 	ui.gui.Mouse = true
+	ui.gui.InputEsc = true
 
 	ui.currentView = ui.findViewByName(editorPanel)
 	ui.nextItem = 0

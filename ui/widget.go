@@ -51,7 +51,7 @@ func WithWidgetWidth[T WidgetEmbedder](width int) WidgetOption[T] {
 	}
 }
 
-// WithHandlerFn assigns an handler function to the widget.
+// WithHandlerFn assigns a handler to the widget.
 func WithHandlerFn[T WidgetEmbedder](handlerFn HandlerFn) WidgetOption[T] {
 	return func(w T) error {
 		w.GetWidget().setHandlerFn(handlerFn)

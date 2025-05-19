@@ -207,7 +207,7 @@ func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {
 	}
 
 	return g.SetKeybinding("", gocui.KeyF1, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
-		return ui.toggleHelpModal(handlers.helpContent())
+		return ui.showHelpModal(handlers.helpContent())
 	})
 }
 

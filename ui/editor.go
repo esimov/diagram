@@ -15,8 +15,8 @@ type editor struct {
 
 var cache []byte
 
-// newEditor creates a new GUI editor
-func newEditor(ui *UI, handler gocui.Editor) *editor {
+// NewEditor creates a new GUI editor
+func NewEditor(ui *UI, handler gocui.Editor) *editor {
 	if handler == nil {
 		handler = gocui.DefaultEditor
 	}
