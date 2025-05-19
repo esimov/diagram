@@ -106,7 +106,7 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 		},
 		editorPanel: {
 			title:    " Editor ",
-			text:     string(ui.defaultContent),
+			text:     ui.defaultContent,
 			x1:       0.35,
 			y1:       0.0,
 			x2:       1.0,
@@ -608,7 +608,7 @@ func (ui *UI) DeleteView(name string) error {
 func (ui *UI) ApplyLayoutColor(layoutColor gocui.Attribute) {
 	views := slices.Concat(mainViews, []string{diagramsPanel})
 	for _, name := range views {
-		if v, err := ui.gui.View(name); v != nil && err == nil {
+		if v, err := ui.gui.View(name); v != nil && err != gocui.ErrUnknownView {
 			v.BgColor = layoutColor
 			switch layoutColor {
 			case gocui.ColorGreen:

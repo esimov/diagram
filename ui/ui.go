@@ -22,7 +22,7 @@ type UI struct {
 	currentModal   string
 	consoleLog     string
 	fontPath       string
-	defaultContent []byte
+	defaultContent string
 }
 
 // NewUI returns a new UI component.
@@ -43,8 +43,8 @@ func NewUI(fontPath string) *UI {
 }
 
 // Init initialize the UI component.
-func (ui *UI) Init(defaultContent []byte) {
-	ui.defaultContent = defaultContent
+func (ui *UI) Init(content string) {
+	ui.defaultContent = content
 
 	if err := ui.initGui(ui.gui); err != nil {
 		log.Panicln(err)

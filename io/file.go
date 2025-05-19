@@ -11,10 +11,25 @@ import (
 
 // ReadFile read the input file, and if it's the case
 // replaces the CRLF line endings with LF.
-func ReadFile(input string) ([]byte, error) {
+func ReadFile(input string) (string, error) {
+	f, err := os.Open(input)
+	if err != nil {
+		return "", fmt.Errorf("unable to open file: %w", err)
+	}
+	defer f.Close()
+
+	fileInfo, err := f.Stat()
+	if err != nil {
+		return "", err
+	}
+
+	if isExecutable(fileInfo.Mode().Perm()) {
+		return "", nil
+	}
+
 	buff, err := os.ReadFile(input)
 	if err != nil {
-		return nil, fmt.Errorf("error reading the file: %w", err)
+		return "", fmt.Errorf("error reading the file: %w", err)
 	}
 
 	sb := new(strings.Builder)
@@ -26,15 +41,15 @@ func ReadFile(input string) ([]byte, error) {
 	}
 
 	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("invalid input: %w", err)
+		return "", fmt.Errorf("invalid input: %w", err)
 	}
 
-	return []byte(sb.String()), nil
+	return sb.String(), nil
 }
 
 // SaveFile saves the diagram into the output directory.
 func SaveFile(fileName string, output string, data string) (*os.File, error) {
-	var file *os.File
+	var f *os.File
 
 	cwd, _ := filepath.Abs(filepath.Dir(""))
 
@@ -47,24 +62,24 @@ func SaveFile(fileName string, output string, data string) (*os.File, error) {
 	}
 
 	// Create the output file.
-	file, err := os.Create(filepath.Join(filePath, fileName))
+	f, err := os.Create(filepath.Join(filePath, fileName))
 	if err != nil {
 		return nil, fmt.Errorf("error creating the file: %w", err)
 	}
-	defer file.Close()
+	defer f.Close()
 
-	file, err = os.OpenFile(filepath.Join(filePath, fileName), os.O_RDWR, 0644)
+	f, err = os.OpenFile(filepath.Join(filePath, fileName), os.O_RDWR, 0644)
 	if err != nil {
 		return nil, fmt.Errorf("error opening the file: %w", err)
 	}
-	defer file.Close()
+	defer f.Close()
 
-	_, err = file.WriteString(data)
+	_, err = f.WriteString(data)
 	if err != nil {
 		return nil, err
 	}
 
-	return file, nil
+	return f, nil
 }
 
 // DeleteFile deletes a diagram.
@@ -75,4 +90,8 @@ func DeleteFile(fileName string) error {
 	}
 
 	return nil
+}
+
+func isExecutable(mode os.FileMode) bool {
+	return mode&0111 > 0
 }

@@ -6,7 +6,7 @@ import "github.com/esimov/diagram/color"
 const Name = "diagram"
 
 // description of application.
-const description = " A tool to transform your ASCII arts into hand drawn diagrams."
+const description = " Transform your ASCII arts into hand drawn diagrams."
 const author = " Developed by: Endre Simo (https://github.com/esimov)"
 
 // version number.

@@ -35,7 +35,7 @@ var version string
 var defaultFontFile = "font/gloriahallelujah.ttf"
 
 //go:embed sample.txt
-var defaultContent []byte
+var defaultContent string
 
 var (
 	source      = flag.String("in", "", "Source")
@@ -55,7 +55,7 @@ func main() {
 
 	// In case the option parameters are used, the hand-drawn diagrams are generated without to enter into the CLI app.
 	if (*source != "") && (*destination != "") {
-		err := canvas.DrawDiagram(string(defaultContent), *destination, *fontPath)
+		err := canvas.DrawDiagram(defaultContent, *destination, *fontPath)
 		if err != nil {
 			log.Fatal("Error on converting the ascii art to hand drawn diagrams!")
 		} else if *preview {
