@@ -5,11 +5,12 @@ import "github.com/esimov/diagram/color"
 // Name of application.
 const Name = "diagram"
 
-// Description of application.
-const Description = " Transform your ASCII arts into hand drawn diagrams."
+// description of application.
+const description = " A tool to transform your ASCII arts into hand drawn diagrams."
+const author = " Developed by: Endre Simo (https://github.com/esimov)"
 
-// Version number.
-const Version = "v1.1.0"
+// version number.
+const version = "v1.1.0"
 
 // DrawLogo draws diagram logo.
 func DrawLogo() string {
@@ -23,9 +24,10 @@ func DrawLogo() string {
 	logo += color.String(c, "  ██║  ██║██║███████║██║  ███╗██████╔╝███████║██╔████╔██║\n")
 	logo += color.String(c, "  ██║  ██║██║██╔══██║██║   ██║██╔══██╗██╔══██║██║╚██╔╝██║\n")
 	logo += color.String(c, "  ██████╔╝██║██║  ██║╚██████╔╝██║  ██║██║  ██║██║ ╚═╝ ██║\n")
-	logo += color.String(c, "  ╚═════╝ ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝ "+Version)
+	logo += color.String(c, "  ╚═════╝ ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝ "+version)
 	logo += "\n\n\n"
-	logo += color.String(c, Description)
+	logo += color.String(c, description+"\n")
+	logo += color.String(c, author)
 
 	return logo
 }
