@@ -8,7 +8,6 @@ type ComponentHandler interface {
 	PrevElement(views []string) error
 }
 
-// Key define kye type
 type Key interface{}
 
 type Handlers map[Key]HandlerFn

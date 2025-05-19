@@ -88,7 +88,7 @@ func (ui *UI) showSaveModal(name string) error {
 	ui.gui.Cursor = true
 	modal.BgColor = ui.selectedColor
 	modal.Editor = NewEditor(ui, &modalViewEditor{30})
-	modal.SetCursor(0, 0)
+	_ = modal.SetCursor(0, 0)
 
 	ui.gui.DeleteKeybinding("", gocui.MouseLeft, gocui.ModNone)
 	ui.gui.DeleteKeybinding("", gocui.MouseRelease, gocui.ModNone)
@@ -260,15 +260,6 @@ func (ui *UI) showLayoutModal(name string) error {
 		return err
 	}
 
-	// Close event handler
-	onClose := func(*gocui.Gui, *gocui.View) error {
-		if err := ui.closeModals(layoutModalViews...); err != nil {
-			return err
-		}
-		ui.ApplyLayoutColor(ui.selectedColor)
-		return nil
-	}
-
 	if ui.modalTimer != nil {
 		ui.modalTimer.Stop()
 	}
@@ -294,9 +285,39 @@ func (ui *UI) showLayoutModal(name string) error {
 	}
 	radioBtnWidget.AddOptions(layoutOptions...).Draw()
 
+	// Close event handler
+	onClose := func(*gocui.Gui, *gocui.View) error {
+		if err := ui.closeModals(layoutModalViews...); err != nil {
+			return err
+		}
+		ui.ApplyLayoutColor(ui.selectedColor)
+		return nil
+	}
+
+	// Activate radio button on click.
+	onClick := func(*gocui.Gui, *gocui.View) error {
+		for idx, opt := range layoutOptions {
+			v, _ := radioBtnWidget.gui.View(opt)
+			cx, _ := v.Cursor()
+
+			if cx > 0 {
+				_ = v.SetCursor(0, 0)
+				radioBtnWidget.unFocus()
+				radioBtnWidget.activeLayout = idx
+				radioBtnWidget.focus()
+				continue
+			}
+		}
+
+		return nil
+	}
+
 	// Associate the close modal key binding to each modal element.
 	for _, view := range layoutModalViews {
 		if err := ui.gui.SetKeybinding(view, gocui.KeyEsc, gocui.ModNone, onClose); err != nil {
+			return err
+		}
+		if err := ui.gui.SetKeybinding(view, gocui.MouseRelease, gocui.ModNone, onClick); err != nil {
 			return err
 		}
 	}
