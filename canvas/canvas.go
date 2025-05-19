@@ -81,7 +81,7 @@ func (ctx *Canvas) shakyLine(x0, y0, x1, y1 float64) {
 
 // bulb draws a shaky bulb (used for line endings).
 func (ctx *Canvas) bulb(x0, y0 float64) {
-	fuzziness := random()*2 - 1
+	fuzziness := rand.Float64()*2 - 1
 
 	for i := 0; i < 3; i++ {
 		ctx.DrawArc(x0+fuzziness, y0+fuzziness, 5, 0, math.Pi*2)

@@ -805,7 +805,6 @@ func (ui *UI) showLayoutModal(name string) error {
 		return err
 	}
 
-	ui.gui.Cursor = false
 	modal.BgColor = gocui.ColorBlack
 	modal.Editor = newEditor(ui, &staticViewEditor{})
 	modal.SetCursor(0, 0)
@@ -952,10 +951,21 @@ func (ui *UI) DeleteView(name string) error {
 
 // ApplyLayoutColor applies the selected color to the layout views.
 func (ui *UI) ApplyLayoutColor(layoutColor gocui.Attribute) {
-	// views := slices.Concat(mainViews, layoutModalViews)
-	for _, name := range mainViews {
+	views := slices.Concat(mainViews, []string{diagramsPanel})
+	for _, name := range views {
 		if v, err := ui.gui.View(name); v != nil && err == nil {
 			v.BgColor = layoutColor
+			switch layoutColor {
+			case gocui.ColorGreen:
+				v.SelBgColor = gocui.ColorBlack
+				v.SelFgColor = gocui.ColorGreen
+			case gocui.ColorCyan:
+				v.SelBgColor = gocui.ColorBlack
+				v.SelFgColor = gocui.ColorCyan
+			default:
+				v.SelBgColor = gocui.ColorGreen
+				v.SelFgColor = gocui.ColorBlack
+			}
 		}
 	}
 	ui.gui.BgColor = layoutColor

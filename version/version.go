@@ -6,10 +6,10 @@ import "github.com/esimov/diagram/color"
 const Name = "diagram"
 
 // Description of application.
-const Description = " TUI tool to transform your ASCII arts into hand drawn diagrams."
+const Description = " Transform your ASCII arts into hand drawn diagrams."
 
 // Version number.
-const Version = "v1.0.6"
+const Version = "v1.1.0"
 
 // DrawLogo draws diagram logo.
 func DrawLogo() string {

@@ -63,14 +63,14 @@ func onPrevPanel(ui *UI, wrap bool) Fn {
 	}
 }
 
-// onQuit is an event listener which get triggered when a quit action is performed.
+// onQuit is an event listener which gets triggered when a quit action is performed.
 func onQuit(ui *UI, wrap bool) Fn {
 	return func(*gocui.Gui, *gocui.View) error {
 		return gocui.ErrQuit
 	}
 }
 
-// onDiagramSave is an event listener which get triggered when a save action is performed.
+// onDiagramSave is an event listener which gets triggered when a save action is performed.
 func onDiagramSave(ui *UI, wrap bool) Fn {
 	return func(*gocui.Gui, *gocui.View) error {
 		if ui.currentModal == saveModal {
@@ -80,7 +80,7 @@ func onDiagramSave(ui *UI, wrap bool) Fn {
 	}
 }
 
-// onDiagramGenerate is an event listener which get triggered when a draw action is performed.
+// onDiagramGenerate is an event listener which gets triggered when a draw action is performed.
 func onDiagramGenerate(ui *UI, wrap bool) Fn {
 	return func(*gocui.Gui, *gocui.View) error {
 		err := ui.generateDiagram(editorPanel)
@@ -92,7 +92,7 @@ func onDiagramGenerate(ui *UI, wrap bool) Fn {
 	}
 }
 
-// onDiagramSave is an event listener which get triggered when a save action is performed.
+// onChangeLayoutColor is an event listener which gets triggered when the layout color change is performed.
 func onChangeLayoutColor(ui *UI, wrap bool) Fn {
 	return func(*gocui.Gui, *gocui.View) error {
 		return ui.showLayoutModal(layoutModal)
