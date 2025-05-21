@@ -80,37 +80,28 @@ func (ui *UI) showSaveModal(name string) error {
 	if err != nil {
 		return err
 	}
+	ui.widgetItems[saveModal] = append(ui.widgetItems[saveModal], modal.Name())
 
 	if ui.modalTimer != nil {
 		ui.modalTimer.Stop()
 	}
 
 	ui.gui.Cursor = true
-	modal.BgColor = ui.selectedColor
 	modal.Editor = NewEditor(ui, &modalViewEditor{30})
-	_ = modal.SetCursor(0, 0)
+	modal.SetCursor(0, 0)
+	modal.BgColor = ui.selectedColor
 
 	ui.gui.DeleteKeybinding("", gocui.MouseLeft, gocui.ModNone)
 	ui.gui.DeleteKeybinding("", gocui.MouseRelease, gocui.ModNone)
-
-	// Close event handler
-	onClose := func(*gocui.Gui, *gocui.View) error {
-		ui.nextItem = 0 // reset modal elements counter to 0
-		if err := ui.closeModals(saveModalViews...); err != nil {
-			return err
-		}
-		return nil
-	}
 
 	// Save event handler
 	onSave := func(*gocui.Gui, *gocui.View) error {
 		if ui.logTimer != nil {
 			ui.logTimer.Stop()
 		}
+
 		diagram, _ := ui.gui.View(editorPanel)
 		v := modalViews[name]
-
-		ui.nextItem = 0 // reset modal elements counter to 0
 
 		// Check if the file name contains only letters, numbers and underscores.
 		buffer := strings.TrimSpace(strings.Replace(modal.ViewBuffer(), v.text, "", -1))
@@ -154,41 +145,74 @@ func (ui *UI) showSaveModal(name string) error {
 
 		defer func() {
 			// Hide log message after 4 seconds
-			ui.logTimer = time.AfterFunc(4*time.Second, func() {
+			ui.logTimer = time.AfterFunc(2*time.Second, func() {
 				ui.gui.Update(func(*gocui.Gui) error {
 					return ui.clearLog()
 				})
+
+				ui.gui.Cursor = true
+				ui.activeModalView = 0
+				modal.SetCursor(0, 0)
+				ui.gui.SetCurrentView(saveModal)
+
+				for _, opt := range saveOptions {
+					if v, err := ui.gui.View(opt); err == nil {
+						v.BgColor = ui.selectedColor
+						v.SelBgColor = ui.selectedColor
+					}
+				}
 			})
 		}()
 
 		return nil
 	}
 
-	// Tab event handler
-	onNext := func(*gocui.Gui, *gocui.View) error {
-		var pv *gocui.View
-
-		if saveBtnWidget != nil {
-			if err := saveBtnWidget.NextElement(saveModalViews); err != nil {
-				return err
-			}
-		}
-
-		if (ui.nextItem - 1) > 0 {
-			pv, _ = ui.gui.View(saveModalViews[ui.nextItem-1])
-		} else {
-			pv, _ = ui.gui.View(saveModalViews[len(saveModalViews)-1])
-		}
-		pv.Highlight = false
-		if ui.nextItem == 0 {
-			ui.gui.Cursor = true
+	// Close event handler
+	onCancel := func(*gocui.Gui, *gocui.View) error {
+		ui.activeModalView = 0 // reset modal elements counter to 0
+		if err := ui.closeModals(saveModalViews...); err != nil {
+			return err
 		}
 		return nil
 	}
 
-	onClick := func(*gocui.Gui, *gocui.View) error {
-		_ = modal.SetOrigin(0, 0)
-		_ = modal.SetCursor(0, 0)
+	// Activate the button.
+	onClick := func(g *gocui.Gui, v *gocui.View) error {
+		if v.Name() == saveModal {
+			ui.gui.Cursor = true
+			v.SetCursor(0, 0)
+			v.SetOrigin(0, 0)
+
+			if cv := ui.gui.CurrentView(); cv != nil && cv.Name() == saveModal {
+				return nil
+			}
+			_ = saveBtnWidget.PrevElement(g, v)
+			ui.activeModalView = 0
+		}
+
+		for idx, element := range saveOptions {
+			v, _ := ui.gui.View(element)
+			cx, _ := v.Cursor()
+
+			if cx > 0 {
+				v.SetCursor(0, 0)
+				v.BgColor = gocui.ColorBlack
+				v.SelBgColor = gocui.ColorBlack
+
+				ui.gui.Cursor = false
+				ui.activeModalView = idx
+				_ = saveBtnWidget.NextElement(g, v)
+
+				switch v.Name() {
+				case saveOption.ToString():
+					return onSave(g, v)
+				case cancelOption.ToString():
+					return onCancel(g, v)
+				}
+
+				continue
+			}
+		}
 		return nil
 	}
 
@@ -196,7 +220,7 @@ func (ui *UI) showSaveModal(name string) error {
 	sw, sh := ui.gui.Size()
 	mw, _ := modal.Size()
 
-	saveBtnWidget, err = NewButton[*ButtonWidget](ui, saveButton, sw/2-mw/2, sh/2, len(saveButton)+1)
+	saveBtnWidget, err = NewButton[*ButtonWidget](ui, saveModal, saveOption.ToString(), sw/2-mw/2, sh/2, len(saveOption.ToString())+1)
 	if err != nil {
 		return fmt.Errorf("failed to create a new button widget: %w", err)
 	}
@@ -205,26 +229,28 @@ func (ui *UI) showSaveModal(name string) error {
 	if err != nil {
 		return fmt.Errorf("failed drawing the button: %w", err)
 	}
+	saveBtn.BgColor = ui.selectedColor
+	saveBtn.SelBgColor = ui.selectedColor
 
-	if saveBtn != nil {
-		saveBtnSize, _ := saveBtn.Size()
-		//Calculate the current modal button position relative to the previous button.
-		cancelBtnWidget, err = NewButton[*ButtonWidget](ui, cancelButton, (sw/2-mw/2)+saveBtnSize+4, sh/2, len(cancelButton)+1)
-		if err != nil {
-			return fmt.Errorf("failed to create a new button widget: %w", err)
-		}
+	saveBtnSize, _ := saveBtn.Size()
+	//Calculate the current modal button position relative to the previous button.
+	cancelBtnWidget, err = NewButton[*ButtonWidget](ui, saveModal, cancelOption.ToString(), (sw/2-mw/2)+saveBtnSize+4, sh/2, len(cancelOption.ToString())+1)
+	if err != nil {
+		return fmt.Errorf("failed to create a new button widget: %w", err)
+	}
 
-		cancelBtn, err := cancelBtnWidget.Draw()
-		if err != nil {
-			return fmt.Errorf("failed drawing the button: %w", err)
-		}
+	cancelBtn, err := cancelBtnWidget.Draw()
+	if err != nil {
+		return fmt.Errorf("failed drawing the button: %w", err)
+	}
+	cancelBtn.BgColor = ui.selectedColor
+	cancelBtn.SelBgColor = ui.selectedColor
 
-		if err := ui.gui.SetKeybinding(saveBtn.Name(), gocui.KeyEnter, gocui.ModNone, onSave); err != nil {
-			return err
-		}
-		if err := ui.gui.SetKeybinding(cancelBtn.Name(), gocui.KeyEnter, gocui.ModNone, onClose); err != nil {
-			return err
-		}
+	if err := ui.gui.SetKeybinding(saveBtn.Name(), gocui.KeyEnter, gocui.ModNone, onSave); err != nil {
+		return err
+	}
+	if err := ui.gui.SetKeybinding(cancelBtn.Name(), gocui.KeyEnter, gocui.ModNone, onCancel); err != nil {
+		return err
 	}
 
 	keys := []gocui.Key{gocui.KeyCtrlS, gocui.KeyEnter}
@@ -236,10 +262,10 @@ func (ui *UI) showSaveModal(name string) error {
 
 	// Associate the close modal key binding to each modal element.
 	for _, view := range saveModalViews {
-		if err := ui.gui.SetKeybinding(view, gocui.KeyEsc, gocui.ModNone, onClose); err != nil {
+		if err := ui.gui.SetKeybinding(view, gocui.KeyEsc, gocui.ModNone, onCancel); err != nil {
 			return err
 		}
-		if err := ui.gui.SetKeybinding(view, gocui.KeyTab, gocui.ModNone, onNext); err != nil {
+		if err := ui.gui.SetKeybinding(view, gocui.KeyTab, gocui.ModNone, saveBtnWidget.NextElement); err != nil {
 			return err
 		}
 		if err := ui.gui.SetKeybinding(view, gocui.MouseLeft, gocui.ModNone, onClick); err != nil {
@@ -253,7 +279,7 @@ func (ui *UI) showSaveModal(name string) error {
 	return nil
 }
 
-// showProgressModal shows the progress modal.
+// showLayoutModal shows the layout color change modal.
 func (ui *UI) showLayoutModal(name string) error {
 	modals := slices.Concat(saveModalViews, layoutModalViews)
 	if err := ui.closeModals(modals...); err != nil {
@@ -301,14 +327,13 @@ func (ui *UI) showLayoutModal(name string) error {
 			cx, _ := v.Cursor()
 
 			if cx > 0 {
-				_ = v.SetCursor(0, 0)
-				radioBtnWidget.unFocus()
+				v.SetCursor(0, 0)
+				radioBtnWidget.Unfocus()
 				radioBtnWidget.activeLayout = idx
-				radioBtnWidget.focus()
+				radioBtnWidget.Focus()
 				continue
 			}
 		}
-
 		return nil
 	}
 

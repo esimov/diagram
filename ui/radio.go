@@ -35,7 +35,7 @@ const (
 var currentColor gocui.Attribute
 
 // NewRadioButton creates a new radio button widget.
-func NewRadioButton[T WidgetEmbedder](ui *UI, name string, posX, posY int) (*RadioBtnWidget, error) {
+func NewRadioButton[T WidgetEmbedder](ui *UI, viewName string, posX, posY int) (*RadioBtnWidget, error) {
 	radioBtnWidget, err := NewWidget(
 		&RadioBtnWidget{
 			handlers: make(Handlers),
@@ -47,7 +47,7 @@ func NewRadioButton[T WidgetEmbedder](ui *UI, name string, posX, posY int) (*Rad
 			},
 		},
 		[]WidgetOption[*RadioBtnWidget]{
-			WithDefaultWidgetOptions[*RadioBtnWidget](name, posX, posY),
+			WithDefaultWidgetOptions[*RadioBtnWidget](viewName, posX, posY),
 			WithUIHandler[*RadioBtnWidget](ui),
 		}...,
 	)
@@ -85,7 +85,7 @@ func (w *RadioBtnWidget) Draw() *RadioBtnWidget {
 				}
 			}
 			if i == w.activeLayout {
-				w.focus()
+				w.Focus()
 				w.check(v)
 			}
 		}
@@ -141,29 +141,29 @@ func (w *RadioBtnWidget) AddHandler(key Key, handler HandlerFn) *RadioBtnWidget 
 
 // nextRadio jumps to the next radio button
 func (w *RadioBtnWidget) nextRadio(g *gocui.Gui, v *gocui.View) error {
-	w.unFocus()
+	w.Unfocus()
 	w.activeLayout = (w.activeLayout + 1) % len(w.options)
-	w.focus()
+	w.Focus()
 
 	return nil
 }
 
 // prevRadio jumps to the previous radio button
 func (w *RadioBtnWidget) prevRadio(g *gocui.Gui, v *gocui.View) error {
-	w.unFocus()
+	w.Unfocus()
 
 	if w.activeLayout-1 < 0 {
 		w.activeLayout = len(w.options) - 1
 	} else {
 		w.activeLayout = (w.activeLayout - 1) % len(w.options)
 	}
-	w.focus()
+	w.Focus()
 
 	return nil
 }
 
-// focus brings into focus the active radio button
-func (w *RadioBtnWidget) focus() {
+// Focus brings into Focus the active radio button
+func (w *RadioBtnWidget) Focus() {
 	if len(w.options) != 0 {
 		v, _ := w.gui.SetCurrentView(w.options[w.activeLayout].name)
 
@@ -191,8 +191,8 @@ func (w *RadioBtnWidget) focus() {
 	}
 }
 
-// unFocus radio button
-func (w *RadioBtnWidget) unFocus() {
+// Unfocus radio button
+func (w *RadioBtnWidget) Unfocus() {
 	if len(w.options) != 0 {
 		v, _ := w.gui.SetCurrentView(w.options[w.activeLayout].name)
 		v.Highlight = false

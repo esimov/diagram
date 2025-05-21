@@ -17,7 +17,7 @@ import (
 	"gioui.org/widget"
 )
 
-const title = "Diagram preview..."
+const title = "Preview diagram..."
 
 const (
 	maxWindowWidth  = 1024

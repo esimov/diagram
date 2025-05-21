@@ -9,11 +9,11 @@ type ButtonWidget struct {
 }
 
 // NewButton creates a new button widget.
-func NewButton[T WidgetEmbedder](ui *UI, name string, posX, posY, width int) (*ButtonWidget, error) {
+func NewButton[T WidgetEmbedder](ui *UI, groupName, viewName string, posX, posY, width int) (*ButtonWidget, error) {
 	button, err := NewWidget(
-		&ButtonWidget{},
+		&ButtonWidget{Widget{groupName: groupName}},
 		[]WidgetOption[*ButtonWidget]{
-			WithDefaultWidgetOptions[*ButtonWidget](name, posX, posY),
+			WithDefaultWidgetOptions[*ButtonWidget](viewName, posX, posY),
 			WithWidgetWidth[*ButtonWidget](width),
 			WithUIHandler[*ButtonWidget](ui),
 		}...,

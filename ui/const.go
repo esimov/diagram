@@ -1,6 +1,7 @@
 package ui
 
 type LayoutOption int
+type SaveOption int
 
 const (
 	// Main panels
@@ -11,17 +12,13 @@ const (
 
 	// Modal names
 	helpModal     = "help_modal"
-	saveModal     = "save_modal"
 	layoutModal   = "layout_modal"
+	saveModal     = "save_modal"
 	progressModal = "progress_modal"
 
 	// Log messages
 	errorEmpty     = "The editor should not be empty!"
 	invalidContent = "Cannot display the file content!"
-
-	// Save modal elements
-	saveButton   = "save"
-	cancelButton = "cancel"
 
 	mainDir = "/diagrams"
 )
@@ -52,4 +49,20 @@ func (o LayoutOption) ToString() string {
 	default:
 		return ""
 	}
+}
+
+const (
+	saveOption SaveOption = iota
+	cancelOption
+)
+
+func (o SaveOption) ToString() string {
+	switch o {
+	case saveOption:
+		return "Save"
+	case cancelOption:
+		return "Cancel"
+	}
+
+	return ""
 }

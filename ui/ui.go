@@ -10,19 +10,20 @@ import (
 
 // UI defines the basic UI components.
 type UI struct {
-	selectedColor  gocui.Attribute
-	gui            *gocui.Gui
-	gioGui         *gioGui.GUI
-	cursors        Cursors
-	modalTimer     *time.Timer
-	logTimer       *time.Timer
-	currentView    int
-	activeLayout   int
-	nextItem       int
-	currentModal   string
-	consoleLog     string
-	fontPath       string
-	defaultContent string
+	selectedColor   gocui.Attribute
+	gui             *gocui.Gui
+	gioGui          *gioGui.GUI
+	cursors         Cursors
+	modalTimer      *time.Timer
+	logTimer        *time.Timer
+	currentView     int
+	activeLayout    int
+	activeModalView int
+	currentModal    string
+	consoleLog      string
+	fontPath        string
+	defaultContent  string
+	widgetItems     map[string][]string
 }
 
 // NewUI returns a new UI component.
@@ -108,7 +109,8 @@ func (ui *UI) initGui(g *gocui.Gui) error {
 	ui.gui.InputEsc = true
 
 	ui.currentView = ui.findViewByName(editorPanel)
-	ui.nextItem = 0
+	ui.activeModalView = 0
+	ui.widgetItems = make(map[string][]string)
 
 	// Set Layout function
 	ui.gui.SetManager(ui)

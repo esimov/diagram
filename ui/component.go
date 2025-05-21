@@ -4,8 +4,8 @@ import "github.com/jroimartin/gocui"
 
 type ComponentHandler interface {
 	Draw() (*gocui.View, error)
-	NextElement(views []string) error
-	PrevElement(views []string) error
+	NextElement(g *gocui.Gui, v *gocui.View) error
+	PrevElement(g *gocui.Gui, v *gocui.View) error
 }
 
 type Key interface{}

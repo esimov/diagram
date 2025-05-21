@@ -9,6 +9,7 @@ import (
 
 type Widget struct {
 	name       string
+	groupName  string
 	posX, posY int
 	width      int
 	handlerFn  func(*gocui.Gui, *gocui.View) error
@@ -99,56 +100,48 @@ func (w *Widget) Draw() (*gocui.View, error) {
 		return nil, err
 	}
 
+	w.widgetItems[w.GetWidget().groupName] = append(w.widgetItems[w.GetWidget().groupName], v.Name())
+
 	return v, nil
 }
 
 // NextElement activate the next element inside the modal view.
-func (w *Widget) NextElement(views []string) error {
-	var index int
-	index = w.nextItem + 1
-	if index > len(views)-1 {
-		index = 0
-	}
-	w.nextItem = index % len(views)
-	v, err := w.gui.SetCurrentView(views[w.nextItem])
-	if err != nil {
-		if err == gocui.ErrUnknownView {
-			return nil
-		}
-		return err
-	}
-	if w.nextItem != 0 {
-		v.Highlight = true
-		v.SelFgColor = gocui.ColorWhite
-		w.gui.Cursor = false
-	}
+func (w *Widget) NextElement(g *gocui.Gui, v *gocui.View) error {
+	w.unfocus()
+	w.activeModalView = (w.activeModalView + 1) % len(w.widgetItems[w.GetWidget().groupName])
+	w.focus()
 
-	w.nextItem = index
 	return nil
 }
 
 // PrevElement activate the previous element inside the modal view.
-func (w *Widget) PrevElement(views []string) error {
-	var index int
-	index = w.nextItem - 1
-	if index < 0 {
-		index = len(views) - 1
+func (w *Widget) PrevElement(g *gocui.Gui, v *gocui.View) error {
+	w.unfocus()
 
+	if w.activeModalView-1 < 0 {
+		w.activeModalView = len(w.widgetItems[w.GetWidget().groupName]) - 1
+	} else {
+		w.activeModalView = (w.activeModalView - 1) % len(w.widgetItems[w.GetWidget().groupName])
 	}
-	w.nextItem = index % len(views)
-	v, err := w.gui.SetCurrentView(views[w.nextItem])
-	if err != nil {
-		if err == gocui.ErrUnknownView {
-			return nil
-		}
-		return err
-	}
-	if w.nextItem != 0 {
+	w.focus()
+
+	return nil
+}
+
+func (w *Widget) focus() {
+	if len(w.widgetItems[w.GetWidget().groupName]) != 0 {
+		v, _ := w.gui.SetCurrentView(w.widgetItems[w.GetWidget().groupName][w.activeModalView])
 		v.Highlight = true
 		v.SelFgColor = gocui.ColorWhite
+		v.SelBgColor = gocui.ColorBlack
 		w.gui.Cursor = false
 	}
+}
 
-	w.nextItem = index
-	return nil
+func (w *Widget) unfocus() {
+	if len(w.widgetItems[w.GetWidget().groupName]) != 0 {
+		v, _ := w.gui.SetCurrentView(w.widgetItems[w.GetWidget().groupName][w.activeModalView])
+		v.Highlight = false
+		v.SelBgColor = w.selectedColor
+	}
 }

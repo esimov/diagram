@@ -43,8 +43,7 @@ var (
 		logPanel,
 		editorPanel,
 	}
-	saveModalViews = []string{saveModal, saveButton, cancelButton}
-	layoutOptions  = []string{
+	layoutOptions = []string{
 		defaultLayout.ToString(),
 		blackLayout.ToString(),
 		blueLayout.ToString(),
@@ -53,6 +52,12 @@ var (
 		cyanLayout.ToString(),
 	}
 	layoutModalViews = slices.Concat([]string{layoutModal}, layoutOptions)
+
+	saveOptions = []string{
+		saveOption.ToString(),
+		cancelOption.ToString(),
+	}
+	saveModalViews = slices.Concat([]string{saveModal}, saveOptions)
 
 	currentFile string
 )
@@ -387,7 +392,7 @@ func (ui *UI) saveDiagram(name string) error {
 		}
 	}
 	if err := ui.showSaveModal(saveModal); err != nil {
-		log.Fatalf("error opening the save modal: %v", err)
+		return fmt.Errorf("error opening the save diagram modal: %w", err)
 	}
 
 	return nil
@@ -453,12 +458,13 @@ func (ui *UI) generateDiagram(name string) error {
 	// Generate the hand-drawn diagram.
 	err = canvas.DrawDiagram(v.Buffer(), diagram, ui.fontPath)
 	if err != nil {
-		return fmt.Errorf("cannot generate diagram: %w", err)
+		_ = ui.closeModal(progressModal)
+		return fmt.Errorf("failed generating diagram: %w", err)
 	}
 
 	ui.modalTimer = time.AfterFunc(time.Since(start), func() {
 		ui.gui.Update(func(*gocui.Gui) error {
-			ui.nextItem = 0 // reset modal elements counter to 0
+			ui.activeModalView = 0 // reset modal elements counter to 0
 			if err := ui.closeModal(progressModal); err != nil {
 				return err
 			}
