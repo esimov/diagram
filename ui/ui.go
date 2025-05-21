@@ -93,7 +93,7 @@ func (ui *UI) Close() {
 
 // initGui initializes the GUI.
 func (ui *UI) initGui(g *gocui.Gui) error {
-	ui.selectedColor = gocui.ColorBlack
+	ui.selectedColor = gocui.ColorDefault
 	ui.activeLayout = int(ui.selectedColor)
 
 	// Default Panel settings

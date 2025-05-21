@@ -618,14 +618,14 @@ func (ui *UI) ApplyLayoutColor(layoutColor gocui.Attribute) {
 			v.BgColor = layoutColor
 			switch layoutColor {
 			case gocui.ColorGreen:
-				v.SelBgColor = gocui.ColorBlack
+				v.SelBgColor = gocui.ColorDefault
 				v.SelFgColor = gocui.ColorGreen
 			case gocui.ColorCyan:
-				v.SelBgColor = gocui.ColorBlack
+				v.SelBgColor = gocui.ColorDefault
 				v.SelFgColor = gocui.ColorCyan
 			default:
 				v.SelBgColor = gocui.ColorGreen
-				v.SelFgColor = gocui.ColorBlack
+				v.SelFgColor = gocui.ColorDefault
 			}
 		}
 	}

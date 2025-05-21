@@ -36,7 +36,7 @@ func (ui *UI) showHelpModal(content string) error {
 	}
 
 	ui.gui.Cursor = false
-	modal.BgColor = gocui.ColorBlack
+	modal.BgColor = gocui.ColorDefault
 	modal.Editor = NewEditor(ui, &staticViewEditor{})
 
 	fmt.Fprint(modal, content)
@@ -58,7 +58,7 @@ func (ui *UI) showProgressModal(name string) error {
 	if ui.modalTimer != nil {
 		ui.modalTimer.Stop()
 	}
-	modal.BgColor = gocui.ColorBlack
+	modal.BgColor = gocui.ColorDefault
 	ui.gui.Cursor = false
 
 	ui.gui.DeleteKeybinding("", gocui.MouseLeft, gocui.ModNone)
@@ -89,7 +89,7 @@ func (ui *UI) showSaveModal(name string) error {
 	ui.gui.Cursor = true
 	modal.Editor = NewEditor(ui, &modalViewEditor{30})
 	modal.SetCursor(0, 0)
-	modal.BgColor = ui.selectedColor
+	modal.BgColor = gocui.ColorDefault
 
 	ui.gui.DeleteKeybinding("", gocui.MouseLeft, gocui.ModNone)
 	ui.gui.DeleteKeybinding("", gocui.MouseRelease, gocui.ModNone)
@@ -295,7 +295,7 @@ func (ui *UI) showLayoutModal(name string) error {
 		return err
 	}
 
-	modal.BgColor = gocui.ColorBlack
+	modal.BgColor = gocui.ColorDefault
 	modal.Editor = NewEditor(ui, &staticViewEditor{})
 
 	ui.gui.DeleteKeybinding("", gocui.MouseLeft, gocui.ModNone)

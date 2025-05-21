@@ -73,8 +73,8 @@ func (w *RadioBtnWidget) Draw() *RadioBtnWidget {
 				log.Fatalf("error creating a view: %v", err)
 			}
 			v.Frame = false
-			v.BgColor = gocui.ColorBlack
-			v.SelBgColor = gocui.ColorBlack
+			v.BgColor = gocui.ColorDefault
+			v.SelBgColor = gocui.ColorDefault
 			fmt.Fprint(v, opt.unCheck)
 
 			if w.handlers != nil {
