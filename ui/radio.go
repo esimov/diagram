@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"log"
+	"slices"
 
 	"github.com/jroimartin/gocui"
 )
@@ -32,10 +33,13 @@ const (
 	checkedRadioButton = "\u25c9"
 )
 
-var currentColor gocui.Attribute
+var (
+	selectedLayoutColor gocui.Attribute
+	currentOption       int
+)
 
 // NewRadioButton creates a new radio button widget.
-func NewRadioButton[T WidgetEmbedder](ui *UI, viewName string, posX, posY int) (*RadioBtnWidget, error) {
+func NewRadioButton[T WidgetEmbedder](ui *UI, modal *gocui.View, viewName string, posX, posY int) (*RadioBtnWidget, error) {
 	radioBtnWidget, err := NewWidget(
 		&RadioBtnWidget{
 			handlers: make(Handlers),
@@ -55,12 +59,16 @@ func NewRadioButton[T WidgetEmbedder](ui *UI, viewName string, posX, posY int) (
 		return nil, fmt.Errorf("cannot create radio button widget: %w", err)
 	}
 
+	currentOption = ui.activeLayoutOption
+
 	radioBtn := *radioBtnWidget
 	radioBtn.AddHandler(gocui.KeyTab, radioBtn.nextRadio).
 		AddHandler(gocui.KeyArrowRight, radioBtn.nextRadio).
 		AddHandler(gocui.KeyArrowLeft, radioBtn.prevRadio).
-		AddHandler(gocui.KeyEnter, radioBtn.closeModal).
-		AddHandler(gocui.KeySpace, radioBtn.closeModal)
+		AddHandler(gocui.KeyEnter, radioBtn.apply).
+		AddHandler(gocui.KeySpace, radioBtn.apply).
+		AddHandler(gocui.KeyEsc, radioBtn.onClose).
+		AddHandler(gocui.MouseRelease, radioBtn.onClick)
 
 	return radioBtn, nil
 }
@@ -73,8 +81,8 @@ func (w *RadioBtnWidget) Draw() *RadioBtnWidget {
 				log.Fatalf("error creating a view: %v", err)
 			}
 			v.Frame = false
-			v.BgColor = gocui.ColorDefault
-			v.SelBgColor = gocui.ColorDefault
+			v.BgColor = w.activeLayoutColor
+			v.SelBgColor = w.activeLayoutColor
 			fmt.Fprint(v, opt.unCheck)
 
 			if w.handlers != nil {
@@ -84,7 +92,7 @@ func (w *RadioBtnWidget) Draw() *RadioBtnWidget {
 					}
 				}
 			}
-			if i == w.activeLayout {
+			if i == w.activeLayoutOption {
 				w.Focus()
 				w.check(v)
 			}
@@ -142,7 +150,7 @@ func (w *RadioBtnWidget) AddHandler(key Key, handler HandlerFn) *RadioBtnWidget 
 // nextRadio jumps to the next radio button
 func (w *RadioBtnWidget) nextRadio(g *gocui.Gui, v *gocui.View) error {
 	w.Unfocus()
-	w.activeLayout = (w.activeLayout + 1) % len(w.options)
+	currentOption = (currentOption + 1) % len(w.options)
 	w.Focus()
 
 	return nil
@@ -152,10 +160,10 @@ func (w *RadioBtnWidget) nextRadio(g *gocui.Gui, v *gocui.View) error {
 func (w *RadioBtnWidget) prevRadio(g *gocui.Gui, v *gocui.View) error {
 	w.Unfocus()
 
-	if w.activeLayout-1 < 0 {
-		w.activeLayout = len(w.options) - 1
+	if currentOption-1 < 0 {
+		currentOption = len(w.options) - 1
 	} else {
-		w.activeLayout = (w.activeLayout - 1) % len(w.options)
+		currentOption = (currentOption - 1) % len(w.options)
 	}
 	w.Focus()
 
@@ -165,36 +173,36 @@ func (w *RadioBtnWidget) prevRadio(g *gocui.Gui, v *gocui.View) error {
 // Focus brings into Focus the active radio button
 func (w *RadioBtnWidget) Focus() {
 	if len(w.options) != 0 {
-		v, _ := w.gui.SetCurrentView(w.options[w.activeLayout].name)
+		v, _ := w.gui.SetCurrentView(w.options[currentOption].name)
 
+		_ = w.check(v)
 		switch v.Name() {
 		case defaultLayout.ToString():
-			currentColor = gocui.ColorDefault
+			selectedLayoutColor = gocui.ColorDefault
 		case blackLayout.ToString():
-			currentColor = gocui.ColorBlack
+			selectedLayoutColor = gocui.ColorBlack
 		case blueLayout.ToString():
-			currentColor = gocui.ColorBlue
+			selectedLayoutColor = gocui.ColorBlue
 		case magentaLayout.ToString():
-			currentColor = gocui.ColorMagenta
+			selectedLayoutColor = gocui.ColorMagenta
 		case cyanLayout.ToString():
-			currentColor = gocui.ColorCyan
+			selectedLayoutColor = gocui.ColorCyan
 		case greenLayout.ToString():
-			currentColor = gocui.ColorGreen
+			selectedLayoutColor = gocui.ColorGreen
 		default:
-			currentColor = gocui.ColorDefault
+			selectedLayoutColor = gocui.ColorDefault
 		}
-		_ = w.check(v)
-		w.ApplyLayoutColor(currentColor)
-
 		v.Highlight = true
 		w.gui.Cursor = false
+
+		w.applySelectedColor(selectedLayoutColor)
 	}
 }
 
 // Unfocus radio button
 func (w *RadioBtnWidget) Unfocus() {
 	if len(w.options) != 0 {
-		v, _ := w.gui.SetCurrentView(w.options[w.activeLayout].name)
+		v, _ := w.gui.SetCurrentView(w.options[currentOption].name)
 		v.Highlight = false
 	}
 }
@@ -209,18 +217,84 @@ func (w *RadioBtnWidget) check(v *gocui.View) error {
 		opt.isChecked = false
 	}
 
-	w.options[w.activeLayout].isChecked = true
+	w.options[currentOption].isChecked = true
 	v.Clear()
-	fmt.Fprint(v, w.options[w.activeLayout].checked)
+	fmt.Fprint(v, w.options[currentOption].checked)
 
 	return nil
 }
 
-// closeModal closes all the view elements of the opened modal
-func (w *RadioBtnWidget) closeModal(g *gocui.Gui, v *gocui.View) error {
-	w.selectedColor = currentColor
+// apply applies the selected choice and closes all the view elements of the opened modal
+func (w *RadioBtnWidget) apply(g *gocui.Gui, v *gocui.View) error {
+	w.activeLayoutColor = selectedLayoutColor
+	w.activeLayoutOption = currentOption
 	if err := w.closeModals(layoutModalViews...); err != nil {
 		return err
 	}
 	return nil
+}
+
+// onClose closes the layout modal
+func (w *RadioBtnWidget) onClose(g *gocui.Gui, v *gocui.View) error {
+	if err := w.closeModals(layoutModalViews...); err != nil {
+		return err
+	}
+
+	w.applySelectedColor(w.activeLayoutColor)
+	return nil
+}
+
+// onClick activates the selected radio button on click
+func (w *RadioBtnWidget) onClick(*gocui.Gui, *gocui.View) error {
+	for idx, opt := range layoutOptions {
+		v, _ := w.gui.View(opt)
+		cx, _ := v.Cursor()
+
+		if cx > 0 {
+			v.SetCursor(0, 0)
+			w.Unfocus()
+			currentOption = idx
+			w.Focus()
+			continue
+		}
+	}
+
+	return nil
+}
+
+// applySelectedColor applies the selected color to the layout views
+func (ui *UI) applySelectedColor(layoutColor gocui.Attribute) {
+	views := slices.Concat(mainViews, layoutModalViews, []string{diagramsPanel})
+	for _, view := range views {
+		if v, err := ui.gui.View(view); v != nil && err != gocui.ErrUnknownView {
+			v.BgColor = layoutColor
+			v.SelBgColor = layoutColor
+			switch layoutColor {
+			case gocui.ColorMagenta,
+				gocui.ColorCyan:
+
+				v.SelFgColor = gocui.ColorBlack
+				if view == diagramsPanel {
+					v.SelFgColor = gocui.ColorBlack
+					v.SelBgColor = gocui.ColorGreen
+				}
+			case gocui.ColorBlue,
+				gocui.ColorGreen:
+
+				v.SelFgColor = gocui.ColorBlack
+
+				if view == diagramsPanel {
+					v.SelFgColor = gocui.ColorWhite
+					v.SelBgColor = gocui.ColorBlack
+				}
+			default:
+				v.SelFgColor = gocui.ColorGreen
+				if view == diagramsPanel {
+					v.SelFgColor = gocui.ColorBlack
+					v.SelBgColor = gocui.ColorGreen
+				}
+			}
+		}
+	}
+	ui.gui.BgColor = layoutColor
 }

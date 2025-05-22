@@ -142,6 +142,6 @@ func (w *Widget) unfocus() {
 	if len(w.widgetItems[w.GetWidget().groupName]) != 0 {
 		v, _ := w.gui.SetCurrentView(w.widgetItems[w.GetWidget().groupName][w.activeModalView])
 		v.Highlight = false
-		v.SelBgColor = w.selectedColor
+		v.SelBgColor = gocui.Attribute(w.activeLayoutColor)
 	}
 }

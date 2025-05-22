@@ -609,25 +609,3 @@ func (ui *UI) DeleteView(name string) error {
 	v, _ := ui.gui.View(name)
 	return ui.gui.DeleteView(v.Name())
 }
-
-// ApplyLayoutColor applies the selected color to the layout views.
-func (ui *UI) ApplyLayoutColor(layoutColor gocui.Attribute) {
-	views := slices.Concat(mainViews, []string{diagramsPanel})
-	for _, name := range views {
-		if v, err := ui.gui.View(name); v != nil && err != gocui.ErrUnknownView {
-			v.BgColor = layoutColor
-			switch layoutColor {
-			case gocui.ColorGreen:
-				v.SelBgColor = gocui.ColorDefault
-				v.SelFgColor = gocui.ColorGreen
-			case gocui.ColorCyan:
-				v.SelBgColor = gocui.ColorDefault
-				v.SelFgColor = gocui.ColorCyan
-			default:
-				v.SelBgColor = gocui.ColorGreen
-				v.SelFgColor = gocui.ColorDefault
-			}
-		}
-	}
-	ui.gui.BgColor = layoutColor
-}
