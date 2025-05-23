@@ -8,9 +8,8 @@ import (
 )
 
 type editor struct {
-	ui            *UI
-	editor        gocui.Editor
-	backTabEscape bool
+	ui     *UI
+	editor gocui.Editor
 }
 
 var cache []byte
@@ -20,23 +19,16 @@ func NewEditor(ui *UI, handler gocui.Editor) *editor {
 	if handler == nil {
 		handler = gocui.DefaultEditor
 	}
-	return &editor{ui, handler, true}
+	return &editor{ui, handler}
 }
 
 // Editor for editable views
 func (e *editor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
-	if ch == '[' && mod == gocui.ModAlt {
-		e.backTabEscape = true
+	if ch == '[' || ch == 'Z' && mod == gocui.ModAlt {
+		e.ui.prevView(true)
 		return
 	}
 
-	if e.backTabEscape {
-		if ch == 'Z' {
-			e.ui.prevView(true)
-			e.backTabEscape = false
-			return
-		}
-	}
 	// Prevent infinite scrolling
 	if (key == gocui.KeyArrowDown || key == gocui.KeyArrowRight) && mod == gocui.ModNone {
 		_, cy := v.Cursor()
