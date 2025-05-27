@@ -13,6 +13,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/esimov/diagram/canvas"
+	"github.com/esimov/diagram/gui"
 	"github.com/esimov/diagram/io"
 	"github.com/esimov/diagram/version"
 	"github.com/jroimartin/gocui"
@@ -496,7 +497,8 @@ func (ui *UI) showDiagram(diagram string) error {
 	}
 
 	// Lunch Gio GUI thread.
-	if err := ui.gioGui.Draw(srcImg); err != nil {
+	gui := gui.NewGUI()
+	if err := gui.Draw(srcImg); err != nil {
 		return fmt.Errorf("error drawing the diagram: %w", err)
 	}
 
