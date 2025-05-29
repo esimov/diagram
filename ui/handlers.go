@@ -215,14 +215,14 @@ func (handlers handlers) ApplyKeyBindings(ui *UI, g *gocui.Gui) error {
 func (handlers handlers) helpContent() string {
 	buf := &bytes.Buffer{}
 	w := tabwriter.NewWriter(buf, 0, 0, 3, ' ', tabwriter.DiscardEmptyColumns)
+	fmt.Fprintf(w, "  %s\t: %s\n", "F1", "Show/hide help panel")
+
 	for _, handler := range handlers {
 		if handler.keyName == "" || handler.help == "" {
 			continue
 		}
 		fmt.Fprintf(w, "  %s\t: %s\n", handler.keyName, handler.help)
 	}
-
-	fmt.Fprintf(w, "  %s\t: %s\n", "F1", "Show/hide help panel")
 	w.Flush()
 
 	return buf.String()

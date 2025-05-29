@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"log"
 	"os"
 	"time"
 
 	"gioui.org/app"
+	"gioui.org/f32"
 	"gioui.org/gesture"
 	"gioui.org/io/event"
 	"gioui.org/io/key"
@@ -33,16 +33,29 @@ const (
 	inf            = 1e6
 )
 
+var (
+	windowWidth  float32
+	windowHeight float32
+)
+
 type GUI struct {
 	Image  paint.ImageOp
 	Window *app.Window
 }
 
 type scrollTracker struct {
-	*Animation
 	isScrolling bool
 	deltaY      float32
 	scroll      gesture.Scroll
+}
+
+type mouseTracker struct {
+	isDragging       bool
+	mousePosX        float32
+	mousePosY        float32
+	currentMousePosX float32
+	currentMousePosY float32
+	timeStamp        time.Time
 }
 
 func NewGUI() *GUI {
@@ -54,7 +67,6 @@ func NewGUI() *GUI {
 func (gui *GUI) Draw(img image.Image) error {
 	gui.Image = paint.NewImageOp(img)
 
-	var windowWidth, windowHeight float32
 	imgWidth, imgHeight := img.Bounds().Dx(), img.Bounds().Dy()
 
 	aspectRatio := float32(imgWidth) / float32(imgHeight)
@@ -104,16 +116,20 @@ func (gui *GUI) Draw(img image.Image) error {
 
 func (gui *GUI) run(w *app.Window) error {
 	var ops op.Ops
-
 	var deltaY float32 = 1.0
 
-	// Initialize the mouse position.
-	scrollTracker := &scrollTracker{
-		&Animation{Duration: 800 * time.Millisecond},
-		false,
-		deltaY,
-		gesture.Scroll{},
+	// Initialize the scroll tracker.
+	t := &scrollTracker{
+		isScrolling: false,
+		deltaY:      deltaY,
+		scroll:      gesture.Scroll{},
 	}
+
+	// Initialize the mouse tracker.
+	m := &mouseTracker{}
+
+	scrollAnimation := &Animation{Duration: 800 * time.Millisecond}
+	panAnimation := &Animation{Duration: 400 * time.Millisecond}
 
 	for {
 		switch ev := w.Event().(type) {
@@ -123,7 +139,8 @@ func (gui *GUI) run(w *app.Window) error {
 				// Register for pointer move events over the entire window.
 				r := image.Rectangle{Max: image.Point{X: gtx.Constraints.Max.X, Y: gtx.Constraints.Max.Y}}
 				area := clip.Rect(r).Push(&ops)
-				event.Op(&ops, scrollTracker)
+				pointer.CursorCrosshair.Add(gtx.Ops)
+				event.Op(&ops, t)
 				area.Pop()
 				rangeMin, rangeMax := int(-inf), int(inf)
 
@@ -132,9 +149,9 @@ func (gui *GUI) run(w *app.Window) error {
 						Name: key.NameEscape,
 					},
 					pointer.Filter{
-						Target:  scrollTracker,
+						Target:  t,
 						ScrollY: pointer.ScrollRange{Min: rangeMin, Max: rangeMax},
-						Kinds:   pointer.Scroll | pointer.Press | pointer.Release | pointer.Move,
+						Kinds:   pointer.Scroll | pointer.Press | pointer.Release | pointer.Move | pointer.Drag,
 					})
 				if !ok {
 					break
@@ -148,54 +165,78 @@ func (gui *GUI) run(w *app.Window) error {
 					}
 				case pointer.Event:
 					switch ev.Kind {
-					case pointer.Press:
-						switch ev.Modifiers {
-						case key.ModShortcut:
-							log.Println("Mouse pressed")
-						case key.ModShift:
-							// Gio swaps X and Y when Shift is pressed.
-							fallthrough
-						default:
+					case pointer.Drag:
+						m.mousePosX = m.currentMousePosX + ev.Position.X - (windowWidth / 2)
+						m.mousePosY = m.currentMousePosY + ev.Position.Y - (windowHeight / 2)
 
-						}
+						pointer.CursorGrabbing.Add(gtx.Ops)
+						m.isDragging = true
 					case pointer.Release:
-						// log.Println("Mouse released")
+						m.currentMousePosX = m.mousePosX
+						m.currentMousePosY = m.mousePosY
+						panAnimation.Delta = time.Since(panAnimation.StartTime)
+
+						m.isDragging = false
+						m.timeStamp = time.Now()
 					case pointer.Scroll:
-						scrollTracker.isScrolling = true
-						scrollTracker.scroll.Add(&ops)
+						t.isScrolling = true
+						t.scroll.Add(&ops)
 
-						scrollTracker.deltaY += ev.Scroll.Y * 0.002
-						dy := float32(gtx.Dp(unit.Dp(scrollTracker.deltaY))) * 0.02
+						t.deltaY += ev.Scroll.Y * 0.0005
+						dy := float32(gtx.Dp(unit.Dp(t.deltaY))) * 0.01
 
-						if scrollTracker.deltaY < dy {
-							scrollTracker.deltaY += dy
+						if t.deltaY < dy {
+							t.deltaY += dy
 						} else {
-							scrollTracker.deltaY -= dy
+							t.deltaY -= dy
 						}
-						scrollTracker.scroll.Update(gtx.Metric, gtx.Source, gtx.Now, gesture.Vertical,
+						t.scroll.Update(gtx.Metric, gtx.Source, gtx.Now, gesture.Vertical,
 							pointer.ScrollRange{Min: rangeMin, Max: rangeMax},
 							pointer.ScrollRange{Min: rangeMin, Max: rangeMax})
 
-						if scrollTracker.deltaY < minScaleFactor {
-							scrollTracker.deltaY = minScaleFactor
-						} else if scrollTracker.deltaY > maxScaleFactor {
-							scrollTracker.deltaY = maxScaleFactor
+						if t.deltaY < minScaleFactor {
+							t.deltaY = minScaleFactor
+						} else if t.deltaY > maxScaleFactor {
+							t.deltaY = maxScaleFactor
 						}
-						scrollTracker.Delta = time.Since(scrollTracker.StartTime)
-						scrollTracker.Duration = 500 * time.Millisecond
+
+						scrollAnimation.Delta = time.Since(scrollAnimation.StartTime)
+						scrollAnimation.Duration = 600 * time.Millisecond
 					}
 				}
 			}
-			var t float64
-			d := scrollTracker.Update(gtx)
-			if !scrollTracker.isScrolling {
-				t = scrollTracker.Animate(EaseInOutBack, float64(d))
+
+			var scrollEase float64
+			sx := scrollAnimation.Update(gtx)
+			if !t.isScrolling {
+				scrollEase = scrollAnimation.Animate(EaseInOutBack, float64(sx))
 			} else {
-				t = 1 + (0.05 * scrollTracker.Animate(EaseInOutSine, float64(d)))
+				scrollEase = 1 + (0.2 * scrollAnimation.Animate(EaseInOutSine, float64(sx)))
 			}
 
-			scrollTracker.StartTime = time.Now()
-			gui.drawDiagram(gtx, scrollTracker.deltaY*float32(t))
+			var mx, my float32
+			if !m.isDragging {
+				sx = panAnimation.Update(gtx)
+				panEase := 1 + (0.005 * panAnimation.Animate(EaseInOut, float64(sx)))
+
+				duration := time.Since(m.timeStamp).Seconds()
+				if duration < 0.3 {
+					m.currentMousePosX *= 0.99 * float32(panEase)
+					m.currentMousePosY *= 0.99 * float32(panEase)
+				}
+				mx = m.currentMousePosX
+				my = m.currentMousePosY
+			} else {
+				mx = m.mousePosX
+				my = m.mousePosY
+			}
+
+			scrollAnimation.StartTime = time.Now()
+			panAnimation.StartTime = time.Now()
+
+			imgScale := t.deltaY * float32(scrollEase)
+
+			gui.drawDiagram(gtx, imgScale, f32.Pt(mx, my))
 			ev.Frame(gtx.Ops)
 		case app.DestroyEvent:
 			return ev.Err
@@ -203,7 +244,7 @@ func (gui *GUI) run(w *app.Window) error {
 	}
 }
 
-func (gui *GUI) drawDiagram(gtx layout.Context, scale float32) {
+func (gui *GUI) drawDiagram(gtx layout.Context, imgScale float32, imgPos f32.Point) {
 	gtx.Execute(op.InvalidateCmd{})
 
 	layout.Stack{}.Layout(gtx,
@@ -213,13 +254,13 @@ func (gui *GUI) drawDiagram(gtx layout.Context, scale float32) {
 			)
 
 			return layout.Inset(layout.Inset{
-				Top:  0,
-				Left: 0,
+				Left: unit.Dp(imgPos.X / 2),
+				Top:  unit.Dp(imgPos.Y / 2),
 			}).Layout(gtx,
 				func(gtx layout.Context) layout.Dimensions {
 					widget.Image{
 						Src:      gui.Image,
-						Scale:    scale,
+						Scale:    imgScale,
 						Position: layout.NW,
 						Fit:      widget.Unscaled,
 					}.Layout(gtx)
