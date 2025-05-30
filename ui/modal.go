@@ -104,7 +104,7 @@ func (ui *UI) showSaveModal(name string) error {
 
 		// Check if the file name contains only letters, numbers and underscores.
 		buffer := strings.TrimSpace(strings.Replace(modal.ViewBuffer(), v.text, "", -1))
-		re := regexp.MustCompile("^[a-zA-Z0-9_]*$")
+		re := regexp.MustCompile("^[a-zA-Z0-9_-]*$")
 		res := re.MatchString(buffer)
 
 		if len(diagram.ViewBuffer()) == 0 {

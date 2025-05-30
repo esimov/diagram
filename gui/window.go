@@ -143,7 +143,7 @@ func (gui *GUI) run(w *app.Window) error {
 				// Register for pointer move events over the entire window.
 				r := image.Rectangle{Max: image.Point{X: gtx.Constraints.Max.X, Y: gtx.Constraints.Max.Y}}
 				area := clip.Rect(r).Push(&ops)
-				pointer.CursorCrosshair.Add(gtx.Ops)
+				pointer.CursorPointer.Add(gtx.Ops)
 				event.Op(&ops, t)
 				area.Pop()
 				rangeMin, rangeMax := int(-inf), int(inf)
@@ -247,7 +247,7 @@ func (gui *GUI) run(w *app.Window) error {
 			// Offset the image origins.
 			op.Affine(tr.Offset(imgPos).Scale(imgPos, f32.Pt(imgScale, imgScale))).Add(gtx.Ops)
 
-			gui.drawDiagram(gtx, imgScale, imgPos)
+			gui.drawDiagram(gtx, imgScale)
 			ev.Frame(gtx.Ops)
 		case app.DestroyEvent:
 			return ev.Err
@@ -255,7 +255,7 @@ func (gui *GUI) run(w *app.Window) error {
 	}
 }
 
-func (gui *GUI) drawDiagram(gtx layout.Context, imgScale float32, imgPos f32.Point) {
+func (gui *GUI) drawDiagram(gtx layout.Context, imgScale float32) {
 	gtx.Execute(op.InvalidateCmd{})
 
 	layout.Stack{}.Layout(gtx,
