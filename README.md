@@ -93,7 +93,7 @@ Key                                     | Action
 <kbd>Home</kbd>                         | Jump to the line start
 <kbd>End</kbd>                          | Jump to the line end
 <kbd>Delete/Backspace</kbd>             | Delete diagram
-<kbd>Ctrl+c</kbd>                       | Quit
+<kbd>Ctrl+q</kbd>                       | Quit
 
 ### Example
 | Input | Output |
