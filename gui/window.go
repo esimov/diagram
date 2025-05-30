@@ -28,7 +28,7 @@ const (
 	maxWindowWidth  = 1024
 	maxWindowHeight = 920
 
-	minScaleFactor = 0.3
+	minScaleFactor = 0.5
 	maxScaleFactor = 3.5
 	inf            = 1e6
 )
@@ -50,12 +50,14 @@ type scrollTracker struct {
 }
 
 type mouseTracker struct {
-	isDragging       bool
-	mousePosX        float32
-	mousePosY        float32
-	currentMousePosX float32
-	currentMousePosY float32
-	timeStamp        time.Time
+	isDragging        bool
+	mousePosX         float32
+	mousePosY         float32
+	imgOffsetX        float32
+	imgOffsetY        float32
+	currentImgOffsetX float32
+	currentImgOffsetY float32
+	timeStamp         time.Time
 }
 
 func NewGUI() *GUI {
@@ -131,6 +133,8 @@ func (gui *GUI) run(w *app.Window) error {
 	scrollAnimation := &Animation{Duration: 800 * time.Millisecond}
 	panAnimation := &Animation{Duration: 400 * time.Millisecond}
 
+	tr := f32.Affine2D{}
+
 	for {
 		switch ev := w.Event().(type) {
 		case app.FrameEvent:
@@ -165,27 +169,30 @@ func (gui *GUI) run(w *app.Window) error {
 					}
 				case pointer.Event:
 					switch ev.Kind {
+					case pointer.Press:
+						m.mousePosX = ev.Position.X - m.imgOffsetX
+						m.mousePosY = ev.Position.Y - m.imgOffsetY
 					case pointer.Drag:
-						m.mousePosX = m.currentMousePosX + ev.Position.X - (windowWidth / 2)
-						m.mousePosY = m.currentMousePosY + ev.Position.Y - (windowHeight / 2)
+						m.imgOffsetX = ev.Position.X - m.mousePosX
+						m.imgOffsetY = ev.Position.Y - m.mousePosY
 
 						pointer.CursorGrabbing.Add(gtx.Ops)
 						m.isDragging = true
 					case pointer.Release:
-						m.currentMousePosX = m.mousePosX
-						m.currentMousePosY = m.mousePosY
-						panAnimation.Delta = time.Since(panAnimation.StartTime)
+						m.currentImgOffsetX = m.imgOffsetX
+						m.currentImgOffsetY = m.imgOffsetY
 
-						m.isDragging = false
+						panAnimation.Delta = time.Since(panAnimation.StartTime)
 						m.timeStamp = time.Now()
+						m.isDragging = false
 					case pointer.Scroll:
 						t.isScrolling = true
 						t.scroll.Add(&ops)
 
-						t.deltaY += ev.Scroll.Y * 0.0005
+						t.deltaY += ev.Scroll.Y * 0.001
 						dy := float32(gtx.Dp(unit.Dp(t.deltaY))) * 0.01
 
-						if t.deltaY < dy {
+						if t.deltaY > dy {
 							t.deltaY += dy
 						} else {
 							t.deltaY -= dy
@@ -214,29 +221,33 @@ func (gui *GUI) run(w *app.Window) error {
 				scrollEase = 1 + (0.2 * scrollAnimation.Animate(EaseInOutSine, float64(sx)))
 			}
 
-			var mx, my float32
+			var offsetX, offsetY float32
 			if !m.isDragging {
 				sx = panAnimation.Update(gtx)
 				panEase := 1 + (0.005 * panAnimation.Animate(EaseInOut, float64(sx)))
 
 				duration := time.Since(m.timeStamp).Seconds()
 				if duration < 0.3 {
-					m.currentMousePosX *= 0.99 * float32(panEase)
-					m.currentMousePosY *= 0.99 * float32(panEase)
+					m.currentImgOffsetX *= 0.99 * float32(panEase)
+					m.currentImgOffsetY *= 0.99 * float32(panEase)
 				}
-				mx = m.currentMousePosX
-				my = m.currentMousePosY
+				offsetX = m.currentImgOffsetX
+				offsetY = m.currentImgOffsetY
 			} else {
-				mx = m.mousePosX
-				my = m.mousePosY
+				offsetX = m.imgOffsetX
+				offsetY = m.imgOffsetY
 			}
 
 			scrollAnimation.StartTime = time.Now()
 			panAnimation.StartTime = time.Now()
 
 			imgScale := t.deltaY * float32(scrollEase)
+			imgPos := f32.Pt(offsetX, offsetY)
 
-			gui.drawDiagram(gtx, imgScale, f32.Pt(mx, my))
+			// Offset the image origins.
+			op.Affine(tr.Offset(imgPos).Scale(imgPos, f32.Pt(imgScale, imgScale))).Add(gtx.Ops)
+
+			gui.drawDiagram(gtx, imgScale, imgPos)
 			ev.Frame(gtx.Ops)
 		case app.DestroyEvent:
 			return ev.Err
@@ -253,16 +264,13 @@ func (gui *GUI) drawDiagram(gtx layout.Context, imgScale float32, imgPos f32.Poi
 				clip.Rect{Max: gtx.Constraints.Max}.Op(),
 			)
 
-			return layout.Inset(layout.Inset{
-				Left: unit.Dp(imgPos.X / 2),
-				Top:  unit.Dp(imgPos.Y / 2),
-			}).Layout(gtx,
+			return layout.UniformInset(unit.Dp(0)).Layout(gtx,
 				func(gtx layout.Context) layout.Dimensions {
 					widget.Image{
 						Src:      gui.Image,
 						Scale:    imgScale,
 						Position: layout.NW,
-						Fit:      widget.Unscaled,
+						Fit:      widget.ScaleDown,
 					}.Layout(gtx)
 
 					return layout.Dimensions{Size: gtx.Constraints.Max}
