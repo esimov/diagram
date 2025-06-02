@@ -16,6 +16,7 @@ import (
 	"gioui.org/app"
 	"github.com/esimov/diagram/canvas"
 	"github.com/esimov/diagram/gui"
+	"github.com/esimov/diagram/io"
 	"github.com/esimov/diagram/ui"
 )
 
@@ -55,7 +56,12 @@ func main() {
 
 	// In case the option parameters are used, the hand-drawn diagrams are generated without to enter into the CLI app.
 	if (*source != "") && (*destination != "") {
-		err := canvas.DrawDiagram(defaultContent, *destination, *fontPath)
+		content, err := io.ReadFile(*source)
+		if err != nil {
+			log.Fatalf("error reading source file: %v", err)
+		}
+
+		err = canvas.DrawDiagram(content, *destination, *fontPath)
 		if err != nil {
 			log.Fatal("Error on converting the ascii art to hand drawn diagrams!")
 		} else if *preview {
