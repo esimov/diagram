@@ -51,6 +51,10 @@ func (a *Animation) Update(gtx layout.Context) float64 {
 	return float64(a.Delta) / float64(a.Duration)
 }
 
+func (a *Animation) IsScrolling() bool {
+	return a.Delta != a.Duration
+}
+
 // Animate applies the In-Out-Back easing formula to a specific event.
 func (a *Animation) Animate(formula EasingFormula, t float64) float64 {
 	switch formula {
