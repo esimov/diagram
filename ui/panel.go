@@ -482,6 +482,15 @@ func (ui *UI) generateDiagram(name string) error {
 		})
 	})
 
+	defer func() {
+		// Hide log message after 4 seconds
+		ui.logTimer = time.AfterFunc(4*time.Second, func() {
+			ui.gui.Update(func(*gocui.Gui) error {
+				return ui.clearLog()
+			})
+		})
+	}()
+
 	return nil
 }
 
