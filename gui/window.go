@@ -27,7 +27,7 @@ const title = "Preview diagram..."
 
 const (
 	maxWindowWidth  = 1024
-	maxWindowHeight = 920
+	maxWindowHeight = 720
 
 	minScaleFactor  = 0.5
 	maxScaleFactor  = 3.5
