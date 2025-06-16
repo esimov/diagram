@@ -33,8 +33,8 @@ const (
 	maxScaleFactor  = 3.5
 	zoomScaleFactor = 1.2
 	outerPadding    = 2
-	scaleFactor     = 0.05
-	zoomFactor      = 0.6
+	scaleFactor     = 0.1
+	zoomFactor      = 0.4
 
 	inf = 1e6
 )
@@ -315,6 +315,7 @@ func (gui *GUI) drawDiagram(gtx layout.Context, imgScale float32, imgPos f32.Poi
 						return layout.Dimensions{}
 					}
 
+					// Initialize the zoom panel.
 					gui.initZoom.Do(func() {
 						zoomPanelDim = imgScale * scaleFactor
 						zoomPanelImg = gui.Image
@@ -326,21 +327,73 @@ func (gui *GUI) drawDiagram(gtx layout.Context, imgScale float32, imgPos f32.Poi
 						Alignment: layout.NW,
 					}.Layout(gtx,
 						layout.Expanded(func(gtx layout.Context) layout.Dimensions {
-							return layout.UniformInset(unit.Dp(2)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+							return layout.UniformInset(unit.Dp(0)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 								return widget.Border{
-									Color: color.NRGBA{R: 0x6c, G: 0x75, B: 0x7d, A: 0xff},
-									Width: unit.Dp(1.2),
+									Color: color.NRGBA{R: 0x6c, G: 0x75, B: 0x7d, A: 120},
+									Width: unit.Dp(0.5),
 								}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-									return layout.UniformInset(unit.Dp(0)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+									return layout.UniformInset(unit.Dp(5)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 										return widget.Image{
 											Src:      zoomPanelImg,
-											Scale:    zoomPanelDim / gtx.Metric.PxPerDp,
-											Position: layout.NW,
+											Scale:    zoomPanelDim,
+											Position: layout.Center,
 											Fit:      widget.Unscaled,
 										}.Layout(gtx)
 									})
-
 								})
+							})
+						}),
+
+						layout.Expanded(func(gtx layout.Context) layout.Dimensions {
+							return layout.UniformInset(unit.Dp(0)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+								centerX := windowWidth / 2 * zoomPanelDim
+								centerY := windowHeight / 2 * zoomPanelDim
+
+								imgSizeX := float32(gui.Image.Size().X) * zoomPanelDim
+								imgSizeY := float32(gui.Image.Size().Y) * zoomPanelDim
+
+								zoomDimX := imgSizeX - (imgSizeX * zoomPanelDim)
+								zoomDimY := imgSizeY - (imgSizeY * zoomPanelDim)
+
+								px := (zoomDimX + imgPos.X) / 2 * zoomFactor
+								py := (zoomDimY + imgPos.Y) / 2 * zoomFactor
+
+								dx, dy := centerX-px, centerY-py
+								if dx < 1 {
+									dx = 1
+								} else if dx > zoomDimX {
+									dx = zoomDimX
+								}
+
+								if dy < 1 {
+									dy = 1
+								} else if dy > zoomDimY {
+									dy = zoomDimY
+								}
+
+								offStack := op.Affine(tr.Offset(
+									f32.Point{X: dx, Y: dy}).
+									Scale(
+										f32.Pt(dx, dy),
+										f32.Pt(1/imgScale*0.4, 1/imgScale*0.4),
+									)).Push(gtx.Ops)
+
+								paint.FillShape(gtx.Ops, color.NRGBA{R: 0xff, A: 90},
+									clip.UniformRRect(image.Rectangle{
+										Max: image.Point{X: 100, Y: 100},
+									}, gtx.Dp(0)).Op(gtx.Ops))
+
+								paint.FillShape(gtx.Ops, color.NRGBA{R: 0xff, A: 0xff},
+									clip.Stroke{
+										Path: clip.Rect{
+											Max: image.Point{X: 100, Y: 100},
+										}.Path(),
+										Width: 2.0,
+									}.Op(),
+								)
+								offStack.Pop()
+
+								return layout.Dimensions{Size: gtx.Constraints.Max}
 							})
 						}),
 					)
