@@ -22,6 +22,7 @@ $ go build
 # Start the application
 $ diagram
 ```
+If you've installed [Homebrew](https://brew.sh), you can install the application by running `brew install diagram`.
 
 #### Build
 
