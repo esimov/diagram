@@ -25,7 +25,9 @@ $ diagram
 
 #### Build
 
-A shell script is bundled into the library to mitigate the generation of binary files for the most known operating systems, but take care: different dependencies are needed for different operating systems. To build the executable file run:
+A shell script is bundled into the library to mitigate the generation of binary files for the most common operating systems, but take care: different dependencies are needed for different operating systems (see the [Dependencies](#dependencies) section). 
+
+To build the executable file run:
 
 `$ make all`
 
@@ -77,22 +79,29 @@ Generate diagram as above but use a font at a different location:
 diagram -in sample.txt -out sample.png -preview=false -font /path/to/my/font/MyHandwriting.ttf
 ```
 
-### Key bindings
+## Key features
+- [x] Full mouse support for widget elements selection and activation (like buttons, modals, radio buttons) 
+- [x] Full fledged content editor
+- [x] Integrated native UI image viewer
+- [x] File manager
+
+## Key bindings
 Key                                     | Action
 ----------------------------------------|---------------------------------------
-<kbd>F1</kbd>                           | Show/hide help panel
-<kbd>Tab</kbd>                          | Next Panel
-<kbd>Shift+Tab</kbd>                    | Previous Panel
-<kbd>Ctrl+s</kbd>                       | Open Save Diagram Modal
-<kbd>Ctrl+s</kbd>                       | Save Diagram
-<kbd>Ctrl+d</kbd>                       | Convert Ascii to PNG
+<kbd>F1</kbd>                           | Show/hide the help panel
+<kbd>Tab</kbd>                          | Activate the next panel
+<kbd>Shift+Tab</kbd>                    | Activate the previous panel
+<kbd>Ctrl+s</kbd>                       | Open the Save Diagram modal
+<kbd>Ctrl+s</kbd>                       | Save the diagram
+<kbd>Ctrl+g</kbd>                       | Generate the hand drawn diagram
+<kbd>Ctrl+l</kbd>                       | Change the layout color
+<kbd>PageUp</kbd>                       | Move up the editor content
+<kbd>PageDown</kbd>                     | Move down the editor content
 <kbd>Ctrl+x</kbd>                       | Clear the editor content
 <kbd>Ctrl+z</kbd>                       | Restore the editor content
-<kbd>PageUp</kbd>                       | Jump to the top
-<kbd>PageDown</kbd>                     | Jump to the bottom
 <kbd>Home</kbd>                         | Jump to the line start
 <kbd>End</kbd>                          | Jump to the line end
-<kbd>Delete/Backspace</kbd>             | Delete diagram
+<kbd>Delete/Backspace</kbd>             | Delete the selected diagram from the list
 <kbd>Ctrl+q</kbd>                       | Quit
 
 ### Example
