@@ -95,8 +95,8 @@ Key                                     | Action
 <kbd>Ctrl+s</kbd>                       | Save the diagram
 <kbd>Ctrl+g</kbd>                       | Generate the hand drawn diagram
 <kbd>Ctrl+l</kbd>                       | Change the layout color
-<kbd>PageUp</kbd>                       | Move up the editor content
-<kbd>PageDown</kbd>                     | Move down the editor content
+<kbd>PageUp</kbd>                       | Navigate up in the content editor
+<kbd>PageDown</kbd>                     | Navigate down in the content editor
 <kbd>Ctrl+x</kbd>                       | Clear the editor content
 <kbd>Ctrl+z</kbd>                       | Restore the editor content
 <kbd>Home</kbd>                         | Jump to the line start
