@@ -2,11 +2,20 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/esimov/diagram.svg)](https://pkg.go.dev/github.com/esimov/diagram)
 [![build](https://github.com/esimov/diagram/actions/workflows/build.yml/badge.svg)](https://github.com/esimov/diagram/actions/workflows/build.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/esimov/diagram)](https://goreportcard.com/report/github.com/esimov/diagram)
+[![release](https://img.shields.io/badge/release-v1.1.0-blue.svg)](https://github.com/esimov/diagram/releases/tag/v1.1.0)
+[![homebrew](https://img.shields.io/badge/homebrew-v1.1.0-orange.svg)](https://formulae.brew.sh/formula/diagram)
 [![license](https://img.shields.io/github/license/esimov/diagram)](./LICENSE)
 
 Diagram is a full fledged CLI application to generate hand drawn diagrams from ASCII art.
 
 ![screencast](screencast.gif)
+
+### Main features
+- [x] Full fledged content editor
+- [x] Integrated GUI for image view
+- [x] Zooming/panning support for image inspection
+- [x] Integrated file management system
+- [x] Layout customization
 
 ## Installation
 
@@ -77,12 +86,6 @@ Generate diagram as above but use a font at a different location:
 ```bash
 diagram -in sample.txt -out sample.png -preview=false -font /path/to/my/font/MyHandwriting.ttf
 ```
-
-### Main features
-- [x] Full fledged content editor
-- [x] Integrated GUI for generated diagram view
-- [x] Zooming/panning support for image inspection
-- [x] Integrated file management system
 
 ### Key bindings
 Key                                     | Action
