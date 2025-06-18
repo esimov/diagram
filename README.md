@@ -35,7 +35,7 @@ If you've installed [Homebrew](https://brew.sh), you can install the application
 
 #### Build
 
-A shell script is bundled into the library to mitigate the generation of binary files for the most common operating systems, but take care: different dependencies are needed for different operating systems. To build the executable file run:
+A shell script is bundled into the library to mitigate the generation of binary files for the most common operating systems, but take care: different dependencies are needed for different operating systems (see the [Dependencies](#dependencies)) section. To build the executable file run:
 
 `$ make all`
 
@@ -53,7 +53,7 @@ The application also supports the generation of hand drawn diagrams directly fro
 ┌┬┐┬┌─┐┌─┐┬─┐┌─┐┌┬┐
  │││├─┤│ ┬├┬┘├─┤│││
 ─┴┘┴┴ ┴└─┘┴└─┴ ┴┴ ┴
-    Version: 1.0.6
+    Version: 1.1.0
 
 CLI app to convert ASCII arts into hand drawn diagrams.
 
@@ -94,9 +94,9 @@ Key                                     | Action
 <kbd>Tab</kbd>                          | Jump to the next panel
 <kbd>Shift+Tab</kbd>                    | Jump to the previous panel
 <kbd>Ctrl+l</kbd>                       | Change layout color
-<kbd>Ctrl+s</kbd>                       | Open Save diagram modal
+<kbd>Ctrl+s</kbd>                       | Open the Save diagram modal
 <kbd>Ctrl+s</kbd>                       | Save diagram
-<kbd>Ctrl+g</kbd>                       | Generate the hand drawn ASCII diagram with preview
+<kbd>Ctrl+g</kbd>                       | Preview the generated ASCII diagram (zooming/panning)
 <kbd>PageDown</kbd>                     | Scroll down the editor content
 <kbd>PageUp</kbd>                       | Scroll up the editor content
 <kbd>Ctrl+x</kbd>                       | Clear the editor content
