@@ -4,9 +4,9 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/esimov/diagram)](https://goreportcard.com/report/github.com/esimov/diagram)
 [![license](https://img.shields.io/github/license/esimov/diagram)](./LICENSE)
 
-Diagram is a small CLI application to generate hand drawn diagrams from ASCII art.
+Diagram is a full fledged CLI application to generate hand drawn diagrams from ASCII art.
 
-![screencast](images/screencast.gif)
+![screencast](screencast.gif)
 
 ## Installation
 
@@ -22,10 +22,11 @@ $ go build
 # Start the application
 $ diagram
 ```
+If you've installed [Homebrew](https://brew.sh), you can install the application by running `brew install diagram`.
 
 #### Build
 
-A shell script is bundled into the library to mitigate the generation of binary files for the most known operating systems, but take care: different dependencies are needed for different operating systems. To build the executable file run:
+A shell script is bundled into the library to mitigate the generation of binary files for the most common operating systems, but take care: different dependencies are needed for different operating systems. To build the executable file run:
 
 `$ make all`
 
@@ -77,24 +78,31 @@ Generate diagram as above but use a font at a different location:
 diagram -in sample.txt -out sample.png -preview=false -font /path/to/my/font/MyHandwriting.ttf
 ```
 
+### Main features
+- [x] Full fledged content editor
+- [x] Integrated GUI for generated diagram view
+- [x] Zooming/panning support for image inspection
+- [x] Integrated file management system
+
 ### Key bindings
 Key                                     | Action
 ----------------------------------------|---------------------------------------
 <kbd>F1</kbd>                           | Show/hide help panel
-<kbd>Tab</kbd>                          | Next Panel
-<kbd>Shift+Tab</kbd>                    | Previous Panel
-<kbd>Ctrl+s</kbd>                       | Open Save Diagram Modal
-<kbd>Ctrl+s</kbd>                       | Save Diagram
-<kbd>Ctrl+d</kbd>                       | Convert Ascii to PNG
+<kbd>Tab</kbd>                          | Jump to the next panel
+<kbd>Shift+Tab</kbd>                    | Jump to the previous panel
+<kbd>Ctrl+l</kbd>                       | Change layout color
+<kbd>Ctrl+s</kbd>                       | Open Save diagram modal
+<kbd>Ctrl+s</kbd>                       | Save diagram
+<kbd>Ctrl+g</kbd>                       | Generate the hand drawn ASCII diagram with preview
+<kbd>PageDown</kbd>                     | Scroll down the editor content
+<kbd>PageUp</kbd>                       | Scroll up the editor content
 <kbd>Ctrl+x</kbd>                       | Clear the editor content
 <kbd>Ctrl+z</kbd>                       | Restore the editor content
-<kbd>PageUp</kbd>                       | Jump to the top
-<kbd>PageDown</kbd>                     | Jump to the bottom
 <kbd>Home</kbd>                         | Jump to the line start
 <kbd>End</kbd>                          | Jump to the line end
 <kbd>Delete/Backspace</kbd>             | Delete diagram
 <kbd>Ctrl+q</kbd>                       | Quit
-
+ 
 ### Example
 | Input | Output |
 |:--:|:--:|
