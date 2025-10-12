@@ -31,6 +31,9 @@ func ListDiagrams(dir string) ([]string, error) {
 	}
 
 	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
 		diagrams = append(diagrams, file.Name())
 	}
 
