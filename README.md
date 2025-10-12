@@ -2,11 +2,20 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/esimov/diagram.svg)](https://pkg.go.dev/github.com/esimov/diagram)
 [![build](https://github.com/esimov/diagram/actions/workflows/build.yml/badge.svg)](https://github.com/esimov/diagram/actions/workflows/build.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/esimov/diagram)](https://goreportcard.com/report/github.com/esimov/diagram)
+[![release](https://img.shields.io/badge/release-v1.1.0-blue.svg)](https://github.com/esimov/diagram/releases/tag/v1.1.0)
+[![homebrew](https://img.shields.io/badge/homebrew-v1.1.0-orange.svg)](https://formulae.brew.sh/formula/diagram)
 [![license](https://img.shields.io/github/license/esimov/diagram)](./LICENSE)
 
-Diagram is a small CLI application to generate hand drawn diagrams from ASCII art.
+Diagram is a full fledged CLI application to generate hand drawn diagrams from ASCII art.
 
-![screencast](images/screencast.gif)
+![screencast](screencast.gif)
+
+### Main features
+- [x] Full fledged content editor
+- [x] Integrated GUI for image view
+- [x] Zooming/panning support for image inspection
+- [x] Integrated file management system
+- [x] Layout customization
 
 ## Installation
 
@@ -22,10 +31,11 @@ $ go build
 # Start the application
 $ diagram
 ```
+If you've installed [Homebrew](https://brew.sh), you can install the application by running `brew install diagram`.
 
 #### Build
 
-A shell script is bundled into the library to mitigate the generation of binary files for the most known operating systems, but take care: different dependencies are needed for different operating systems. To build the executable file run:
+A shell script is bundled into the library to mitigate the generation of binary files for the most common operating systems, but take care: different dependencies are needed for different operating systems (see the [Dependencies](#dependencies)) section. To build the executable file run:
 
 `$ make all`
 
@@ -43,7 +53,7 @@ The application also supports the generation of hand drawn diagrams directly fro
 ┌┬┐┬┌─┐┌─┐┬─┐┌─┐┌┬┐
  │││├─┤│ ┬├┬┘├─┤│││
 ─┴┘┴┴ ┴└─┘┴└─┴ ┴┴ ┴
-    Version: 1.0.6
+    Version: 1.1.0
 
 CLI app to convert ASCII arts into hand drawn diagrams.
 
@@ -81,20 +91,21 @@ diagram -in sample.txt -out sample.png -preview=false -font /path/to/my/font/MyH
 Key                                     | Action
 ----------------------------------------|---------------------------------------
 <kbd>F1</kbd>                           | Show/hide help panel
-<kbd>Tab</kbd>                          | Next Panel
-<kbd>Shift+Tab</kbd>                    | Previous Panel
-<kbd>Ctrl+s</kbd>                       | Open Save Diagram Modal
-<kbd>Ctrl+s</kbd>                       | Save Diagram
-<kbd>Ctrl+d</kbd>                       | Convert Ascii to PNG
+<kbd>Tab</kbd>                          | Jump to the next panel
+<kbd>Shift+Tab</kbd>                    | Jump to the previous panel
+<kbd>Ctrl+l</kbd>                       | Change layout color
+<kbd>Ctrl+s</kbd>                       | Open the Save diagram modal
+<kbd>Ctrl+s</kbd>                       | Save diagram
+<kbd>Ctrl+g</kbd>                       | Preview the generated ASCII diagram (zooming/panning)
+<kbd>PageDown</kbd>                     | Scroll down the editor content
+<kbd>PageUp</kbd>                       | Scroll up the editor content
 <kbd>Ctrl+x</kbd>                       | Clear the editor content
 <kbd>Ctrl+z</kbd>                       | Restore the editor content
-<kbd>PageUp</kbd>                       | Jump to the top
-<kbd>PageDown</kbd>                     | Jump to the bottom
 <kbd>Home</kbd>                         | Jump to the line start
 <kbd>End</kbd>                          | Jump to the line end
 <kbd>Delete/Backspace</kbd>             | Delete diagram
 <kbd>Ctrl+q</kbd>                       | Quit
-
+ 
 ### Example
 | Input | Output |
 |:--:|:--:|
