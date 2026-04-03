@@ -1,24 +1,35 @@
 package ui
 
+type AnsiColor int
+
+const (
+	Red AnsiColor = iota
+	Green
+	Yellow
+)
+
 // decorate changes the color of a string
-func decorate(s string, color string) string {
+func decorate(s string, color AnsiColor) string {
 	switch color {
-	case "green":
-		s = "\x1b[0;32m" + s
-	case "red":
+	case Red:
 		s = "\x1b[0;31m" + s
+	case Green:
+		s = "\x1b[0;32m" + s
+	case Yellow:
+		s = "\x1b[0;33m" + s
 	default:
-		return s
+		s = s + "\x1b[0m"
 	}
-	return s + "\x1b[0m"
+
+	return s
 }
 
 // log writes the log message
 func (ui *UI) log(message string, isError bool) error {
 	if isError {
-		message = decorate(message, "red")
+		message = decorate(message, Red)
 	} else {
-		message = decorate(message, "green")
+		message = decorate(message, Green)
 	}
 	return ui.writeContent(logPanel, message)
 }
