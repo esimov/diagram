@@ -232,8 +232,13 @@ func (ui *UI) showSaveModal(name string) error {
 	saveBtn.SelBgColor = ui.activeLayoutColor
 
 	saveBtnSize, _ := saveBtn.Size()
+
 	//Calculate the current modal button position relative to the previous button.
-	cancelBtnWidget, err = NewButton[*ButtonWidget](ui, saveModal, cancelOption.ToString(), (sw/2-mw/2)+saveBtnSize+4, sh/2, len(cancelOption.ToString())+1)
+	posX := (sw/2 - mw/2) + saveBtnSize + 4
+	posY := sh / 2
+	width := len(cancelOption.ToString()) + 1
+
+	cancelBtnWidget, err = NewButton[*ButtonWidget](ui, saveModal, cancelOption.ToString(), posX, posY, width)
 	if err != nil {
 		return fmt.Errorf("failed to create a new button widget: %w", err)
 	}

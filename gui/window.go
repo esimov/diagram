@@ -102,14 +102,14 @@ func (gui *GUI) Draw(img image.Image) error {
 
 	// Center the window on the screen.
 	gui.Window.Perform(system.ActionCenter)
-	// Bring this window to the top of all open windows.
+
+	// Bring this window on top of all the opened windows.
 	gui.Window.Perform(system.ActionRaise)
 
 	if err := gui.run(gui.Window); err != nil {
 		defer func() {
 			os.Exit(0)
 		}()
-
 		return fmt.Errorf("GUI rendering error: %w", err)
 	}
 
@@ -218,7 +218,7 @@ func (gui *GUI) run(w *app.Window) error {
 			if !t.isScrolling {
 				scrollEase = scrollAnimation.Animate(EaseInOutBack, float64(sx))
 			} else {
-				scrollEase = 1 + (0.2 * scrollAnimation.Animate(EaseInOutSine, float64(sx)))
+				scrollEase = 1 + (0.05 * scrollAnimation.Animate(EaseInOutQuad, float64(sx)))
 			}
 
 			var offsetX, offsetY float32
@@ -247,7 +247,7 @@ func (gui *GUI) run(w *app.Window) error {
 			// Offset the image origins.
 			op.Affine(tr.Offset(imgPos).Scale(imgPos, f32.Pt(imgScale, imgScale))).Add(gtx.Ops)
 
-			gui.drawDiagram(gtx, imgScale, imgPos)
+			gui.drawDiagram(gtx, imgScale)
 			ev.Frame(gtx.Ops)
 		case app.DestroyEvent:
 			return ev.Err
@@ -255,7 +255,7 @@ func (gui *GUI) run(w *app.Window) error {
 	}
 }
 
-func (gui *GUI) drawDiagram(gtx layout.Context, imgScale float32, imgPos f32.Point) {
+func (gui *GUI) drawDiagram(gtx layout.Context, imgScale float32) {
 	gtx.Execute(op.InvalidateCmd{})
 
 	layout.Stack{}.Layout(gtx,

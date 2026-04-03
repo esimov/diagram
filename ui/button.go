@@ -11,7 +11,9 @@ type ButtonWidget struct {
 // NewButton creates a new button widget.
 func NewButton[T WidgetEmbedder](ui *UI, groupName, viewName string, posX, posY, width int) (*ButtonWidget, error) {
 	button, err := NewWidget(
-		&ButtonWidget{Widget{groupName: groupName}},
+		&ButtonWidget{
+			Widget{groupName: groupName},
+		},
 		[]WidgetOption[*ButtonWidget]{
 			WithDefaultWidgetOptions[*ButtonWidget](viewName, posX, posY),
 			WithWidgetWidth[*ButtonWidget](width),
