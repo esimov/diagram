@@ -120,14 +120,14 @@ func (gui *GUI) Draw(img image.Image) error {
 
 	// Center the window on the screen.
 	gui.Window.Perform(system.ActionCenter)
-	// Bring this window to the top of all open windows.
+
+	// Bring this window on top of all the opened windows.
 	gui.Window.Perform(system.ActionRaise)
 
 	if err := gui.run(gui.Window); err != nil {
 		defer func() {
 			os.Exit(0)
 		}()
-
 		return fmt.Errorf("GUI rendering error: %w", err)
 	}
 

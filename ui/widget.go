@@ -17,7 +17,7 @@ type Widget struct {
 }
 
 type WidgetEmbedder interface {
-	GetWidget() *Widget
+	getWidget() *Widget
 }
 
 type HandlerFn func(g *gocui.Gui, v *gocui.View) error
@@ -25,7 +25,7 @@ type WidgetOption[T WidgetEmbedder] func(T) error
 
 var _ ComponentHandler = (*Widget)(nil)
 
-// New creates a new widget.
+// NewWidget creates a new widget.
 func NewWidget[T WidgetEmbedder](w T, options ...WidgetOption[T]) (*T, error) {
 	for _, opt := range options {
 		if err := opt(w); err != nil {
@@ -39,7 +39,7 @@ func NewWidget[T WidgetEmbedder](w T, options ...WidgetOption[T]) (*T, error) {
 // WithDefaultWidgetOptions sets the default widget options for an already created widget element.
 func WithDefaultWidgetOptions[T WidgetEmbedder](name string, posX, posY int) WidgetOption[T] {
 	return func(w T) error {
-		w.GetWidget().setDefaultWidgetOptions(name, posX, posY)
+		w.getWidget().setDefaultWidgetOptions(name, posX, posY)
 		return nil
 	}
 }
@@ -47,7 +47,7 @@ func WithDefaultWidgetOptions[T WidgetEmbedder](name string, posX, posY int) Wid
 // WithWidgetWidth sets the widget element width.
 func WithWidgetWidth[T WidgetEmbedder](width int) WidgetOption[T] {
 	return func(w T) error {
-		w.GetWidget().setWidth(width)
+		w.getWidget().setWidth(width)
 		return nil
 	}
 }
@@ -55,7 +55,7 @@ func WithWidgetWidth[T WidgetEmbedder](width int) WidgetOption[T] {
 // WithHandlerFn assigns a handler to the widget.
 func WithHandlerFn[T WidgetEmbedder](handlerFn HandlerFn) WidgetOption[T] {
 	return func(w T) error {
-		w.GetWidget().setHandlerFn(handlerFn)
+		w.getWidget().setHandlerFn(handlerFn)
 		return nil
 	}
 }
@@ -66,13 +66,13 @@ func WithUIHandler[T WidgetEmbedder](ui *UI) WidgetOption[T] {
 		if ui == nil {
 			return fmt.Errorf("UI not initialized")
 		}
-		w.GetWidget().setUI(ui)
+		w.getWidget().setUI(ui)
 		return nil
 	}
 }
 
-// GetWidget implements the interface method definition.
-func (w *Widget) GetWidget() *Widget {
+// getWidget implements the interface method definition.
+func (w *Widget) getWidget() *Widget {
 	return w
 }
 
@@ -100,7 +100,7 @@ func (w *Widget) Draw() (*gocui.View, error) {
 		return nil, err
 	}
 
-	w.widgetItems[w.GetWidget().groupName] = append(w.widgetItems[w.GetWidget().groupName], v.Name())
+	w.widgetItems[w.getWidget().groupName] = append(w.widgetItems[w.getWidget().groupName], v.Name())
 
 	return v, nil
 }
@@ -108,7 +108,7 @@ func (w *Widget) Draw() (*gocui.View, error) {
 // NextElement activate the next element inside the modal view.
 func (w *Widget) NextElement(g *gocui.Gui, v *gocui.View) error {
 	w.unfocus()
-	w.activeModalView = (w.activeModalView + 1) % len(w.widgetItems[w.GetWidget().groupName])
+	w.activeModalView = (w.activeModalView + 1) % len(w.widgetItems[w.getWidget().groupName])
 	w.focus()
 
 	return nil
@@ -119,9 +119,9 @@ func (w *Widget) PrevElement(g *gocui.Gui, v *gocui.View) error {
 	w.unfocus()
 
 	if w.activeModalView-1 < 0 {
-		w.activeModalView = len(w.widgetItems[w.GetWidget().groupName]) - 1
+		w.activeModalView = len(w.widgetItems[w.getWidget().groupName]) - 1
 	} else {
-		w.activeModalView = (w.activeModalView - 1) % len(w.widgetItems[w.GetWidget().groupName])
+		w.activeModalView = (w.activeModalView - 1) % len(w.widgetItems[w.getWidget().groupName])
 	}
 	w.focus()
 
@@ -129,8 +129,8 @@ func (w *Widget) PrevElement(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (w *Widget) focus() {
-	if len(w.widgetItems[w.GetWidget().groupName]) != 0 {
-		v, _ := w.gui.SetCurrentView(w.widgetItems[w.GetWidget().groupName][w.activeModalView])
+	if len(w.widgetItems[w.getWidget().groupName]) != 0 {
+		v, _ := w.gui.SetCurrentView(w.widgetItems[w.getWidget().groupName][w.activeModalView])
 		v.Highlight = true
 		v.SelFgColor = gocui.ColorWhite
 		v.SelBgColor = gocui.ColorBlack
@@ -139,8 +139,8 @@ func (w *Widget) focus() {
 }
 
 func (w *Widget) unfocus() {
-	if len(w.widgetItems[w.GetWidget().groupName]) != 0 {
-		v, _ := w.gui.SetCurrentView(w.widgetItems[w.GetWidget().groupName][w.activeModalView])
+	if len(w.widgetItems[w.getWidget().groupName]) != 0 {
+		v, _ := w.gui.SetCurrentView(w.widgetItems[w.getWidget().groupName][w.activeModalView])
 		v.Highlight = false
 		v.SelBgColor = gocui.Attribute(w.activeLayoutColor)
 	}
