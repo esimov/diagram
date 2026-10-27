@@ -55,18 +55,26 @@ type GUI struct {
 	initZoom sync.Once
 }
 
+type diagram struct {
+	*scrollTracker
+	*mouseTracker
+	imgPos   f32.Point
+	imgScale float32
+}
+
 type scrollTracker struct {
 	isScrolling bool
+	scrollX     float64
 	deltaY      float32
 	scroll      gesture.Scroll
 }
 
 type mouseTracker struct {
 	isDragging        bool
-	mousePosX         float32
-	mousePosY         float32
-	mouseMoveX        float32
-	mouseMoveY        float32
+	posX              float32
+	posY              float32
+	moveX             float32
+	moveY             float32
 	imgOffsetX        float32
 	imgOffsetY        float32
 	currentImgOffsetX float32
@@ -136,17 +144,18 @@ func (gui *GUI) Draw(img image.Image) error {
 
 func (gui *GUI) run(w *app.Window) error {
 	var ops op.Ops
-	var deltaY float32 = 1.0
 
-	// Initialize the scroll tracker.
-	t := &scrollTracker{
-		isScrolling: false,
-		deltaY:      deltaY,
-		scroll:      gesture.Scroll{},
+	// Initialize diagram.
+	diagram := &diagram{
+		scrollTracker: &scrollTracker{
+			isScrolling: false,
+			deltaY:      1.0,
+			scroll:      gesture.Scroll{},
+		},
+		mouseTracker: &mouseTracker{},
 	}
 
-	// Initialize the mouse tracker.
-	m := &mouseTracker{}
+	scroll, mouse := diagram.scrollTracker, diagram.mouseTracker
 
 	var mpx, mpy float32
 	for {
@@ -158,7 +167,7 @@ func (gui *GUI) run(w *app.Window) error {
 				r := image.Rectangle{Max: image.Point{X: gtx.Constraints.Max.X, Y: gtx.Constraints.Max.Y}}
 				area := clip.Rect(r).Push(&ops)
 				pointer.CursorPointer.Add(gtx.Ops)
-				event.Op(&ops, t)
+				event.Op(&ops, scroll)
 				area.Pop()
 				rangeMin, rangeMax := int(-inf), int(inf)
 
@@ -167,7 +176,7 @@ func (gui *GUI) run(w *app.Window) error {
 						Name: key.NameEscape,
 					},
 					pointer.Filter{
-						Target:  t,
+						Target:  scroll,
 						ScrollY: pointer.ScrollRange{Min: rangeMin, Max: rangeMax},
 						Kinds:   pointer.Scroll | pointer.Press | pointer.Release | pointer.Move | pointer.Drag,
 					})
@@ -184,49 +193,49 @@ func (gui *GUI) run(w *app.Window) error {
 				case pointer.Event:
 					switch ev.Kind {
 					case pointer.Move:
-						m.mouseMoveX = ev.Position.X
-						m.mouseMoveY = ev.Position.Y
+						mouse.moveX = ev.Position.X
+						mouse.moveY = ev.Position.Y
 					case pointer.Press:
-						m.mousePosX = ev.Position.X - m.imgOffsetX
-						m.mousePosY = ev.Position.Y - m.imgOffsetY
+						mouse.posX = ev.Position.X - mouse.imgOffsetX
+						mouse.posY = ev.Position.Y - mouse.imgOffsetY
 					case pointer.Drag:
-						m.imgOffsetX = ev.Position.X - m.mousePosX
-						m.imgOffsetY = ev.Position.Y - m.mousePosY
+						mouse.imgOffsetX = ev.Position.X - mouse.posX
+						mouse.imgOffsetY = ev.Position.Y - mouse.posY
 
 						pointer.CursorGrabbing.Add(gtx.Ops)
-						m.isDragging = true
+						mouse.isDragging = true
 					case pointer.Release:
-						m.currentImgOffsetX = m.imgOffsetX
-						m.currentImgOffsetY = m.imgOffsetY
+						mouse.currentImgOffsetX = mouse.imgOffsetX
+						mouse.currentImgOffsetY = mouse.imgOffsetY
 
 						gui.pan.Delta = time.Since(gui.pan.StartTime)
-						m.timeStamp = time.Now()
-						m.isDragging = false
+						mouse.timeStamp = time.Now()
+						mouse.isDragging = false
 					case pointer.Scroll:
-						t.isScrolling = true
-						t.scroll.Add(&ops)
+						scroll.isScrolling = true
+						scroll.scroll.Add(&ops)
 
-						t.deltaY += ev.Scroll.Y * 0.002
-						dy := float32(gtx.Dp(unit.Dp(t.deltaY))) * 0.01
+						scroll.deltaY += ev.Scroll.Y * 0.002
+						dy := float32(gtx.Dp(unit.Dp(scroll.deltaY))) * 0.01
 
-						if t.deltaY > dy {
-							t.deltaY += dy
+						if scroll.deltaY > dy {
+							scroll.deltaY += dy
 						} else {
-							t.deltaY -= dy
+							scroll.deltaY -= dy
 						}
 
-						t.scroll.Update(gtx.Metric, gtx.Source, gtx.Now, gesture.Vertical,
+						scroll.scroll.Update(gtx.Metric, gtx.Source, gtx.Now, gesture.Vertical,
 							pointer.ScrollRange{Min: rangeMin, Max: rangeMax},
 							pointer.ScrollRange{Min: rangeMin, Max: rangeMax})
 
-						if t.deltaY < minScaleFactor {
-							t.deltaY = minScaleFactor
-						} else if t.deltaY > maxScaleFactor {
-							t.deltaY = maxScaleFactor
+						if scroll.deltaY < minScaleFactor {
+							scroll.deltaY = minScaleFactor
+						} else if scroll.deltaY > maxScaleFactor {
+							scroll.deltaY = maxScaleFactor
 						}
 
-						mpx = m.mouseMoveX * 0.3
-						mpy = m.mouseMoveY * 0.3
+						mpx = mouse.moveX * 0.3
+						mpy = mouse.moveY * 0.3
 
 						gui.scroll.Delta = time.Since(gui.scroll.StartTime)
 						gui.scroll.Duration = 700 * time.Millisecond
@@ -234,29 +243,28 @@ func (gui *GUI) run(w *app.Window) error {
 				}
 			}
 			var scrollEase float64
-			sx := gui.scroll.Update(gtx)
+			diagram.scrollX = gui.scroll.Update(gtx)
 
-			if !t.isScrolling {
-				scrollEase = gui.scroll.Animate(EaseInOutBack, float64(sx))
+			if !scroll.isScrolling {
+				scrollEase = gui.scroll.Animate(EaseInOutBack, float64(diagram.scrollX))
 			} else {
-				scrollEase = 1 + (0.2 * gui.scroll.Animate(EaseInOutSine, float64(sx)))
+				scrollEase = 1 + (0.2 * gui.scroll.Animate(EaseInOutSine, float64(diagram.scrollX)))
 			}
 
 			var offsetX, offsetY float32
-			if !m.isDragging {
-				sx = gui.pan.Update(gtx)
-				panEase := 1 + (0.005 * gui.pan.Animate(EaseInOut, float64(sx)))
+			if !mouse.isDragging {
+				panEase := 1 + (0.005 * gui.pan.Animate(EaseInOut, float64(diagram.scrollX)))
 
-				duration := time.Since(m.timeStamp).Seconds()
+				duration := time.Since(mouse.timeStamp).Seconds()
 				if duration < 0.2 {
-					m.currentImgOffsetX *= 0.995 * float32(panEase)
-					m.currentImgOffsetY *= 0.995 * float32(panEase)
+					mouse.currentImgOffsetX *= 0.995 * float32(panEase)
+					mouse.currentImgOffsetY *= 0.995 * float32(panEase)
 				}
-				offsetX = m.currentImgOffsetX
-				offsetY = m.currentImgOffsetY
+				offsetX = mouse.currentImgOffsetX
+				offsetY = mouse.currentImgOffsetY
 			} else {
-				offsetX = m.imgOffsetX
-				offsetY = m.imgOffsetY
+				offsetX = mouse.imgOffsetX
+				offsetY = mouse.imgOffsetY
 			}
 
 			if mpx < windowWidth/2 {
@@ -274,10 +282,10 @@ func (gui *GUI) run(w *app.Window) error {
 			gui.scroll.StartTime = time.Now()
 			gui.pan.StartTime = time.Now()
 
-			imgScale := t.deltaY * float32(scrollEase)
-			imgPos := f32.Pt(offsetX, offsetY)
+			diagram.imgScale = scroll.deltaY * float32(scrollEase)
+			diagram.imgPos = f32.Pt(offsetX, offsetY)
 
-			gui.drawDiagram(gtx, imgScale, imgPos)
+			gui.drawDiagram(gtx, diagram)
 			ev.Frame(gtx.Ops)
 		case app.DestroyEvent:
 			return ev.Err
@@ -285,9 +293,10 @@ func (gui *GUI) run(w *app.Window) error {
 	}
 }
 
-func (gui *GUI) drawDiagram(gtx layout.Context, imgScale float32, imgPos f32.Point) {
+func (gui *GUI) drawDiagram(gtx layout.Context, d *diagram) {
 	gtx.Execute(op.InvalidateCmd{})
 	tr := f32.Affine2D{}
+	start := time.Time{}
 
 	layout.Stack{}.Layout(gtx,
 		layout.Stacked(func(gtx layout.Context) layout.Dimensions {
@@ -298,10 +307,10 @@ func (gui *GUI) drawDiagram(gtx layout.Context, imgScale float32, imgPos f32.Poi
 			return layout.UniformInset(unit.Dp(outerPadding)).Layout(gtx,
 				func(gtx layout.Context) layout.Dimensions {
 					// Offset the image origins.
-					offStack := op.Affine(tr.Offset(imgPos).
+					offStack := op.Affine(tr.Offset(d.imgPos).
 						Scale(
 							f32.Pt(windowWidth/2, windowHeight/2),
-							f32.Pt(imgScale, imgScale),
+							f32.Pt(d.imgScale, d.imgScale),
 						)).Push(gtx.Ops)
 
 					widget.Image{
@@ -311,95 +320,110 @@ func (gui *GUI) drawDiagram(gtx layout.Context, imgScale float32, imgPos f32.Poi
 					}.Layout(gtx)
 					offStack.Pop()
 
-					if imgScale < zoomScaleFactor {
-						return layout.Dimensions{}
+					// Start the timer when we stopped zooming.
+					if d.scrollX == 1 {
+						start = time.Now()
 					}
 
-					// Initialize the zoom panel.
+					// Hide the navigator window after a short delay once we stopped zooming
+					// or when the zoomed diagram is less then a certain percentage.
+					if time.Since(start).Milliseconds() == 0 || d.imgScale < zoomScaleFactor {
+						if !d.mouseTracker.isDragging {
+							return layout.Dimensions{}
+						}
+					}
+
+					// Initialize the navigator window.
 					gui.initZoom.Do(func() {
-						zoomPanelDim = imgScale * scaleFactor
+						zoomPanelDim = d.imgScale * scaleFactor
 						zoomPanelImg = gui.Image
 					})
 
-					// Zoom navigator area.
-					defer op.Offset(image.Point{X: 0, Y: 0}).Push(gtx.Ops).Pop()
-					layout.Stack{
-						Alignment: layout.NW,
-					}.Layout(gtx,
-						layout.Expanded(func(gtx layout.Context) layout.Dimensions {
-							return layout.UniformInset(unit.Dp(0)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-								return widget.Border{
-									Color: color.NRGBA{R: 0x6c, G: 0x75, B: 0x7d, A: 120},
-									Width: unit.Dp(0.5),
-								}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-									return layout.UniformInset(unit.Dp(5)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-										return widget.Image{
-											Src:      zoomPanelImg,
-											Scale:    zoomPanelDim,
-											Position: layout.Center,
-											Fit:      widget.Unscaled,
-										}.Layout(gtx)
-									})
-								})
-							})
-						}),
-
-						layout.Expanded(func(gtx layout.Context) layout.Dimensions {
-							return layout.UniformInset(unit.Dp(0)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-								centerX := windowWidth / 2 * zoomPanelDim
-								centerY := windowHeight / 2 * zoomPanelDim
-
-								imgSizeX := float32(gui.Image.Size().X) * zoomPanelDim
-								imgSizeY := float32(gui.Image.Size().Y) * zoomPanelDim
-
-								zoomDimX := imgSizeX - (imgSizeX * zoomPanelDim)
-								zoomDimY := imgSizeY - (imgSizeY * zoomPanelDim)
-
-								px := (zoomDimX + imgPos.X) / 2 * zoomFactor
-								py := (zoomDimY + imgPos.Y) / 2 * zoomFactor
-
-								dx, dy := centerX-px, centerY-py
-								if dx < 1 {
-									dx = 1
-								} else if dx > zoomDimX {
-									dx = zoomDimX
-								}
-
-								if dy < 1 {
-									dy = 1
-								} else if dy > zoomDimY {
-									dy = zoomDimY
-								}
-
-								offStack := op.Affine(tr.Offset(
-									f32.Point{X: dx, Y: dy}).
-									Scale(
-										f32.Pt(dx, dy),
-										f32.Pt(1/imgScale*0.4, 1/imgScale*0.4),
-									)).Push(gtx.Ops)
-
-								paint.FillShape(gtx.Ops, color.NRGBA{R: 0xff, A: 90},
-									clip.UniformRRect(image.Rectangle{
-										Max: image.Point{X: 100, Y: 100},
-									}, gtx.Dp(0)).Op(gtx.Ops))
-
-								paint.FillShape(gtx.Ops, color.NRGBA{R: 0xff, A: 0xff},
-									clip.Stroke{
-										Path: clip.Rect{
-											Max: image.Point{X: 100, Y: 100},
-										}.Path(),
-										Width: 2.0,
-									}.Op(),
-								)
-								offStack.Pop()
-
-								return layout.Dimensions{Size: gtx.Constraints.Max}
-							})
-						}),
-					)
+					// Show the navigator window.
+					gui.showNavigatorWindow(gtx, d)
 
 					return layout.Dimensions{Size: gtx.Constraints.Max}
 				})
+		}),
+	)
+}
+
+func (gui *GUI) showNavigatorWindow(gtx layout.Context, d *diagram) {
+	tr := f32.Affine2D{}
+
+	defer op.Offset(image.Point{X: 0, Y: 0}).Push(gtx.Ops).Pop()
+	layout.Stack{
+		Alignment: layout.NW,
+	}.Layout(gtx,
+		layout.Expanded(func(gtx layout.Context) layout.Dimensions {
+			return layout.UniformInset(unit.Dp(0)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				return widget.Border{
+					Color: color.NRGBA{R: 0x6c, G: 0x75, B: 0x7d, A: 120},
+					Width: unit.Dp(0.5),
+				}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					return layout.UniformInset(unit.Dp(5)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+						return widget.Image{
+							Src:      zoomPanelImg,
+							Scale:    zoomPanelDim,
+							Position: layout.Center,
+							Fit:      widget.Unscaled,
+						}.Layout(gtx)
+					})
+				})
+			})
+		}),
+
+		layout.Expanded(func(gtx layout.Context) layout.Dimensions {
+			return layout.UniformInset(unit.Dp(0)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				centerX := windowWidth / 2 * zoomPanelDim
+				centerY := windowHeight / 2 * zoomPanelDim
+
+				imgSizeX := float32(gui.Image.Size().X) * zoomPanelDim
+				imgSizeY := float32(gui.Image.Size().Y) * zoomPanelDim
+
+				zoomDimX := imgSizeX - (imgSizeX * zoomPanelDim)
+				zoomDimY := imgSizeY - (imgSizeY * zoomPanelDim)
+
+				px := (zoomDimX + d.imgPos.X) / 2 * zoomFactor
+				py := (zoomDimY + d.imgPos.Y) / 2 * zoomFactor
+
+				dx, dy := centerX-px, centerY-py
+				if dx < 1 {
+					dx = 1
+				} else if dx > zoomDimX {
+					dx = zoomDimX
+				}
+
+				if dy < 1 {
+					dy = 1
+				} else if dy > zoomDimY {
+					dy = zoomDimY
+				}
+
+				offStack := op.Affine(tr.Offset(
+					f32.Point{X: dx, Y: dy}).
+					Scale(
+						f32.Pt(dx, dy),
+						f32.Pt(1/d.imgScale*0.4, 1/d.imgScale*0.4),
+					)).Push(gtx.Ops)
+
+				paint.FillShape(gtx.Ops, color.NRGBA{R: 0xff, A: 90},
+					clip.UniformRRect(image.Rectangle{
+						Max: image.Point{X: 100, Y: 100},
+					}, gtx.Dp(0)).Op(gtx.Ops))
+
+				paint.FillShape(gtx.Ops, color.NRGBA{R: 0xff, A: 0xff},
+					clip.Stroke{
+						Path: clip.Rect{
+							Max: image.Point{X: 100, Y: 100},
+						}.Path(),
+						Width: 2.0,
+					}.Op(),
+				)
+				offStack.Pop()
+
+				return layout.Dimensions{Size: gtx.Constraints.Max}
+			})
 		}),
 	)
 }
